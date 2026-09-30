@@ -21,8 +21,11 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# Only ignore python venv libs, never frontend lib/
+fashion_be/lib/
+fashion_be/lib64/
+!fashion_fe/lib/
+!fashion_fe/lib/**
 parts/
 sdist/
 var/
@@ -91,3 +94,4 @@ desktop.ini
 .agent/
 .agents/
 powershell.cmd
+powershell.exe
