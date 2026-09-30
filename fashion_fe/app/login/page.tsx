@@ -178,7 +178,9 @@ function LoginForm() {
 
         <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "#71717A" }}>
           Chưa có tài khoản?{" "}
-          <Link href="/register" style={{ color: "#927238", fontWeight: 600, textDecoration: "none" }}>
+          <Link
+            href={redirectUrl !== "/" ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : "/register"}
+            style={{ color: "#927238", fontWeight: 600, textDecoration: "none" }}>
             Đăng ký ngay
           </Link>
         </div>
