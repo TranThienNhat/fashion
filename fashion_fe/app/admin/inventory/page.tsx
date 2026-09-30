@@ -1,0 +1,464 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import {
+  Tabs,
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Tag,
+  Space,
+  message,
+  Popconfirm,
+  Row,
+  Col,
+} from "antd";
+import {
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  InboxOutlined,
+  ShopOutlined,
+} from "@ant-design/icons";
+import { warehouseAPI, catalogAPI } from "@/lib/api";
+import { formatPrice } from "@/lib/constants";
+import type { Supplier, PurchaseReceipt } from "@/lib/types";
+
+export default function AdminInventoryPage() {
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [receipts, setReceipts] = useState<PurchaseReceipt[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  // Supplier modal
+  const [isSupplierModalOpen, setIsSupplierModalOpen] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
+  const [supplierForm] = Form.useForm();
+
+  // Receipt modal
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+  const [receiptForm] = Form.useForm();
+  const [receiptItems, setReceiptItems] = useState<any[]>([
+    { variant_id: undefined, import_price: 500000, quantity: 20 },
+  ]);
+
+  // Detail modal
+  const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [supRes, recRes, prodRes] = await Promise.all([
+        warehouseAPI.adminGetSuppliers(),
+        warehouseAPI.adminGetReceipts({ page: 0, size: 20 }),
+        catalogAPI.getProducts({ page_size: 100 }),
+      ]);
+      const supList = supRes.data?.data || supRes.data?.items || (Array.isArray(supRes.data) ? supRes.data : []);
+      setSuppliers(Array.isArray(supList) ? supList : []);
+
+      const recList = recRes.data?.content || recRes.data?.data?.content || recRes.data?.data || (Array.isArray(recRes.data) ? recRes.data : []);
+      setReceipts(Array.isArray(recList) ? recList : []);
+
+      const prodList = prodRes.data?.content || prodRes.data?.data?.content || prodRes.data?.data || (Array.isArray(prodRes.data) ? prodRes.data : []);
+      setProducts(Array.isArray(prodList) ? prodList : []);
+    } catch {
+      message.error("Lỗi khi tải dữ liệu kho");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  // SUPPLIER ACTIONS
+  const handleOpenSupplierModal = (sup?: Supplier) => {
+    if (sup) {
+      setEditingSupplier(sup);
+      supplierForm.setFieldsValue(sup);
+    } else {
+      setEditingSupplier(null);
+      supplierForm.resetFields();
+    }
+    setIsSupplierModalOpen(true);
+  };
+
+  const handleSaveSupplier = async () => {
+    try {
+      const values = await supplierForm.validateFields();
+      if (editingSupplier) {
+        await warehouseAPI.adminUpdateSupplier(editingSupplier.supplier_id, values);
+        message.success("Cập nhật nhà cung cấp thành công");
+      } else {
+        await warehouseAPI.adminCreateSupplier(values);
+        message.success("Thêm nhà cung cấp mới thành công");
+      }
+      setIsSupplierModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      message.error(err?.response?.data?.error || "Lỗi lưu nhà cung cấp");
+    }
+  };
+
+  const handleDeleteSupplier = async (id: number) => {
+    try {
+      await warehouseAPI.adminDeleteSupplier(id);
+      message.success("Đã ngừng hợp tác với nhà cung cấp");
+      loadData();
+    } catch {
+      message.error("Lỗi khi xóa nhà cung cấp");
+    }
+  };
+
+  // RECEIPT ACTIONS
+  const handleOpenReceiptModal = () => {
+    receiptForm.resetFields();
+    setReceiptItems([{ variant_id: undefined, import_price: 500000, quantity: 20 }]);
+    setIsReceiptModalOpen(true);
+  };
+
+  const handleAddReceiptItemRow = () => {
+    setReceiptItems([...receiptItems, { variant_id: undefined, import_price: 500000, quantity: 10 }]);
+  };
+
+  const handleRemoveReceiptItemRow = (idx: number) => {
+    setReceiptItems(receiptItems.filter((_, i) => i !== idx));
+  };
+
+  const handleReceiptItemChange = (idx: number, field: string, val: any) => {
+    const updated = [...receiptItems];
+    updated[idx][field] = val;
+    setReceiptItems(updated);
+  };
+
+  const handleCreateReceipt = async () => {
+    try {
+      const values = await receiptForm.validateFields();
+      const validItems = receiptItems.filter((it) => it.variant_id && it.quantity > 0);
+      if (validItems.length === 0) {
+        message.warning("Vui lòng chọn ít nhất một biến thể sản phẩm nhập kho");
+        return;
+      }
+
+      await warehouseAPI.adminCreateReceipt({
+        supplier_id: values.supplier_id,
+        note: values.note,
+        items: validItems,
+      });
+
+      message.success("Lập phiếu nhập kho thành công! Tồn kho đã được tự động cộng dồn.");
+      setIsReceiptModalOpen(false);
+      loadData();
+    } catch (err: any) {
+      message.error(err?.response?.data?.error || "Lỗi lập phiếu nhập kho");
+    }
+  };
+
+  const handleViewReceiptDetail = async (id: number) => {
+    try {
+      const res = await warehouseAPI.adminGetReceiptDetail(id);
+      setSelectedReceipt(res.data);
+      setIsDetailOpen(true);
+    } catch {
+      message.error("Lỗi xem chi tiết phiếu nhập");
+    }
+  };
+
+  // Trích xuất danh sách tất cả các biến thể khả dụng từ products
+  const allVariants: any[] = [];
+  products.forEach((p) => {
+    if (p.variants) {
+      p.variants.forEach((v: any) => {
+        allVariants.push({
+          ...v,
+          product_name: p.name,
+          label: `${p.name} - Màu: ${v.color} | Size: ${v.size} (${v.sku})`,
+        });
+      });
+    }
+  });
+
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, flexWrap: "wrap", gap: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 26, fontFamily: "Cormorant Garamond, serif", margin: 0, color: "#0D0D0D", letterSpacing: "0.02em" }}>
+            Quản Lý Nhập Kho & Nhà Cung Cấp
+          </h1>
+          <span style={{ fontSize: 13, color: "#8F877F" }}>
+            Quản lý quan hệ cung ứng, lập phiếu nhập hàng và tự động cập nhật số lượng tồn kho
+          </span>
+        </div>
+
+        <Button
+          type="primary"
+          onClick={handleOpenReceiptModal}
+          style={{
+            background: "#0D0D0D",
+            borderColor: "#0D0D0D",
+            borderRadius: 0,
+            fontSize: 12,
+            letterSpacing: "0.08em",
+            textTransform: "uppercase",
+            height: 38,
+          }}
+          icon={<PlusOutlined />}>
+          Lập Phiếu Nhập Kho Mới
+        </Button>
+      </div>
+
+      <div style={{ background: "#FFFFFF", border: "1px solid #EAEAE8", padding: 20 }}>
+        <Tabs
+          defaultActiveKey="receipts"
+          items={[
+            {
+              key: "receipts",
+              label: (
+                <span style={{ fontSize: 14, fontWeight: 500 }}>
+                  <InboxOutlined style={{ marginRight: 6 }} /> Danh Sách Phiếu Nhập Kho ({receipts.length})
+                </span>
+              ),
+              children: (
+                <Table
+                  dataSource={receipts}
+                  rowKey="receipt_id"
+                  loading={loading}
+                  columns={[
+                    {
+                      title: "Mã phiếu",
+                      dataIndex: "receipt_code",
+                      key: "receipt_code",
+                      render: (code) => <b>{code}</b>,
+                    },
+                    { title: "Nhà cung cấp", dataIndex: "supplier_name", key: "supplier_name" },
+                    { title: "Người tạo", dataIndex: "creator_name", key: "creator_name" },
+                    {
+                      title: "Tổng chi phí nhập",
+                      dataIndex: "total_cost",
+                      key: "total_cost",
+                      render: (v) => <b style={{ color: "#2563EB" }}>{formatPrice(v)}</b>,
+                    },
+                    {
+                      title: "Ngày nhập",
+                      dataIndex: "received_at",
+                      key: "received_at",
+                      render: (dt) => new Date(dt).toLocaleString("vi-VN"),
+                    },
+                    {
+                      title: "Thao tác",
+                      key: "action",
+                      render: (_, rec) => (
+                        <Button size="small" onClick={() => handleViewReceiptDetail(rec.receipt_id)}>
+                          Xem Chi Tiết
+                        </Button>
+                      ),
+                    },
+                  ]}
+                />
+              ),
+            },
+            {
+              key: "suppliers",
+              label: (
+                <span style={{ fontSize: 14, fontWeight: 500 }}>
+                  <ShopOutlined style={{ marginRight: 6 }} /> Danh Bạ Nhà Cung Cấp ({suppliers.length})
+                </span>
+              ),
+              children: (
+                <div>
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
+                    <Button onClick={() => handleOpenSupplierModal()} icon={<PlusOutlined />}>
+                      Thêm Nhà Cung Cấp
+                    </Button>
+                  </div>
+                  <Table
+                    dataSource={suppliers}
+                    rowKey="supplier_id"
+                    columns={[
+                      { title: "Tên nhà cung cấp", dataIndex: "name", key: "name", render: (n) => <b>{n}</b> },
+                      { title: "Người liên hệ", dataIndex: "contact_name", key: "contact_name" },
+                      { title: "Số điện thoại", dataIndex: "phone", key: "phone" },
+                      { title: "Email", dataIndex: "email", key: "email" },
+                      { title: "Địa chỉ", dataIndex: "address", key: "address" },
+                      {
+                        title: "Trạng thái",
+                        dataIndex: "is_active",
+                        key: "is_active",
+                        render: (act) => <Tag color={act ? "green" : "red"}>{act ? "Đang hợp tác" : "Ngừng"}</Tag>,
+                      },
+                      {
+                        title: "Thao tác",
+                        key: "action",
+                        render: (_, sup) => (
+                          <Space>
+                            <Button size="small" icon={<EditOutlined />} onClick={() => handleOpenSupplierModal(sup)} />
+                            <Popconfirm
+                              title="Ngừng hợp tác với nhà cung cấp này?"
+                              onConfirm={() => handleDeleteSupplier(sup.supplier_id)}
+                              okText="Đồng ý"
+                              cancelText="Hủy">
+                              <Button size="small" danger icon={<DeleteOutlined />} />
+                            </Popconfirm>
+                          </Space>
+                        ),
+                      },
+                    ]}
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
+      </div>
+
+      {/* Modal Lập Phiếu Nhập Kho */}
+      <Modal
+        title={<span style={{ fontFamily: "serif", fontSize: 20 }}>Lập Phiếu Nhập Kho (Tự Động Cộng Tồn Kho)</span>}
+        open={isReceiptModalOpen}
+        onCancel={() => setIsReceiptModalOpen(false)}
+        onOk={handleCreateReceipt}
+        okText="Xác Nhận Nhập Hàng"
+        cancelText="Hủy"
+        width={800}>
+        <Form form={receiptForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Chọn Nhà Cung Cấp" name="supplier_id" rules={[{ required: true }]}>
+                <Select placeholder="Chọn nhà cung cấp">
+                  {(Array.isArray(suppliers) ? suppliers : []).map((s) => (
+                    <Select.Option key={s.supplier_id} value={s.supplier_id}>
+                      {s.name} ({s.phone})
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Ghi chú phiếu nhập" name="note">
+                <Input placeholder="Lô hàng nhập đầu mùa..." />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <div style={{ borderTop: "1px solid #E4E4E7", paddingTop: 16, marginTop: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <b>Danh Sách Mặt Hàng / Biến Thể Nhập Kho:</b>
+              <Button size="small" onClick={handleAddReceiptItemRow} icon={<PlusOutlined />}>
+                Thêm Dòng
+              </Button>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {(Array.isArray(receiptItems) ? receiptItems : []).map((it, idx) => (
+                <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", background: "#FAFAF9", border: "1px solid #EAEAE8", padding: 8 }}>
+                  <Select
+                    placeholder="Chọn biến thể sản phẩm..."
+                    style={{ flex: 1 }}
+                    value={it.variant_id}
+                    onChange={(val) => handleReceiptItemChange(idx, "variant_id", val)}>
+                    {(Array.isArray(allVariants) ? allVariants : []).map((v) => (
+                      <Select.Option key={v.variant_id} value={v.variant_id}>
+                        {v.label}
+                      </Select.Option>
+                    ))}
+                  </Select>
+
+                  <InputNumber
+                    placeholder="Đơn giá nhập"
+                    value={it.import_price}
+                    onChange={(val) => handleReceiptItemChange(idx, "import_price", val)}
+                    style={{ width: 140 }}
+                  />
+
+                  <InputNumber
+                    placeholder="Số lượng"
+                    value={it.quantity}
+                    onChange={(val) => handleReceiptItemChange(idx, "quantity", val)}
+                    style={{ width: 90 }}
+                  />
+
+                  <Button danger size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveReceiptItemRow(idx)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </Form>
+      </Modal>
+
+      {/* Modal Chi Tiết Phiếu Nhập */}
+      <Modal
+        title={<span style={{ fontFamily: "serif", fontSize: 20 }}>Chi Tiết Phiếu Nhập #{selectedReceipt?.receipt_code}</span>}
+        open={isDetailOpen}
+        onCancel={() => setIsDetailOpen(false)}
+        footer={null}
+        width={700}>
+        {selectedReceipt && (
+          <div style={{ padding: "12px 0" }}>
+            <div style={{ background: "#FAFAF9", border: "1px solid #EAEAE8", padding: 14, marginBottom: 16, fontSize: 13, lineHeight: 1.8 }}>
+              <div><b>Nhà cung cấp:</b> {selectedReceipt.supplier_name} ({selectedReceipt.supplier_phone})</div>
+              <div><b>Người lập phiếu:</b> {selectedReceipt.creator_name}</div>
+              <div><b>Thời gian:</b> {new Date(selectedReceipt.received_at).toLocaleString("vi-VN")}</div>
+              {selectedReceipt.note && <div><b>Ghi chú:</b> {selectedReceipt.note}</div>}
+            </div>
+
+            <Table
+              dataSource={selectedReceipt.items}
+              rowKey="receipt_item_id"
+              pagination={false}
+              columns={[
+                { title: "Sản phẩm", dataIndex: "product_name", key: "product_name" },
+                { title: "SKU", dataIndex: "sku", key: "sku" },
+                { title: "Màu / Size", key: "var", render: (_: any, r: any) => `${r?.color || ""} / ${r?.size || ""}` },
+                { title: "Giá nhập", dataIndex: "import_price", key: "import_price", render: (v: any) => formatPrice(v) },
+                { title: "Số lượng", dataIndex: "quantity", key: "quantity", render: (q: any) => <b>+{q}</b> },
+              ]}
+            />
+
+            <div style={{ marginTop: 16, textAlign: "right", fontSize: 16, fontWeight: 700 }}>
+              Tổng tiền vốn nhập: {formatPrice(selectedReceipt.total_cost)}
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal Thêm / Sửa Nhà Cung Cấp */}
+      <Modal
+        title={<span style={{ fontFamily: "serif", fontSize: 20 }}>{editingSupplier ? "Chỉnh Sửa Nhà Cung Cấp" : "Thêm Nhà Cung Cấp Mới"}</span>}
+        open={isSupplierModalOpen}
+        onCancel={() => setIsSupplierModalOpen(false)}
+        onOk={handleSaveSupplier}
+        okText="Lưu"
+        cancelText="Hủy">
+        <Form form={supplierForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item label="Tên nhà cung cấp" name="name" rules={[{ required: true }]}>
+            <Input placeholder="Công ty Dệt May Châu Âu..." />
+          </Form.Item>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Người liên hệ" name="contact_name">
+                <Input placeholder="Jean Luc" />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Số điện thoại" name="phone" rules={[{ required: true }]}>
+                <Input placeholder="0988776655" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item label="Email" name="email">
+            <Input placeholder="supplier@textile.com" />
+          </Form.Item>
+          <Form.Item label="Địa chỉ" name="address">
+            <Input placeholder="12 Boulevard Haussmann, Paris" />
+          </Form.Item>
+        </Form>
+      </Modal>
+    </div>
+  );
+}
