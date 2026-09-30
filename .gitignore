@@ -1,0 +1,92 @@
+# =============================================================================
+# FASHION E-COMMERCE - ROOT GITIGNORE
+# Đảm bảo mã nguồn tinh gọn, nhẹ và an toàn khi đẩy lên Git
+# =============================================================================
+
+# --- 1. Python & Virtual Environments (VENV) ---
+venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+*.py[cod]
+*$py.class
+__pycache__/
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# --- 2. Node.js & Next.js Frontend ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+out/
+.turbo/
+.vercel/
+
+# --- 3. Environment Variables & Secrets ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+
+# --- 4. File Uploads (Giữ nguyên cấu trúc thư mục, không đẩy ảnh tĩnh của user) ---
+uploads/*
+!uploads/.gitkeep
+fashion_be/uploads/*
+!fashion_be/uploads/.gitkeep
+
+# --- 5. Logs & Temporary Files ---
+*.log
+logs/
+*.log.*
+*.tmp
+*.temp
+*.bak
+*.cache
+*.swp
+*.swo
+*~
+
+# --- 6. IDE & Operating System ---
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- 7. Database Backups ---
+*.sqlite
+*.sqlite3
+*.db
+*.sql.bak
+
+.agent/
+.agents/
