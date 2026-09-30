@@ -1,10 +1,6 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
-  // Chỉ định thư mục gốc để tránh cảnh báo đa lockfile
-  outputFileTracingRoot: path.join(__dirname, "../"),
-
   // Bỏ qua lỗi để build nhanh
   eslint: {
     ignoreDuringBuilds: true,
