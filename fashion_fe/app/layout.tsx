@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   title: "Vinh Store — Thời Trang Nam Nữ & Phụ Kiện Cao Cấp",
   description:
     "Thương hiệu thời trang Vinh Store tôn vinh vẻ đẹp tinh tế, chuẩn mực may đo tinh xảo và phong cách thời trang hiện đại vượt thời gian.",
+  icons: {
+    icon: "/next-icon.svg",
+    shortcut: "/next-icon.svg",
+    apple: "/next-icon.svg",
+  },
 };
 
 export default function RootLayout({

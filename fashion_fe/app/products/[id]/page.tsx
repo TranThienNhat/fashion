@@ -539,7 +539,6 @@ export default function ProductDetailPage({ params }: PageProps) {
                 <th style={{ border: "1px solid #E4E4E7" }}>Size</th>
                 <th style={{ border: "1px solid #E4E4E7" }}>Chiều cao (cm)</th>
                 <th style={{ border: "1px solid #E4E4E7" }}>Cân nặng (kg)</th>
-                <th style={{ border: "1px solid #E4E4E7" }}>Vòng ngực (cm)</th>
               </tr>
             </thead>
             <tbody>
@@ -547,25 +546,21 @@ export default function ProductDetailPage({ params }: PageProps) {
                 <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>S</b></td>
                 <td style={{ border: "1px solid #E4E4E7" }}>155 - 165</td>
                 <td style={{ border: "1px solid #E4E4E7" }}>45 - 55</td>
-                <td style={{ border: "1px solid #E4E4E7" }}>82 - 86</td>
               </tr>
               <tr>
                 <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>M</b></td>
                 <td style={{ border: "1px solid #E4E4E7" }}>165 - 172</td>
                 <td style={{ border: "1px solid #E4E4E7" }}>55 - 65</td>
-                <td style={{ border: "1px solid #E4E4E7" }}>86 - 92</td>
               </tr>
               <tr>
                 <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>L</b></td>
                 <td style={{ border: "1px solid #E4E4E7" }}>170 - 178</td>
                 <td style={{ border: "1px solid #E4E4E7" }}>65 - 75</td>
-                <td style={{ border: "1px solid #E4E4E7" }}>92 - 98</td>
               </tr>
               <tr>
                 <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>XL</b></td>
                 <td style={{ border: "1px solid #E4E4E7" }}>175 - 185</td>
                 <td style={{ border: "1px solid #E4E4E7" }}>75 - 85</td>
-                <td style={{ border: "1px solid #E4E4E7" }}>98 - 104</td>
               </tr>
             </tbody>
           </table>
