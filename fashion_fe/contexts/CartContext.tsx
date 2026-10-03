@@ -41,6 +41,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     try {
       setLoading(true);
+      const res = await cartAPI.getCart();
       const cartData = res.data?.data || res.data;
       if (cartData && !Array.isArray(cartData.items)) {
         cartData.items = [];

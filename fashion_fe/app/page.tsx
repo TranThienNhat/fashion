@@ -107,7 +107,7 @@ export default function Home() {
                 letterSpacing: "0.04em",
               }}>
               Chuẩn Mực Của <br />
-              <i style={{ fontWeight: 400, color: "#EAEAE8" }}>Quiet Luxury</i>
+              <i style={{ fontWeight: 400, color: "#EAEAE8" }}>Thời Trang Đẳng Cấp</i>
             </h1>
             <p style={{ fontSize: 15, color: "#E0E0E0", marginTop: 20, lineHeight: 1.7, maxWidth: 520, letterSpacing: "0.02em" }}>
               Tôn vinh sự sang trọng kín đáo qua những đường may đo thủ công tinh xảo, chất liệu Cashmere thượng hạng và lụa tơ tằm nguyên bản.
@@ -145,7 +145,7 @@ export default function Home() {
                     fontSize: 12,
                     textTransform: "uppercase",
                   }}>
-                  XEM CATALOG
+                  XEM TẤT CẢ SẢN PHẨM
                 </Button>
               </Link>
             </div>
@@ -256,7 +256,7 @@ export default function Home() {
               MỚI CẬP NHẬT
             </span>
             <h2 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "8px 0 0", color: "#0D0D0D", letterSpacing: "0.02em" }}>
-              Sản Phẩm Mới Về (New Arrivals)
+              Sản Phẩm Mới Về
             </h2>
           </div>
           <Link href="/products?sort=newest" style={{ color: "#0D0D0D", fontWeight: 500, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
@@ -368,7 +368,7 @@ export default function Home() {
                 "Thời trang không chỉ là trang phục, mà là tuyên ngôn của phong thái và sự tĩnh lặng."
               </h2>
               <p style={{ color: "#A0A0A0", fontSize: 14, lineHeight: 1.8, maxWidth: 540 }}>
-                Mỗi thiết kế tại ÉLÉGANCE đều được chắt lọc từ những xưởng dệt truyền thống châu Âu, qua bàn tay của các nghệ nhân may đo lành nghề. Chúng tôi tôn trọng vẻ đẹp nguyên bản và hướng tới thời trang bền vững vĩnh cửu.
+                Mỗi thiết kế tại Vinh Store đều được chắt lọc từ những xưởng may đo lành nghề, tôn trọng vẻ đẹp nguyên bản và hướng tới thời trang bền vững vĩnh cửu.
               </p>
               <div style={{ marginTop: 36 }}>
                 <Link href="/news">
@@ -494,7 +494,7 @@ export default function Home() {
                     </div>
                     <div style={{ padding: 22 }}>
                       <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
-                        BỞI {b.author_name || "ÉLÉGANCE EDITORIAL"}
+                        BỞI {b.author_name || "VINH STORE"}
                       </div>
                       <h3
                         style={{

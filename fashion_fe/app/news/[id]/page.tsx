@@ -82,7 +82,7 @@ export default function NewsDetailPage({ params }: PageProps) {
         </h1>
 
         <div style={{ fontSize: 13, color: "#71717A", paddingBottom: 24, borderBottom: "1px solid #E4E4E7", marginBottom: 32 }}>
-          Đăng ngày {new Date(post.created_at).toLocaleDateString("vi-VN")} • Tác giả: <b>{post.author_name || "ÉLÉGANCE"}</b>
+          Đăng ngày {new Date(post.created_at).toLocaleDateString("vi-VN")} • Tác giả: <b>{post.author_name || "Vinh Store"}</b>
         </div>
 
         {post.thumbnail && (

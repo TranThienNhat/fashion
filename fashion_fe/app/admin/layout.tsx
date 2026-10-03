@@ -92,10 +92,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/" style={{ textDecoration: "none", color: "#FFFFFF", display: "flex", alignItems: "center" }}>
             <div>
               <div style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 22, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase" }}>
-                ÉLÉGANCE
+                VINH STORE
               </div>
               <div style={{ fontSize: 9, color: "#8F877F", letterSpacing: "0.22em", textTransform: "uppercase", marginTop: 2 }}>
-                ATELIER • ADMIN
+                QUẢN TRỊ VIÊN
               </div>
             </div>
           </Link>
@@ -123,7 +123,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             height: 64,
           }}>
           <div style={{ fontSize: 12, color: "#8F877F", letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 500 }}>
-            HỆ THỐNG QUẢN TRỊ ÉLÉGANCE
+            HỆ THỐNG QUẢN TRỊ VINH STORE
           </div>
 
           <Space size={16}>
@@ -156,7 +156,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   textTransform: "uppercase",
                   fontWeight: 600,
                 }}>
-                {user?.role}
+                {user?.role === "ADMIN" ? "Quản trị viên" : user?.role === "STAFF" ? "Nhân viên" : "Khách hàng"}
               </span>
             </span>
 

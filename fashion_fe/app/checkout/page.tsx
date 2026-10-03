@@ -153,20 +153,13 @@ function CheckoutContent() {
               Mã đơn hàng của bạn là: <b>{orderSuccess.order_code}</b>. Đơn hàng đang được bộ phận vận hành chuẩn bị và đóng gói cẩn thận.
             </p>
 
-            {paymentMethod === "BANKING" && (
-              <div style={{ background: "#FAF9F6", border: "1px dashed #C5A880", padding: "20px", marginBottom: 24, textAlign: "left" }}>
-                <h4 style={{ margin: "0 0 12px", color: "#18181B", display: "flex", alignItems: "center", gap: 8 }}>
-                  <QrcodeOutlined style={{ fontSize: 18, color: "#C5A880" }} /> Thông Tin Chuyển Khoản Ngân Hàng
-                </h4>
-                <div style={{ fontSize: 13, lineHeight: 1.8, color: "#3F3F46" }}>
-                  Ngân hàng: <b>MB BANK (Ngân hàng Quân Đội)</b><br />
-                  Số tài khoản: <b>999988886666</b><br />
-                  Chủ tài khoản: <b>MAISON ELEGANCE FASHION</b><br />
-                  Số tiền: <b style={{ color: "#DC2626" }}>{formatPrice(orderSuccess.total_amount)}</b><br />
-                  Nội dung chuyển khoản: <b>{orderSuccess.order_code}</b>
-                </div>
+            <div style={{ background: "#FAF9F6", border: "1px dashed #C5A880", padding: "16px 20px", marginBottom: 24, textAlign: "left" }}>
+              <div style={{ fontSize: 13, lineHeight: 1.8, color: "#3F3F46" }}>
+                Hình thức thanh toán: <b>Thanh toán khi nhận hàng (COD)</b><br />
+                Số tiền cần thanh toán: <b style={{ color: "#DC2626" }}>{formatPrice(orderSuccess.total_amount)}</b><br />
+                Quý khách vui lòng kiểm tra hàng trước khi thanh toán cho shipper.
               </div>
-            )}
+            </div>
 
             <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
               <Link href="/orders">

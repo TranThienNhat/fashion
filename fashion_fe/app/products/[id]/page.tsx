@@ -141,6 +141,11 @@ export default function ProductDetailPage({ params }: PageProps) {
       message.error("Biến thể này hiện đã tạm hết hàng");
       return;
     }
+    if (!authUtils.isAuthenticated()) {
+      message.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+      router.push(`/login?redirect=/products/${productId}`);
+      return;
+    }
     await addToCart(selectedVariant.variant_id, quantity);
   };
 
@@ -152,6 +157,11 @@ export default function ProductDetailPage({ params }: PageProps) {
     }
     if (isOutOfStock) {
       message.error("Biến thể này hiện đã tạm hết hàng");
+      return;
+    }
+    if (!authUtils.isAuthenticated()) {
+      message.warning("Vui lòng đăng nhập để tiếp tục mua hàng");
+      router.push(`/login?redirect=/checkout?variant_id=${selectedVariant.variant_id}&quantity=${quantity}`);
       return;
     }
     // Chuyển tới trang checkout kèm query params
@@ -254,7 +264,7 @@ export default function ProductDetailPage({ params }: PageProps) {
               {/* Brand & Name */}
               <div>
                 <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 500 }}>
-                  {product.brand_name || "ÉLÉGANCE ATELIER"}
+                  {product.brand_name || "Vinh Store"}
                 </span>
                 <h1
                   style={{
@@ -449,7 +459,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
               {/* Lời cam kết bổ sung */}
               <div style={{ background: "#FAFAF9", border: "1px solid #EAEAE8", padding: "16px", marginTop: 8, fontSize: 12, color: "#6B6B6B", lineHeight: 1.7 }}>
-                ✓ Đóng gói hộp quà cao cấp kèm thiệp cảm ơn ÉLÉGANCE<br />
+                ✓ Đóng gói hộp quà cao cấp kèm thiệp cảm ơn Vinh Store<br />
                 ✓ Kiểm tra sản phẩm cẩn trọng trước khi nhận hàng<br />
                 ✓ Miễn phí đổi size trong 30 ngày nếu không vừa vặn
               </div>

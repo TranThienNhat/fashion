@@ -10,18 +10,18 @@ export default function MainFooter() {
           {/* Brand Col */}
           <div>
             <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 24, fontWeight: 500, letterSpacing: "0.22em", textTransform: "uppercase", color: "#FFFFFF" }}>
-              ÉLÉGANCE
+              VINH STORE
             </span>
             <div style={{ fontSize: 9, letterSpacing: "0.3em", color: "#8F877F", textTransform: "uppercase", marginTop: 2, marginBottom: 16 }}>
-              PARIS • ATELIER
+              THỜI TRANG CAO CẤP
             </div>
             <p style={{ color: "#737373", fontSize: 13, lineHeight: 1.8, margin: 0, maxWidth: 300 }}>
-              Nhà mốt tôn vinh triết lý thẩm mỹ tối giản, sự sang trọng kín đáo và chuẩn mực may đo tinh xảo vượt thời gian.
+              Hệ thống thời trang tôn vinh phong cách tinh tế, sự sang trọng và chuẩn mực may đo tinh xảo vượt thời gian.
             </p>
             <div style={{ color: "#8F877F", fontSize: 12, marginTop: 20, lineHeight: 1.7 }}>
               <div>28 Tràng Tiền, Hoàn Kiếm, Hà Nội</div>
               <div>88 Đồng Khởi, Quận 1, TP. Hồ Chí Minh</div>
-              <div style={{ marginTop: 4 }}>concierge@elegance-paris.com</div>
+              <div style={{ marginTop: 4 }}>hotro@vinhstore.vn</div>
             </div>
           </div>
 
@@ -56,7 +56,7 @@ export default function MainFooter() {
           {/* Newsletter Subscribe */}
           <div>
             <h4 style={{ color: "#FFFFFF", fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 20, fontWeight: 600 }}>
-              Bản Tin Atelier
+              Bản Tin Thời Trang
             </h4>
             <p style={{ color: "#737373", fontSize: 13, lineHeight: 1.6, marginBottom: 16 }}>
               Đăng ký để nhận thông tin về các bộ sưu tập giới hạn và lời mời tham dự sự kiện thời trang độc quyền.
@@ -103,7 +103,7 @@ export default function MainFooter() {
             gap: 16,
           }}>
           <div>
-            © {new Date().getFullYear()} ÉLÉGANCE PARIS. All Rights Reserved. Quiet Luxury & Haute Couture.
+            © {new Date().getFullYear()} VINH STORE. Bảo lưu mọi quyền. Phong cách thời trang cao cấp & thanh lịch.
           </div>
           <div style={{ display: "flex", gap: 24 }}>
             <span style={{ cursor: "pointer" }}>Điều Khoản Sử Dụng</span>

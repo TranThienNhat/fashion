@@ -45,7 +45,7 @@ function LoginForm() {
 
       notification.success({
         message: "Đăng nhập thành công",
-        description: `Xin chào ${user.full_name || user.email}, chúc bạn có trải nghiệm mua sắm tuyệt vời tại Maison ÉLÉGANCE.`,
+        description: `Xin chào ${user.full_name || user.email}, chúc bạn có trải nghiệm mua sắm tuyệt vời tại Vinh Store.`,
         placement: "topRight",
         duration: 3,
       });
@@ -106,10 +106,10 @@ function LoginForm() {
         <div style={{ textAlign: "center", marginBottom: 30 }}>
           <Link href="/" style={{ textDecoration: "none", color: "#18181B", display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
             <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 32, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" }}>
-              ÉLÉGANCE
+              VINH STORE
             </span>
             <span style={{ fontSize: 9, letterSpacing: "0.3em", color: "#8F877F", textTransform: "uppercase", marginTop: 4 }}>
-              PARIS • ATELIER
+              THỜI TRANG CAO CẤP
             </span>
           </Link>
           <p style={{ color: "#71717A", fontSize: 13, marginTop: 10 }}>

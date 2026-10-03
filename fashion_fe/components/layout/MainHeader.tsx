@@ -98,7 +98,7 @@ export default function MainHeader({ onMenuClick }: MainHeaderProps) {
               color: "#030303",
               letterSpacing: "-0.8px",
             }}>
-            ÉLÉGANCE
+            VINH STORE
           </Title>
         </div>
       </div>

@@ -51,7 +51,7 @@ export default function Header() {
                 letterSpacing: "0.15em",
                 fontFamily: "Cormorant Garamond, serif",
               }}>
-              ÉLÉGANCE
+              VINH STORE
             </h3>
           </div>
         </div>

@@ -33,12 +33,9 @@ export const PAYMENT_STATUS_MAP: Record<string, { label: string; color: string; 
   REFUNDED: { label: "Đã hoàn tiền", color: "#4B5563", bg: "#F3F4F6" },
 };
 
-// Phương thức thanh toán
+// Phương thức thanh toán (chỉ hỗ trợ COD theo yêu cầu hệ thống)
 export const PAYMENT_METHODS = [
-  { id: "COD", name: "Thanh toán khi nhận hàng (COD)", desc: "Nhận hàng kiểm tra và thanh toán trực tiếp cho shipper" },
-  { id: "BANKING", name: "Chuyển khoản Ngân hàng (QR Code)", desc: "Quét mã VietQR chuyển khoản nhanh 24/7" },
-  { id: "VNPAY", name: "Cổng thanh toán VNPAY", desc: "Thanh toán qua ví VNPAY hoặc thẻ ATM / Visa / Mastercard" },
-  { id: "MOMO", name: "Ví điện tử MoMo", desc: "Thanh toán tiện lợi qua ứng dụng MoMo" },
+  { id: "COD", name: "Thanh toán khi nhận hàng (COD)", desc: "Nhận hàng kiểm tra và thanh toán trực tiếp tiền mặt cho nhân viên giao hàng" },
 ];
 
 // Danh sách màu sắc thời trang thông dụng

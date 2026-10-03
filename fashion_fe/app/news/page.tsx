@@ -33,7 +33,7 @@ export default function NewsPage() {
       <div style={{ maxWidth: 1360, margin: "0 auto", padding: "48px 24px" }}>
         <div style={{ textAlign: "center", maxWidth: 700, margin: "0 auto 48px" }}>
           <span style={{ color: "#C5A880", fontSize: 12, letterSpacing: "0.2em", textTransform: "uppercase" }}>
-            ÉLÉGANCE EDITORIAL
+            VINH STORE EDITORIAL
           </span>
           <h1 style={{ fontSize: 44, fontFamily: "Cormorant Garamond, serif", margin: "12px 0", color: "#18181B" }}>
             Tạp Chí Phong Cách & Xu Hướng
@@ -68,7 +68,7 @@ export default function NewsPage() {
                     <div style={{ padding: 24, flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       <div>
                         <div style={{ fontSize: 11, color: "#A1A1AA", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                          {new Date(post.created_at).toLocaleDateString("vi-VN")} • {post.author_name || "ÉLÉGANCE"}
+                          {new Date(post.created_at).toLocaleDateString("vi-VN")} • {post.author_name || "Vinh Store"}
                         </div>
                         <h3
                           style={{

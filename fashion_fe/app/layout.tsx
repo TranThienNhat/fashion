@@ -7,9 +7,9 @@ import { AppProvider } from "@/contexts/AppContext";
 import { CartProvider } from "@/contexts/CartContext";
 
 export const metadata: Metadata = {
-  title: "ÉLÉGANCE — Maison de Haute Couture & Minimalist Luxury",
+  title: "Vinh Store — Thời Trang Nam Nữ & Phụ Kiện Cao Cấp",
   description:
-    "Thương hiệu thời trang tối giản cao cấp tôn vinh vẻ đẹp tinh tế, đường cắt may chuẩn xác và sự sang trọng kín đáo vượt thời gian.",
+    "Thương hiệu thời trang Vinh Store tôn vinh vẻ đẹp tinh tế, chuẩn mực may đo tinh xảo và phong cách thời trang hiện đại vượt thời gian.",
 };
 
 export default function RootLayout({

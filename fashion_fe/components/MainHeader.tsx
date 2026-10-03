@@ -126,10 +126,10 @@ export default function MainHeader() {
         <Link href="/" style={{ textDecoration: "none", color: "#0D0D0D", display: "flex", alignItems: "center", cursor: "pointer" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
             <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 26, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", lineHeight: 1.1 }}>
-              ÉLÉGANCE
+              VINH STORE
             </span>
             <span style={{ fontSize: 9, letterSpacing: "0.3em", color: "#8F877F", textTransform: "uppercase" }}>
-              PARIS • ATELIER
+              THỜI TRANG CAO CẤP
             </span>
           </div>
         </Link>

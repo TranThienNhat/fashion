@@ -106,8 +106,13 @@ export default function AdminUsersPage() {
               dataIndex: "role",
               key: "role",
               render: (r) => {
-                const color = r === "ADMIN" ? "purple" : r === "STAFF" ? "blue" : "default";
-                return <Tag color={color}>{r}</Tag>;
+                const roleMap: Record<string, { label: string; color: string }> = {
+                  ADMIN: { label: "Quản trị viên", color: "purple" },
+                  STAFF: { label: "Nhân viên", color: "blue" },
+                  CUSTOMER: { label: "Khách hàng", color: "default" },
+                };
+                const rInfo = roleMap[r] || { label: r, color: "default" };
+                return <Tag color={rInfo.color}>{rInfo.label}</Tag>;
               },
             },
             {

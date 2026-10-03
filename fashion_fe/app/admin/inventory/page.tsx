@@ -442,7 +442,7 @@ export default function AdminInventoryPage() {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Người liên hệ" name="contact_name">
-                <Input placeholder="Jean Luc" />
+                <Input placeholder="Nguyễn Văn An" />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -452,10 +452,10 @@ export default function AdminInventoryPage() {
             </Col>
           </Row>
           <Form.Item label="Email" name="email">
-            <Input placeholder="supplier@textile.com" />
+            <Input placeholder="nhacungcap@gmail.com" />
           </Form.Item>
           <Form.Item label="Địa chỉ" name="address">
-            <Input placeholder="12 Boulevard Haussmann, Paris" />
+            <Input placeholder="123 Phố Huế, Hai Bà Trưng, Hà Nội" />
           </Form.Item>
         </Form>
       </Modal>

@@ -29,7 +29,7 @@ function RegisterForm() {
     setErrorMessage(null);
 
     const hideLoading = message.loading({
-      content: "Đang khởi tạo tài khoản ÉLÉGANCE...",
+      content: "Đang khởi tạo tài khoản Vinh Store...",
       key: "register_status",
       duration: 0,
     });
@@ -58,7 +58,7 @@ function RegisterForm() {
 
       notification.success({
         message: "Chào mừng thành viên mới!",
-        description: `Chúc mừng ${values.full_name} đã gia nhập Maison ÉLÉGANCE. Khám phá các bộ sưu tập thời trang thượng lưu ngay hôm nay.`,
+        description: `Chúc mừng ${values.full_name} đã gia nhập Vinh Store. Khám phá các bộ sưu tập thời trang ngay hôm nay.`,
         placement: "topRight",
         duration: 4,
       });
@@ -134,7 +134,7 @@ function RegisterForm() {
                 letterSpacing: "0.18em",
                 textTransform: "uppercase",
               }}>
-              ÉLÉGANCE
+              VINH STORE
             </span>
             <span
               style={{
@@ -144,7 +144,7 @@ function RegisterForm() {
                 textTransform: "uppercase",
                 marginTop: 4,
               }}>
-              PARIS • ATELIER
+              THỜI TRANG CAO CẤP
             </span>
           </Link>
           <h1
@@ -298,7 +298,7 @@ function RegisterForm() {
               <Link href="#" style={{ color: "#18181B", fontWeight: 500, textDecoration: "underline" }}>
                 Chính sách bảo mật
               </Link>{" "}
-              của ÉLÉGANCE
+              của Vinh Store
             </Checkbox>
           </Form.Item>
 
@@ -342,7 +342,7 @@ function RegisterForm() {
 
         {/* Chuyển tới Đăng nhập */}
         <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "#71717A" }}>
-          Đã có tài khoản ÉLÉGANCE?{" "}
+          Đã có tài khoản Vinh Store?{" "}
           <Link
             href={`/login${redirectUrl !== "/" ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`}
             style={{ color: "#927238", fontWeight: 600, textDecoration: "none" }}>
