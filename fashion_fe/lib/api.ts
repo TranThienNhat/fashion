@@ -19,6 +19,35 @@ api.interceptors.request.use((config: any) => {
   return config;
 });
 
+// Tự động chuẩn hóa và ưu tiên thông điệp tiếng Việt từ Backend gửi về
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const beMessage =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      (typeof error.response?.data === "string" ? error.response.data : "");
+    if (beMessage) {
+      error.message = beMessage;
+    }
+    return Promise.reject(error);
+  }
+);
+
+/**
+ * Trích xuất thông điệp thành công từ Backend trả về
+ */
+export const getApiMessage = (res: any, defaultMsg = "Thao tác thành công"): string => {
+  return res?.data?.message || res?.data?.error || defaultMsg;
+};
+
+/**
+ * Trích xuất thông điệp lỗi chuẩn từ Backend trả về
+ */
+export const getApiError = (err: any, defaultMsg = "Đã xảy ra lỗi trong quá trình xử lý"): string => {
+  return err?.response?.data?.message || err?.response?.data?.error || err?.message || defaultMsg;
+};
+
 // ============================================================================
 // 1. AUTH & USER APIS
 // ============================================================================
@@ -46,7 +75,8 @@ export const authAPI = {
 // 2. CATALOG APIS (CATEGORIES, BRANDS, PRODUCTS, VARIANTS)
 // ============================================================================
 export const catalogAPI = {
-  getCategories: () => api.get("/api/categories"),
+  getCategories: (params?: { include_inactive?: boolean }) => api.get("/api/categories", { params }),
+  adminGetCategories: (params?: any) => api.get("/api/categories", { params: { include_inactive: true, ...params } }),
   getBrands: () => api.get("/api/brands"),
   getProducts: (params?: {
     category_id?: number | string;
@@ -76,7 +106,7 @@ export const catalogAPI = {
 
   adminCreateCategory: (data: any) => api.post("/api/admin/categories", data),
   adminUpdateCategory: (id: number, data: any) => api.put(`/api/admin/categories/${id}`, data),
-  adminDeleteCategory: (id: number) => api.delete(`/api/admin/categories/${id}`),
+  adminDeleteCategory: (id: number, purge = false) => api.delete(`/api/admin/categories/${id}`, { params: { purge } }),
 
   adminCreateBrand: (data: any) => api.post("/api/admin/brands", data),
   adminUpdateBrand: (id: number, data: any) => api.put(`/api/admin/brands/${id}`, data),

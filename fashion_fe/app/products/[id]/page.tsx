@@ -138,15 +138,15 @@ export default function ProductDetailPage({ params }: PageProps) {
   // Xử lý Thêm vào giỏ hàng
   const handleAddToCart = async () => {
     if (!selectedVariant) {
-      message.warning("Vui lòng chọn màu sắc và kích cỡ hợp lệ");
+      message.warning("Quý khách vui lòng chọn phân loại màu sắc và kích cỡ mong muốn.");
       return;
     }
     if (isOutOfStock) {
-      message.error("Biến thể này hiện đã tạm hết hàng");
+      message.warning("Rất tiếc, biến thể sản phẩm này hiện đã tạm hết hàng. Quý khách vui lòng chọn màu sắc hoặc kích cỡ khác.");
       return;
     }
     if (!authUtils.isAuthenticated()) {
-      message.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
+      message.warning("Quý khách vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng cá nhân.");
       const returnUrl = encodeURIComponent(`/products/${productId}`);
       router.push(`/login?redirect=${returnUrl}`);
       return;
@@ -162,15 +162,15 @@ export default function ProductDetailPage({ params }: PageProps) {
   // Xử lý Mua ngay
   const handleBuyNow = () => {
     if (!selectedVariant) {
-      message.warning("Vui lòng chọn màu sắc và kích cỡ hợp lệ");
+      message.warning("Quý khách vui lòng chọn phân loại màu sắc và kích cỡ mong muốn.");
       return;
     }
     if (isOutOfStock) {
-      message.error("Biến thể này hiện đã tạm hết hàng");
+      message.warning("Rất tiếc, biến thể sản phẩm này hiện đã tạm hết hàng. Quý khách vui lòng chọn màu sắc hoặc kích cỡ khác.");
       return;
     }
     if (!authUtils.isAuthenticated()) {
-      message.warning("Vui lòng đăng nhập để tiếp tục mua hàng");
+      message.warning("Quý khách vui lòng đăng nhập để tiến hành thanh toán đơn hàng.");
       const returnUrl = encodeURIComponent(`/checkout?variant_id=${selectedVariant.variant_id}&quantity=${quantity}`);
       router.push(`/login?redirect=${returnUrl}`);
       return;

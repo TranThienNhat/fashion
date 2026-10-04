@@ -22,7 +22,7 @@ import {
   DeleteOutlined,
   SearchOutlined,
 } from "@ant-design/icons";
-import { catalogAPI, uploadAPI } from "@/lib/api";
+import { catalogAPI, uploadAPI, getApiMessage, getApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/constants";
 import type { Product, Category, Brand } from "@/lib/types";
 import ImageUploader from "@/components/ImageUploader";
@@ -52,8 +52,8 @@ export default function AdminProductsPage() {
       });
       setProducts(res.data.content || []);
       setTotal(res.data.total || 0);
-    } catch {
-      message.error("Lỗi khi tải danh sách sản phẩm");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải danh sách sản phẩm. Vui lòng thử lại."));
     } finally {
       setLoading(false);
     }
@@ -97,8 +97,8 @@ export default function AdminProductsPage() {
           description: fullProd.description,
         });
         setVariantsList(fullProd.variants || []);
-      } catch {
-        message.error("Lỗi khi lấy chi tiết sản phẩm");
+      } catch (err: any) {
+        message.error(getApiError(err, "Không thể tải chi tiết thông tin sản phẩm."));
       }
     } else {
       setEditingProduct(null);
@@ -137,26 +137,26 @@ export default function AdminProductsPage() {
       };
 
       if (editingProduct) {
-        await catalogAPI.adminUpdateProduct(editingProduct.product_id, payload);
-        message.success("Cập nhật sản phẩm thành công");
+        const res = await catalogAPI.adminUpdateProduct(editingProduct.product_id, payload);
+        message.success(getApiMessage(res, "Cập nhật sản phẩm thành công."));
       } else {
-        await catalogAPI.adminCreateProduct(payload);
-        message.success("Thêm sản phẩm mới thành công");
+        const res = await catalogAPI.adminCreateProduct(payload);
+        message.success(getApiMessage(res, "Thêm sản phẩm mới thành công."));
       }
       setIsModalOpen(false);
       fetchProducts();
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi lưu sản phẩm");
+      message.error(getApiError(err, "Không thể lưu sản phẩm. Vui lòng kiểm tra lại thông tin."));
     }
   };
 
   const handleDeleteProduct = async (id: number) => {
     try {
-      await catalogAPI.adminDeleteProduct(id);
-      message.success("Đã ẩn sản phẩm khỏi cửa hàng");
+      const res = await catalogAPI.adminDeleteProduct(id);
+      message.success(getApiMessage(res, "Đã cập nhật trạng thái ngừng kinh doanh sản phẩm."));
       fetchProducts();
-    } catch {
-      message.error("Lỗi khi xóa sản phẩm");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể thao tác với sản phẩm. Vui lòng thử lại."));
     }
   };
 

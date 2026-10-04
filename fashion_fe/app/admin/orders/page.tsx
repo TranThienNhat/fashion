@@ -14,7 +14,7 @@ import {
   Badge,
 } from "antd";
 import { SearchOutlined, EyeOutlined, SyncOutlined } from "@ant-design/icons";
-import { orderAPI } from "@/lib/api";
+import { orderAPI, getApiMessage, getApiError } from "@/lib/api";
 import { formatPrice, ORDER_STATUS_MAP, PAYMENT_STATUS_MAP } from "@/lib/constants";
 import type { Order } from "@/lib/types";
 
@@ -41,8 +41,8 @@ export default function AdminOrdersPage() {
       });
       setOrders(res.data.content || []);
       setTotal(res.data.total || 0);
-    } catch {
-      message.error("Lỗi tải danh sách đơn hàng");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải danh sách đơn hàng. Vui lòng thử lại."));
     } finally {
       setLoading(false);
     }
@@ -54,27 +54,29 @@ export default function AdminOrdersPage() {
 
   const handleUpdateStatus = async (orderId: number, newStatus: string) => {
     try {
-      await orderAPI.adminUpdateStatus(orderId, newStatus);
-      message.success(`Đã cập nhật trạng thái đơn hàng sang ${newStatus}`);
+      const res = await orderAPI.adminUpdateStatus(orderId, newStatus);
+      const statusLabel = ORDER_STATUS_MAP[newStatus]?.label || newStatus;
+      message.success(getApiMessage(res, `Đã cập nhật trạng thái đơn hàng sang "${statusLabel}".`));
       fetchOrders();
       if (selectedOrder && selectedOrder.order_id === orderId) {
         setSelectedOrder({ ...selectedOrder, order_status: newStatus });
       }
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi cập nhật trạng thái");
+      message.error(getApiError(err, "Không thể cập nhật trạng thái đơn hàng."));
     }
   };
 
   const handleUpdatePayment = async (orderId: number, newPayStatus: string) => {
     try {
-      await orderAPI.adminUpdatePayment(orderId, newPayStatus);
-      message.success(`Đã cập nhật thanh toán sang ${newPayStatus}`);
+      const res = await orderAPI.adminUpdatePayment(orderId, newPayStatus);
+      const payLabel = PAYMENT_STATUS_MAP[newPayStatus]?.label || newPayStatus;
+      message.success(getApiMessage(res, `Đã cập nhật thanh toán sang "${payLabel}".`));
       fetchOrders();
       if (selectedOrder && selectedOrder.order_id === orderId) {
         setSelectedOrder({ ...selectedOrder, payment_status: newPayStatus });
       }
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi cập nhật thanh toán");
+      message.error(getApiError(err, "Không thể cập nhật trạng thái thanh toán."));
     }
   };
 
@@ -83,8 +85,8 @@ export default function AdminOrdersPage() {
       const res = await orderAPI.getOrderDetail(orderId);
       setSelectedOrder(res.data);
       setIsDetailOpen(true);
-    } catch {
-      message.error("Lỗi lấy chi tiết đơn hàng");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải thông tin chi tiết đơn hàng."));
     }
   };
 

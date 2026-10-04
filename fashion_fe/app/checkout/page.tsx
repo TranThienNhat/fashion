@@ -26,7 +26,7 @@ import {
   PlusOutlined,
 } from "@ant-design/icons";
 import MainLayout from "@/components/MainLayout";
-import { authAPI, cartAPI, orderAPI, catalogAPI } from "@/lib/api";
+import { authAPI, cartAPI, orderAPI, catalogAPI, getApiMessage, getApiError } from "@/lib/api";
 import { useCart } from "@/contexts/CartContext";
 import { authUtils } from "@/lib/auth";
 import { formatPrice, PAYMENT_METHODS } from "@/lib/constants";
@@ -142,7 +142,7 @@ function CheckoutContent() {
         is_default: Boolean(values.is_default),
       });
 
-      message.success("Đã thêm địa chỉ mới vào sổ địa chỉ thành công!");
+      message.success(getApiMessage(res, "Đã thêm địa chỉ mới vào sổ địa chỉ thành công!"));
       setIsAddAddressModalOpen(false);
       addressForm.resetFields();
 
@@ -164,7 +164,7 @@ function CheckoutContent() {
       }
     } catch (err: any) {
       if (err?.errorFields) return;
-      message.error(err?.response?.data?.error || "Không thể lưu địa chỉ vào sổ");
+      message.error(getApiError(err, "Không thể lưu địa chỉ vào sổ"));
     } finally {
       setSavingAddress(false);
     }
@@ -188,9 +188,9 @@ function CheckoutContent() {
       const res = await orderAPI.checkout(payload);
       setOrderSuccess(res.data);
       await fetchCart();
-      message.success("Đặt hàng thành công!");
+      message.success(getApiMessage(res, "Quý khách đã hoàn tất đặt hàng thành công!"));
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Không thể hoàn tất đơn hàng");
+      message.error(getApiError(err, "Không thể hoàn tất đơn hàng, vui lòng kiểm tra lại"));
     } finally {
       setLoading(false);
     }

@@ -29,7 +29,7 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import MainLayout from "@/components/MainLayout";
-import { orderAPI, reviewBlogAPI, authAPI } from "@/lib/api";
+import { orderAPI, reviewBlogAPI, authAPI, getApiMessage, getApiError } from "@/lib/api";
 import { authUtils } from "@/lib/auth";
 import { formatPrice, ORDER_STATUS_MAP, PAYMENT_STATUS_MAP } from "@/lib/constants";
 import type { Order, UserAddress } from "@/lib/types";
@@ -65,8 +65,8 @@ export default function OrdersPage() {
       const res = await orderAPI.getMyOrders();
       const oList = res.data?.data || res.data?.items || (Array.isArray(res.data) ? res.data : []);
       setOrders(Array.isArray(oList) ? oList : []);
-    } catch {
-      message.error("Lỗi khi tải lịch sử đơn hàng");
+    } catch (err: any) {
+      message.error(getApiError(err, "Lỗi khi tải lịch sử đơn hàng"));
     } finally {
       setLoading(false);
     }
@@ -82,11 +82,11 @@ export default function OrdersPage() {
 
   const handleCancelOrder = async (orderId: number) => {
     try {
-      await orderAPI.cancelOrder(orderId);
-      message.success("Đã hủy đơn hàng thành công và hoàn trả tồn kho");
+      const res = await orderAPI.cancelOrder(orderId);
+      message.success(getApiMessage(res, "Đã hủy đơn hàng thành công và hoàn trả tồn kho"));
       fetchOrders();
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Không thể hủy đơn hàng");
+      message.error(getApiError(err, "Không thể hủy đơn hàng"));
     }
   };
 
@@ -95,8 +95,8 @@ export default function OrdersPage() {
       const res = await orderAPI.getOrderDetail(orderId);
       setSelectedDetailOrder(res.data);
       setIsDetailOpen(true);
-    } catch {
-      message.error("Lỗi khi lấy chi tiết đơn hàng");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải thông tin chi tiết đơn hàng."));
     }
   };
 
@@ -139,12 +139,12 @@ export default function OrdersPage() {
     try {
       const values = await addressForm.validateFields();
       setSubmittingAddress(true);
-      await orderAPI.updateOrderAddress(addressEditOrder.order_id, {
+      const res = await orderAPI.updateOrderAddress(addressEditOrder.order_id, {
         receiver_name: values.receiver_name.trim(),
         receiver_phone: values.receiver_phone.trim(),
         shipping_address: values.shipping_address.trim(),
       });
-      message.success("Đã cập nhật địa chỉ giao hàng thành công (Đã tính 1 lần đổi duy nhất)!");
+      message.success(getApiMessage(res, "Đã cập nhật địa chỉ giao hàng thành công (Đã tính 1 lần đổi duy nhất)!"));
       setIsAddressModalOpen(false);
 
       // Cập nhật lại danh sách đơn hàng
@@ -152,12 +152,12 @@ export default function OrdersPage() {
 
       // Nếu đang mở chi tiết của chính đơn đó, cập nhật lại dữ liệu chi tiết
       if (selectedDetailOrder && selectedDetailOrder.order_id === addressEditOrder.order_id) {
-        const res = await orderAPI.getOrderDetail(addressEditOrder.order_id);
-        setSelectedDetailOrder(res.data);
+        const detailRes = await orderAPI.getOrderDetail(addressEditOrder.order_id);
+        setSelectedDetailOrder(detailRes.data);
       }
     } catch (err: any) {
       if (err?.errorFields) return;
-      message.error(err?.response?.data?.error || "Không thể cập nhật địa chỉ giao hàng");
+      message.error(getApiError(err, "Không thể cập nhật địa chỉ giao hàng"));
     } finally {
       setSubmittingAddress(false);
     }
@@ -171,8 +171,8 @@ export default function OrdersPage() {
         setSelectedProductId(res.data.items[0].product_id || res.data.items[0].variant_id);
       }
       setIsReviewOpen(true);
-    } catch {
-      message.error("Lỗi khi chuẩn bị đánh giá");
+    } catch (err: any) {
+      message.error(getApiError(err, "Lỗi khi chuẩn bị đánh giá"));
     }
   };
 
@@ -180,17 +180,17 @@ export default function OrdersPage() {
     if (!selectedProductId) return;
     try {
       setSubmittingReview(true);
-      await reviewBlogAPI.submitReview({
+      const res = await reviewBlogAPI.submitReview({
         product_id: selectedProductId,
         order_id: reviewOrder?.order_id,
         rating,
         comment,
       });
-      message.success("Cảm ơn bạn đã gửi đánh giá sản phẩm!");
+      message.success(getApiMessage(res, "Cảm ơn bạn đã gửi đánh giá sản phẩm!"));
       setIsReviewOpen(false);
       setComment("");
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi khi gửi đánh giá");
+      message.error(getApiError(err, "Lỗi khi gửi đánh giá"));
     } finally {
       setSubmittingReview(false);
     }

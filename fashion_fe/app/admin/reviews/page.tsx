@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Rate, Space, message, Popconfirm } from "antd";
 import { DeleteOutlined } from "@ant-design/icons";
-import { reviewBlogAPI } from "@/lib/api";
+import { reviewBlogAPI, getApiMessage, getApiError } from "@/lib/api";
 import type { ProductReview } from "@/lib/types";
 
 export default function AdminReviewsPage() {
@@ -18,8 +18,8 @@ export default function AdminReviewsPage() {
       const res = await reviewBlogAPI.adminGetReviews({ page: page - 1, size: 10 });
       setReviews(res.data.content || []);
       setTotal(res.data.total || 0);
-    } catch {
-      message.error("Lỗi khi tải danh sách đánh giá");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải danh sách đánh giá sản phẩm."));
     } finally {
       setLoading(false);
     }
@@ -31,11 +31,11 @@ export default function AdminReviewsPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      await reviewBlogAPI.adminDeleteReview(id);
-      message.success("Đã xóa đánh giá vi phạm tiêu chuẩn");
+      const res = await reviewBlogAPI.adminDeleteReview(id);
+      message.success(getApiMessage(res, "Đã xóa đánh giá khỏi hệ thống."));
       fetchReviews();
-    } catch {
-      message.error("Lỗi khi xóa đánh giá");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể xóa đánh giá. Vui lòng thử lại sau."));
     }
   };
 

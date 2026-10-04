@@ -24,7 +24,7 @@ import {
   UploadOutlined,
   LinkOutlined,
 } from "@ant-design/icons";
-import { bannerAPI } from "@/lib/api";
+import { bannerAPI, getApiMessage, getApiError } from "@/lib/api";
 import type { Banner } from "@/lib/types";
 
 export default function AdminBannersPage() {
@@ -46,8 +46,8 @@ export default function AdminBannersPage() {
       const response = await bannerAPI.layTatCa();
       const bList = response.data?.data || response.data?.items || (Array.isArray(response.data) ? response.data : []);
       setBanners(Array.isArray(bList) ? bList : []);
-    } catch (error) {
-      message.error("Không thể tải danh sách banner");
+    } catch (error: any) {
+      message.error(getApiError(error, "Không thể tải danh sách banner hiển thị."));
     } finally {
       setLoading(false);
     }
@@ -78,21 +78,21 @@ export default function AdminBannersPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      await bannerAPI.xoa(id);
-      message.success("Đã xóa banner thành công");
+      const res = await bannerAPI.xoa(id);
+      message.success(getApiMessage(res, "Đã xóa banner thành công."));
       fetchBanners();
-    } catch (error) {
-      message.error("Không thể xóa banner");
+    } catch (error: any) {
+      message.error(getApiError(error, "Không thể xóa banner. Vui lòng thử lại."));
     }
   };
 
   const handleToggleTrangThai = async (id: number, trangThai: boolean) => {
     try {
-      await bannerAPI.capNhatTrangThai(id, { trang_thai: trangThai });
-      message.success("Đã cập nhật trạng thái banner");
+      const res = await bannerAPI.capNhatTrangThai(id, { trang_thai: trangThai });
+      message.success(getApiMessage(res, `Đã ${trangThai ? "bật hiển thị" : "tắt hiển thị"} banner thành công.`));
       fetchBanners();
-    } catch (error) {
-      message.error("Không thể cập nhật trạng thái banner");
+    } catch (error: any) {
+      message.error(getApiError(error, "Không thể cập nhật trạng thái hiển thị của banner."));
     }
   };
 
@@ -124,17 +124,17 @@ export default function AdminBannersPage() {
       }
 
       if (editingBanner) {
-        await bannerAPI.sua(Number(editingBanner.id), formData);
-        message.success("Đã cập nhật banner thành công");
+        const res = await bannerAPI.sua(Number(editingBanner.id), formData);
+        message.success(getApiMessage(res, "Đã cập nhật banner thành công."));
       } else {
-        await bannerAPI.them(formData);
-        message.success("Đã thêm banner mới thành công");
+        const res = await bannerAPI.them(formData);
+        message.success(getApiMessage(res, "Đã thêm banner quảng bá mới thành công."));
       }
 
       setModalVisible(false);
       fetchBanners();
-    } catch (error) {
-      message.error("Không thể lưu banner");
+    } catch (error: any) {
+      message.error(getApiError(error, "Không thể lưu thông tin banner. Vui lòng kiểm tra lại."));
     }
   };
 

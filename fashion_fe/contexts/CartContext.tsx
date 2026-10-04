@@ -8,7 +8,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { cartAPI } from "@/lib/api";
+import { cartAPI, getApiMessage, getApiError } from "@/lib/api";
 import { Cart, CartItem } from "@/lib/types";
 import { authUtils } from "@/lib/auth";
 import { message } from "antd";
@@ -66,14 +66,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
 
       try {
-        await cartAPI.addToCart(variantId, quantity);
-        message.success("Đã thêm sản phẩm vào giỏ hàng!");
+        const res = await cartAPI.addToCart(variantId, quantity);
+        message.success(getApiMessage(res, "Đã thêm sản phẩm vào giỏ hàng!"));
         await fetchCart();
         setIsDrawerOpen(true);
         return true;
       } catch (err: any) {
-        const errorMsg = err?.response?.data?.error || "Không thể thêm vào giỏ hàng";
-        message.error(errorMsg);
+        message.error(getApiError(err, "Không thể thêm sản phẩm vào giỏ hàng"));
         return false;
       }
     },
@@ -87,7 +86,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         await fetchCart();
         return true;
       } catch (err: any) {
-        message.error(err?.response?.data?.error || "Lỗi cập nhật số lượng");
+        message.error(getApiError(err, "Lỗi cập nhật số lượng"));
         return false;
       }
     },
@@ -97,12 +96,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeFromCart = useCallback(
     async (cartItemId: number) => {
       try {
-        await cartAPI.removeItem(cartItemId);
-        message.success("Đã xóa sản phẩm khỏi giỏ hàng");
+        const res = await cartAPI.removeItem(cartItemId);
+        message.success(getApiMessage(res, "Đã xóa sản phẩm khỏi giỏ hàng"));
         await fetchCart();
         return true;
-      } catch {
-        message.error("Lỗi khi xóa khỏi giỏ hàng");
+      } catch (err: any) {
+        message.error(getApiError(err, "Lỗi khi xóa khỏi giỏ hàng"));
         return false;
       }
     },
@@ -111,10 +110,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = useCallback(async () => {
     try {
-      await cartAPI.clearCart();
+      const res = await cartAPI.clearCart();
+      message.success(getApiMessage(res, "Đã làm trống giỏ hàng"));
       setCart(null);
-    } catch {
-      // Ignored
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể làm trống giỏ hàng"));
     }
   }, []);
 

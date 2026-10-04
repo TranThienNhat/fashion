@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Input, Tag, Space, message, Select } from "antd";
 import { SearchOutlined, LockOutlined, UnlockOutlined } from "@ant-design/icons";
-import { authAPI } from "@/lib/api";
+import { authAPI, getApiMessage, getApiError } from "@/lib/api";
 import type { User } from "@/lib/types";
 
 export default function AdminUsersPage() {
@@ -25,8 +25,8 @@ export default function AdminUsersPage() {
       });
       setUsers(res.data.content || []);
       setTotal(res.data.total || 0);
-    } catch {
-      message.error("Lỗi khi tải danh sách người dùng");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải danh sách tài khoản người dùng."));
     } finally {
       setLoading(false);
     }
@@ -38,11 +38,12 @@ export default function AdminUsersPage() {
 
   const handleToggleStatus = async (userId: number, currentStatus: boolean) => {
     try {
-      await authAPI.adminToggleStatus(userId, !currentStatus);
-      message.success(`Đã ${!currentStatus ? "kích hoạt" : "khóa"} tài khoản`);
+      const res = await authAPI.adminToggleStatus(userId, !currentStatus);
+      const actionLabel = !currentStatus ? "kích hoạt" : "tạm khóa";
+      message.success(getApiMessage(res, `Đã ${actionLabel} tài khoản thành công.`));
       fetchUsers();
-    } catch {
-      message.error("Lỗi khi cập nhật trạng thái người dùng");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể thay đổi trạng thái tài khoản. Vui lòng thử lại."));
     }
   };
 

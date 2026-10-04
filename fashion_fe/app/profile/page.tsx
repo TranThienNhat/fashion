@@ -25,7 +25,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import MainLayout from "@/components/MainLayout";
-import { authAPI } from "@/lib/api";
+import { authAPI, getApiMessage, getApiError } from "@/lib/api";
 import { authUtils } from "@/lib/auth";
 import type { User, UserAddress } from "@/lib/types";
 
@@ -56,8 +56,8 @@ export default function ProfilePage() {
         email: meRes.data.email,
         phone_number: meRes.data.phone_number,
       });
-    } catch {
-      message.error("Lỗi khi tải thông tin hồ sơ");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải thông tin hồ sơ tài khoản. Vui lòng thử lại."));
     } finally {
       setLoading(false);
     }
@@ -73,14 +73,14 @@ export default function ProfilePage() {
 
   const handleUpdateProfile = async (values: any) => {
     try {
-      await authAPI.updateProfile({
+      const res = await authAPI.updateProfile({
         full_name: values.full_name,
         phone_number: values.phone_number,
       });
-      message.success("Cập nhật thông tin thành công!");
+      message.success(getApiMessage(res, "Cập nhật hồ sơ cá nhân thành công!"));
       loadData();
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi cập nhật hồ sơ");
+      message.error(getApiError(err, "Không thể cập nhật hồ sơ"));
     }
   };
 
@@ -98,36 +98,36 @@ export default function ProfilePage() {
   const handleSaveAddress = async (values: any) => {
     try {
       if (editingAddr) {
-        await authAPI.updateAddress(editingAddr.address_id, values);
-        message.success("Cập nhật địa chỉ thành công");
+        const res = await authAPI.updateAddress(editingAddr.address_id, values);
+        message.success(getApiMessage(res, "Cập nhật địa chỉ thành công!"));
       } else {
-        await authAPI.addAddress(values);
-        message.success("Thêm địa chỉ mới thành công");
+        const res = await authAPI.addAddress(values);
+        message.success(getApiMessage(res, "Thêm địa chỉ mới thành công!"));
       }
       setIsAddrModalOpen(false);
       loadData();
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi lưu địa chỉ");
+      message.error(getApiError(err, "Không thể lưu thông tin địa chỉ"));
     }
   };
 
   const handleDeleteAddress = async (id: number) => {
     try {
-      await authAPI.deleteAddress(id);
-      message.success("Đã xóa địa chỉ");
+      const res = await authAPI.deleteAddress(id);
+      message.success(getApiMessage(res, "Đã xóa địa chỉ thành công!"));
       loadData();
-    } catch {
-      message.error("Lỗi khi xóa địa chỉ");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể xóa địa chỉ này"));
     }
   };
 
   const handleSetDefaultAddress = async (id: number) => {
     try {
-      await authAPI.setDefaultAddress(id);
-      message.success("Đã thiết lập làm địa chỉ mặc định");
+      const res = await authAPI.setDefaultAddress(id);
+      message.success(getApiMessage(res, "Đã thiết lập làm địa chỉ mặc định!"));
       loadData();
-    } catch {
-      message.error("Lỗi khi đặt địa chỉ mặc định");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể đặt địa chỉ mặc định"));
     }
   };
 

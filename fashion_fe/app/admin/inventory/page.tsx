@@ -29,7 +29,7 @@ import {
   SearchOutlined,
   ArrowUpOutlined,
 } from "@ant-design/icons";
-import { warehouseAPI } from "@/lib/api";
+import { warehouseAPI, getApiMessage, getApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/constants";
 import type { Supplier, PurchaseReceipt, WarehouseVariant } from "@/lib/types";
 
@@ -73,8 +73,8 @@ export default function AdminInventoryPage() {
 
       const varList = varRes.data?.data || varRes.data?.items || (Array.isArray(varRes.data) ? varRes.data : []);
       setVariants(Array.isArray(varList) ? varList : []);
-    } catch {
-      message.error("Lỗi khi tải dữ liệu kho");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải dữ liệu kho hàng. Vui lòng thử lại sau."));
     } finally {
       setLoading(false);
     }
@@ -100,26 +100,26 @@ export default function AdminInventoryPage() {
     try {
       const values = await supplierForm.validateFields();
       if (editingSupplier) {
-        await warehouseAPI.adminUpdateSupplier(editingSupplier.supplier_id, values);
-        message.success("Cập nhật nhà cung cấp thành công");
+        const res = await warehouseAPI.adminUpdateSupplier(editingSupplier.supplier_id, values);
+        message.success(getApiMessage(res, "Cập nhật đối tác cung ứng thành công."));
       } else {
-        await warehouseAPI.adminCreateSupplier(values);
-        message.success("Thêm nhà cung cấp mới thành công");
+        const res = await warehouseAPI.adminCreateSupplier(values);
+        message.success(getApiMessage(res, "Thêm đối tác cung ứng mới thành công."));
       }
       setIsSupplierModalOpen(false);
       loadData();
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi lưu nhà cung cấp");
+      message.error(getApiError(err, "Không thể lưu đối tác cung ứng. Vui lòng kiểm tra lại thông tin."));
     }
   };
 
   const handleDeleteSupplier = async (id: number) => {
     try {
-      await warehouseAPI.adminDeleteSupplier(id);
-      message.success("Đã ngừng hợp tác với nhà cung cấp");
+      const res = await warehouseAPI.adminDeleteSupplier(id);
+      message.success(getApiMessage(res, "Đã cập nhật trạng thái ngừng hợp tác với nhà cung cấp."));
       loadData();
-    } catch {
-      message.error("Lỗi khi xóa nhà cung cấp");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể thao tác với đối tác cung ứng. Vui lòng thử lại."));
     }
   };
 
@@ -169,21 +169,21 @@ export default function AdminInventoryPage() {
       const values = await receiptForm.validateFields();
       const validItems = receiptItems.filter((it) => it.variant_id && it.quantity > 0);
       if (validItems.length === 0) {
-        message.warning("Vui lòng chọn ít nhất một biến thể sản phẩm nhập kho");
+        message.warning("Vui lòng chọn ít nhất một biến thể sản phẩm hợp lệ để lập phiếu nhập.");
         return;
       }
 
-      await warehouseAPI.adminCreateReceipt({
+      const res = await warehouseAPI.adminCreateReceipt({
         supplier_id: values.supplier_id,
         note: values.note,
         items: validItems,
       });
 
-      message.success("Lập phiếu nhập kho thành công! Tồn kho đã được tự động cộng dồn.");
+      message.success(getApiMessage(res, "Lập phiếu nhập kho thành công! Số lượng tồn kho đã được cập nhật chính xác."));
       setIsReceiptModalOpen(false);
       loadData();
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi lập phiếu nhập kho");
+      message.error(getApiError(err, "Không thể lập phiếu nhập kho. Vui lòng kiểm tra lại thông tin."));
     }
   };
 
@@ -192,8 +192,8 @@ export default function AdminInventoryPage() {
       const res = await warehouseAPI.adminGetReceiptDetail(id);
       setSelectedReceipt(res.data);
       setIsDetailOpen(true);
-    } catch {
-      message.error("Lỗi xem chi tiết phiếu nhập");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải chi tiết chứng từ nhập kho."));
     }
   };
 

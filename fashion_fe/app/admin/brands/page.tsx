@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Input, Space, message, Popconfirm } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { catalogAPI } from "@/lib/api";
+import { catalogAPI, getApiMessage, getApiError } from "@/lib/api";
 import type { Brand } from "@/lib/types";
 import ImageUploader from "@/components/ImageUploader";
 
@@ -20,8 +20,8 @@ export default function AdminBrandsPage() {
       const res = await catalogAPI.getBrands();
       const bList = res.data?.data || res.data?.items || (Array.isArray(res.data) ? res.data : []);
       setBrands(Array.isArray(bList) ? bList : []);
-    } catch {
-      message.error("Lỗi tải thương hiệu");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải danh sách thương hiệu thời trang."));
     } finally {
       setLoading(false);
     }
@@ -46,26 +46,26 @@ export default function AdminBrandsPage() {
     try {
       const values = await form.validateFields();
       if (editingBrand) {
-        await catalogAPI.adminUpdateBrand(editingBrand.brand_id, values);
-        message.success("Cập nhật thương hiệu thành công");
+        const res = await catalogAPI.adminUpdateBrand(editingBrand.brand_id, values);
+        message.success(getApiMessage(res, "Cập nhật thương hiệu thành công."));
       } else {
-        await catalogAPI.adminCreateBrand(values);
-        message.success("Thêm thương hiệu mới thành công");
+        const res = await catalogAPI.adminCreateBrand(values);
+        message.success(getApiMessage(res, "Thêm thương hiệu mới thành công."));
       }
       setIsModalOpen(false);
       fetchBrands();
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi lưu thương hiệu");
+      message.error(getApiError(err, "Không thể lưu thông tin thương hiệu. Vui lòng kiểm tra lại."));
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await catalogAPI.adminDeleteBrand(id);
-      message.success("Đã xóa thương hiệu");
+      const res = await catalogAPI.adminDeleteBrand(id);
+      message.success(getApiMessage(res, "Đã xóa thương hiệu khỏi hệ thống."));
       fetchBrands();
-    } catch {
-      message.error("Lỗi khi xóa");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể xóa thương hiệu."));
     }
   };
 

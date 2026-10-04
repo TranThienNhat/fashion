@@ -23,12 +23,18 @@ def slugify(text: str) -> str:
 @catalog_bp.route('/api/categories', methods=['GET'])
 def get_categories():
     cursor = get_cursor()
-    all_cats = (NativeSqlBuilder.create()
-                .select("c.category_id", "c.parent_id", "c.name", "c.slug", "c.is_active",
-                        "p.name AS parent_name")
-                .from_table("categories", "c")
-                .left_join("categories", "p", "c.parent_id = p.category_id")
-                .where("is_active", 1, "=", "c")
+    include_inactive = request.args.get("include_inactive", "false").lower() in ("true", "1")
+
+    query = (NativeSqlBuilder.create()
+             .select("c.category_id", "c.parent_id", "c.name", "c.slug", "c.is_active",
+                     "p.name AS parent_name")
+             .from_table("categories", "c")
+             .left_join("categories", "p", "c.parent_id = p.category_id"))
+
+    if not include_inactive:
+        query = query.where("is_active", 1, "=", "c")
+
+    all_cats = (query
                 .order_by_col("parent_id", "ASC", "c")
                 .order_by_col("name", "ASC", "c")
                 .fetch(cursor))
@@ -43,7 +49,16 @@ def get_categories():
         else:
             tree.append(cat_map[c["category_id"]])
 
-    return api_success({"flat": all_cats, "tree": tree}, code="CATEGORIES_FETCHED")
+    # Danh sách phẳng chuẩn: Cha xong đến ngay các con của cha đó, không đẩy con xuống đáy bảng
+    ordered_flat = []
+    for root in tree:
+        root_data = {k: v for k, v in root.items() if k != "children"}
+        ordered_flat.append(root_data)
+        for child in root.get("children", []):
+            child_data = {k: v for k, v in child.items() if k != "children"}
+            ordered_flat.append(child_data)
+
+    return api_success({"flat": ordered_flat, "tree": tree}, code="CATEGORIES_FETCHED")
 
 
 @catalog_bp.route('/api/admin/categories', methods=['POST'])
@@ -53,12 +68,41 @@ def create_category():
     name = data.get("name", "").strip()
     parent_id = data.get("parent_id")
     slug = data.get("slug", "").strip() or slugify(name)
+    is_active = data.get("is_active", True)
 
     if not name:
         return api_error("Tên danh mục là bắt buộc", code="CATEGORY_NAME_REQUIRED", status=400)
 
     cursor = get_cursor()
 
+    # 1. Kiểm tra sự tồn tại của name hoặc slug trong toàn bộ hệ thống
+    name_match = (NativeSqlBuilder.create()
+                  .select("category_id", "name", "slug", "is_active")
+                  .from_table("categories", "c")
+                  .where("name", name, "=", "c")
+                  .fetch_one(cursor))
+
+    slug_match = (NativeSqlBuilder.create()
+                  .select("category_id", "name", "slug", "is_active")
+                  .from_table("categories", "c")
+                  .where("slug", slug, "=", "c")
+                  .fetch_one(cursor))
+
+    # Nếu đang trùng với danh mục ĐANG HOẠT ĐỘNG (is_active = 1) -> Báo lỗi trùng
+    if name_match and bool(name_match.get("is_active")):
+        return api_error(
+            f"Tên danh mục '{name}' đã tồn tại và đang hiển thị. Không được tạo danh mục trùng tên!",
+            code="CATEGORY_NAME_DUPLICATED",
+            status=400
+        )
+    if slug_match and bool(slug_match.get("is_active")):
+        return api_error(
+            f"Đường dẫn (slug) '{slug}' đã được sử dụng bởi danh mục '{slug_match.get('name', '')}'. Không được đặt slug trùng nhau!",
+            code="CATEGORY_SLUG_DUPLICATED",
+            status=400
+        )
+
+    # Kiểm tra danh mục cha nếu có
     if parent_id:
         parent_cat = (NativeSqlBuilder.create()
                       .select("category_id", "parent_id", "name")
@@ -74,12 +118,35 @@ def create_category():
                 status=400
             )
 
+    # 2. Xử lý thông minh: Nếu trùng với danh mục ĐANG ẨN (is_active = 0)
+    # -> Tự động khôi phục (Reactivate) danh mục đó với thông tin mới, giải quyết hoàn toàn xung đột UNIQUE!
+    inactive_match = name_match if (name_match and not name_match.get("is_active")) else (slug_match if (slug_match and not slug_match.get("is_active")) else None)
+
+    if inactive_match:
+        cat_id = inactive_match["category_id"]
+        (NativeSqlBuilder.update_table("categories")
+         .set({
+             "name": name,
+             "parent_id": int(parent_id) if parent_id else None,
+             "slug": slug,
+             "is_active": True
+         })
+         .where("category_id", cat_id)
+         .execute_update(cursor))
+        return api_success(
+            {"category_id": cat_id},
+            message=f"Danh mục '{name}' đã từng tồn tại ở trạng thái ẩn và vừa được khôi phục thành công!",
+            code="CATEGORY_REACTIVATED",
+            status=200
+        )
+
+    # 3. Tạo mới danh mục chưa từng tồn tại
     ins_builder = (NativeSqlBuilder.insert("categories")
                    .values({
                        "name": name,
                        "parent_id": int(parent_id) if parent_id else None,
                        "slug": slug,
-                       "is_active": True
+                       "is_active": is_active
                    }))
     category_id = ins_builder.execute_insert(cursor)
     return api_success({"category_id": category_id}, message="Tạo danh mục thành công", code="CATEGORY_CREATED", status=201)
@@ -108,9 +175,37 @@ def update_category(cat_id):
     if not current_cat:
         return api_error("Không tìm thấy danh mục", code="CATEGORY_NOT_FOUND", status=404)
 
+    # 2. Kiểm tra không cho đổi tên trùng với danh mục khác đã có
+    name_exists = (NativeSqlBuilder.create()
+                   .select("category_id", "name")
+                   .from_table("categories", "c")
+                   .where("name", name, "=", "c")
+                   .where("category_id", cat_id, "!=", "c")
+                   .fetch_one(cursor))
+    if name_exists:
+        return api_error(
+            f"Tên danh mục '{name}' đã tồn tại ở một danh mục khác. Không được đổi tên giống danh mục đã có!",
+            code="CATEGORY_NAME_DUPLICATED",
+            status=400
+        )
+
+    # 3. Kiểm tra không cho đặt slug trùng với danh mục khác đã có
+    slug_exists = (NativeSqlBuilder.create()
+                   .select("category_id", "name", "slug")
+                   .from_table("categories", "c")
+                   .where("slug", slug, "=", "c")
+                   .where("category_id", cat_id, "!=", "c")
+                   .fetch_one(cursor))
+    if slug_exists:
+        return api_error(
+            f"Đường dẫn (slug) '{slug}' đã được sử dụng bởi danh mục '{slug_exists.get('name', '')}'. Không được đặt slug trùng nhau!",
+            code="CATEGORY_SLUG_DUPLICATED",
+            status=400
+        )
+
     is_currently_root = current_cat.get("parent_id") is None
 
-    # 2. Quy tắc quan trọng: Nếu là nốt root thì KHÔNG ĐƯỢC set là con của danh mục nào cả
+    # 4. Quy tắc quan trọng: Nếu là nốt root thì KHÔNG ĐƯỢC set là con của danh mục nào cả
     if is_currently_root and parent_id is not None and str(parent_id).strip() != "":
         return api_error(
             f"Danh mục '{current_cat['name']}' là danh mục gốc (Root Node). Theo quy định hệ thống, nốt root không được phép chuyển làm con của bất kỳ danh mục nào!",
@@ -118,7 +213,7 @@ def update_category(cat_id):
             status=400
         )
 
-    # 3. Kiểm tra nếu danh mục đang có các danh mục con trực thuộc
+    # 5. Kiểm tra nếu danh mục đang có các danh mục con trực thuộc
     child_count = (NativeSqlBuilder.create()
                    .from_table("categories", "c")
                    .where("parent_id", cat_id, "=", "c")
@@ -130,11 +225,11 @@ def update_category(cat_id):
             status=400
         )
 
-    # 4. Không được chọn chính nó làm danh mục cha
+    # 6. Không được chọn chính nó làm danh mục cha
     if parent_id and int(parent_id) == cat_id:
         return api_error("Danh mục không thể chọn chính nó làm danh mục cha.", code="CANNOT_PARENT_ITSELF", status=400)
 
-    # 5. Nếu có gán parent_id (cho danh mục con), kiểm tra parent_id phải là root
+    # 7. Nếu có gán parent_id (cho danh mục con), kiểm tra parent_id phải là root
     if parent_id:
         parent_cat = (NativeSqlBuilder.create()
                       .select("category_id", "parent_id", "name")
@@ -166,10 +261,61 @@ def update_category(cat_id):
 @admin_required
 def delete_category(cat_id):
     cursor = get_cursor()
-    (NativeSqlBuilder.update_table("categories", {"is_active": False})
-     .where("category_id", cat_id)
-     .execute_update(cursor))
-    return api_success(message="Đã ẩn danh mục", code="CATEGORY_DELETED")
+
+    # 1. Kiểm tra danh mục
+    cat = (NativeSqlBuilder.create()
+           .select("category_id", "name", "slug")
+           .from_table("categories", "c")
+           .where("category_id", cat_id, "=", "c")
+           .fetch_one(cursor))
+    if not cat:
+        return api_error("Không tìm thấy danh mục", code="CATEGORY_NOT_FOUND", status=404)
+
+    # 2. Kiểm tra xem danh mục có danh mục con đang hoạt động không
+    child_count = (NativeSqlBuilder.create()
+                   .from_table("categories", "c")
+                   .where("parent_id", cat_id, "=", "c")
+                   .where("is_active", 1, "=", "c")
+                   .fetch_count(cursor))
+    if child_count > 0:
+        return api_error(
+            f"Danh mục '{cat['name']}' đang chứa {child_count} danh mục con trực thuộc. Vui lòng chuyển hoặc xóa các danh mục con trước!",
+            code="CATEGORY_HAS_CHILDREN",
+            status=400
+        )
+
+    # 3. Kiểm tra xem danh mục có sản phẩm nào không
+    product_count = (NativeSqlBuilder.create()
+                     .from_table("products", "p")
+                     .where("category_id", cat_id, "=", "p")
+                     .fetch_count(cursor))
+
+    # Tham số purge: nếu admin muốn xóa vĩnh viễn
+    purge = request.args.get("purge", "false").lower() in ("true", "1")
+
+    if product_count == 0:
+        # Danh mục chưa từng có sản phẩm -> Xóa vĩnh viễn khỏi Database!
+        # Hoàn toàn giải phóng Name và Slug
+        cursor.execute("DELETE FROM categories WHERE category_id = %s", (cat_id,))
+        return api_success(
+            message=f"Đã xóa vĩnh viễn danh mục '{cat['name']}' khỏi hệ thống (Giải phóng hoàn toàn tên và slug).",
+            code="CATEGORY_PURGED"
+        )
+    else:
+        if purge:
+            return api_error(
+                f"Danh mục '{cat['name']}' đang liên kết với {product_count} sản phẩm. Không thể xóa vĩnh viễn để bảo toàn lịch sử dữ liệu! Danh mục chỉ có thể chuyển sang trạng thái Ẩn.",
+                code="CANNOT_PURGE_CATEGORY_WITH_PRODUCTS",
+                status=400
+            )
+        # Có sản phẩm -> Chuyển sang trạng thái Ẩn (Soft Delete)
+        (NativeSqlBuilder.update_table("categories", {"is_active": False})
+         .where("category_id", cat_id)
+         .execute_update(cursor))
+        return api_success(
+            message=f"Danh mục '{cat['name']}' đang có {product_count} sản phẩm liên kết nên đã được chuyển sang trạng thái Ẩn để bảo toàn dữ liệu.",
+            code="CATEGORY_HIDDEN"
+        )
 
 
 # =============================================================================

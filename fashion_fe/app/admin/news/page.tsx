@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Modal, Form, Input, Switch, Space, message, Popconfirm, Tag } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { reviewBlogAPI } from "@/lib/api";
+import { reviewBlogAPI, getApiMessage, getApiError } from "@/lib/api";
 import type { BlogPost } from "@/lib/types";
 import ImageUploader from "@/components/ImageUploader";
 
@@ -24,8 +24,8 @@ export default function AdminNewsPage() {
       const pList = res.data?.content || res.data?.data?.content || (Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []));
       setPosts(Array.isArray(pList) ? pList : []);
       setTotal(res.data?.total || 0);
-    } catch {
-      message.error("Lỗi khi tải danh sách bài viết");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tải danh sách bài viết tạp chí."));
     } finally {
       setLoading(false);
     }
@@ -62,26 +62,26 @@ export default function AdminNewsPage() {
       };
 
       if (editingPost) {
-        await reviewBlogAPI.adminUpdateBlog(editingPost.post_id, payload);
-        message.success("Cập nhật bài viết thành công");
+        const res = await reviewBlogAPI.adminUpdateBlog(editingPost.post_id, payload);
+        message.success(getApiMessage(res, "Cập nhật bài viết thành công."));
       } else {
-        await reviewBlogAPI.adminCreateBlog(payload);
-        message.success("Đăng bài viết mới thành công");
+        const res = await reviewBlogAPI.adminCreateBlog(payload);
+        message.success(getApiMessage(res, "Đăng bài viết mới thành công."));
       }
       setIsModalOpen(false);
       fetchPosts();
     } catch (err: any) {
-      message.error(err?.response?.data?.error || "Lỗi lưu bài viết");
+      message.error(getApiError(err, "Không thể lưu bài viết. Vui lòng kiểm tra lại."));
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
-      await reviewBlogAPI.adminDeleteBlog(id);
-      message.success("Đã xóa bài viết");
+      const res = await reviewBlogAPI.adminDeleteBlog(id);
+      message.success(getApiMessage(res, "Đã xóa bài viết thành công."));
       fetchPosts();
-    } catch {
-      message.error("Lỗi khi xóa bài viết");
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể xóa bài viết. Vui lòng thử lại."));
     }
   };
 
