@@ -65,6 +65,7 @@ export const catalogAPI = {
   getNewArrivals: (limit = 8) => api.get("/api/products/new-arrivals", { params: { limit } }),
   getFeatured: (limit = 8) => api.get("/api/products/featured", { params: { limit } }),
   getProductDetail: (id: number) => api.get(`/api/products/${id}`),
+  getVariantDetail: (id: number) => api.get(`/api/variants/${id}`),
 
   // Admin
   adminGetProducts: (params?: { page?: number; size?: number; search?: string }) =>

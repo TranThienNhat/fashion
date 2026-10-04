@@ -26,6 +26,7 @@ import {
 import MainLayout from "@/components/MainLayout";
 import { catalogAPI, reviewBlogAPI } from "@/lib/api";
 import { useCart } from "@/contexts/CartContext";
+import { authUtils } from "@/lib/auth";
 import { formatPrice } from "@/lib/constants";
 import type { Product, ProductVariant, ProductReview } from "@/lib/types";
 
@@ -48,6 +49,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [reviews, setReviews] = useState<ProductReview[]>([]);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -58,7 +60,7 @@ export default function ProductDetailPage({ params }: PageProps) {
           reviewBlogAPI.getProductReviews(productId).catch(() => ({ data: [] })),
         ]);
 
-        const prod: Product = prodRes.data;
+        const prod: Product = prodRes.data?.data || prodRes.data;
         setProduct(prod);
         const rList = revRes.data?.data || revRes.data?.items || (Array.isArray(revRes.data) ? revRes.data : []);
         setReviews(Array.isArray(rList) ? rList : []);
@@ -86,7 +88,7 @@ export default function ProductDetailPage({ params }: PageProps) {
   const availableSizesForSelectedColor = useMemo(() => {
     if (!product?.variants || !selectedColor) return [];
     const sizes = product.variants
-      .filter((v) => v.color.toLowerCase() === selectedColor.toLowerCase())
+      .filter((v) => (v.color || "").toLowerCase() === selectedColor.toLowerCase())
       .map((v) => v.size);
     return Array.from(new Set(sizes));
   }, [product?.variants, selectedColor]);
@@ -97,11 +99,11 @@ export default function ProductDetailPage({ params }: PageProps) {
     if (!product?.variants) return;
 
     const variantsOfNewColor = product.variants.filter(
-      (v) => v.color.toLowerCase() === newColor.toLowerCase()
+      (v) => (v.color || "").toLowerCase() === newColor.toLowerCase()
     );
 
     const matchedSameSize = variantsOfNewColor.find(
-      (v) => v.size.toLowerCase() === selectedSize.toLowerCase()
+      (v) => (v.size || "").toLowerCase() === (selectedSize || "").toLowerCase()
     );
 
     if (matchedSameSize) {
@@ -119,7 +121,9 @@ export default function ProductDetailPage({ params }: PageProps) {
     if (!product?.variants) return;
 
     const matched = product.variants.find(
-      (v) => v.color.toLowerCase() === selectedColor.toLowerCase() && v.size.toLowerCase() === newSize.toLowerCase()
+      (v) =>
+        (v.color || "").toLowerCase() === (selectedColor || "").toLowerCase() &&
+        (v.size || "").toLowerCase() === newSize.toLowerCase()
     );
     if (matched) {
       setSelectedVariant(matched);
@@ -143,10 +147,16 @@ export default function ProductDetailPage({ params }: PageProps) {
     }
     if (!authUtils.isAuthenticated()) {
       message.warning("Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng");
-      router.push(`/login?redirect=/products/${productId}`);
+      const returnUrl = encodeURIComponent(`/products/${productId}`);
+      router.push(`/login?redirect=${returnUrl}`);
       return;
     }
-    await addToCart(selectedVariant.variant_id, quantity);
+    try {
+      setAddingToCart(true);
+      await addToCart(selectedVariant.variant_id, quantity);
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   // Xử lý Mua ngay
@@ -161,7 +171,8 @@ export default function ProductDetailPage({ params }: PageProps) {
     }
     if (!authUtils.isAuthenticated()) {
       message.warning("Vui lòng đăng nhập để tiếp tục mua hàng");
-      router.push(`/login?redirect=/checkout?variant_id=${selectedVariant.variant_id}&quantity=${quantity}`);
+      const returnUrl = encodeURIComponent(`/checkout?variant_id=${selectedVariant.variant_id}&quantity=${quantity}`);
+      router.push(`/login?redirect=${returnUrl}`);
       return;
     }
     // Chuyển tới trang checkout kèm query params
@@ -419,7 +430,8 @@ export default function ProductDetailPage({ params }: PageProps) {
               <div style={{ display: "flex", gap: 16, marginTop: 8 }}>
                 <Button
                   size="large"
-                  disabled={isOutOfStock}
+                  loading={addingToCart}
+                  disabled={isOutOfStock || !selectedVariant}
                   onClick={handleAddToCart}
                   style={{
                     flex: 1,
@@ -439,7 +451,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                 <Button
                   type="primary"
                   size="large"
-                  disabled={isOutOfStock}
+                  disabled={isOutOfStock || !selectedVariant}
                   onClick={handleBuyNow}
                   style={{
                     flex: 1,

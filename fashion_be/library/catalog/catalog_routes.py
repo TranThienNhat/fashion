@@ -362,6 +362,22 @@ def get_product_detail(product_id):
     return api_success(product, code="PRODUCT_DETAIL_FETCHED")
 
 
+@catalog_bp.route('/api/variants/<int:variant_id>', methods=['GET'])
+def get_variant_detail(variant_id):
+    """Lấy thông tin chi tiết của biến thể sản phẩm phục vụ Mua ngay (Buy Now)."""
+    cursor = get_cursor()
+    builder = (NativeSqlBuilder.create()
+               .select("pv.variant_id", "pv.product_id", "pv.sku", "pv.color", "pv.size", "pv.price", "pv.stock_quantity",
+                       "p.name AS product_name", "p.thumbnail")
+               .from_table("product_variants", "pv")
+               .inner_join("products", "p", "pv.product_id = p.product_id")
+               .where("variant_id", variant_id, "=", "pv"))
+    variant = builder.fetch_one(cursor)
+    if not variant:
+        return api_error("Không tìm thấy biến thể sản phẩm", code="VARIANT_NOT_FOUND", status=404)
+    return api_success(variant, code="VARIANT_DETAIL_FETCHED")
+
+
 # =============================================================================
 # 4. ADMIN PRODUCT & VARIANT MANAGEMENT
 # =============================================================================

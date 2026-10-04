@@ -77,11 +77,25 @@ function CheckoutContent() {
 
         // Nếu là chế độ Mua ngay, lấy chi tiết biến thể
         if (buyNowVariantId) {
-          // Fetch product containing variant or construct directly
-          setBuyNowItem({
-            variant_id: Number(buyNowVariantId),
-            quantity: buyNowQty,
-          });
+          try {
+            const varRes = await catalogAPI.getVariantDetail(Number(buyNowVariantId));
+            const vData = varRes.data?.data || varRes.data;
+            if (vData) {
+              setBuyNowItem({
+                cart_item_id: -1,
+                variant_id: Number(buyNowVariantId),
+                product_name: vData.product_name,
+                color: vData.color,
+                size: vData.size,
+                price: Number(vData.price),
+                quantity: buyNowQty,
+                subtotal: Number(vData.price) * buyNowQty,
+                thumbnail: vData.thumbnail,
+              });
+            }
+          } catch (e) {
+            console.error("Lỗi lấy thông tin biến thể mua ngay:", e);
+          }
         }
       } catch (e) {
         console.error("Lỗi khởi tạo checkout:", e);
@@ -134,8 +148,13 @@ function CheckoutContent() {
     }
   };
 
-  const cartItems = cart?.items || [];
-  const totalAmount = cart?.total_amount || 0;
+  const isBuyNow = Boolean(buyNowVariantId);
+  const checkoutItems = isBuyNow
+    ? (buyNowItem ? [buyNowItem] : [])
+    : (cart?.items || []);
+  const totalAmount = isBuyNow
+    ? (buyNowItem?.subtotal || 0)
+    : (cart?.total_amount || 0);
   const isFreeShipping = totalAmount >= 1500000;
   const shippingFee = isFreeShipping ? 0 : 35000;
   const finalTotal = totalAmount + shippingFee;
@@ -295,8 +314,8 @@ function CheckoutContent() {
 
                 {/* Danh sách tóm tắt */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 14, maxHeight: 240, overflowY: "auto", marginBottom: 20 }}>
-                  {cartItems.map((it) => (
-                    <div key={it.cart_item_id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
+                  {checkoutItems.map((it) => (
+                    <div key={it.cart_item_id || it.variant_id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                       <div>
                         <div style={{ fontWeight: 500 }}>{it.product_name}</div>
                         <div style={{ color: "#71717A", fontSize: 11 }}>
@@ -306,6 +325,11 @@ function CheckoutContent() {
                       <div style={{ fontWeight: 600 }}>{formatPrice(it.subtotal)}</div>
                     </div>
                   ))}
+                  {checkoutItems.length === 0 && (
+                    <div style={{ color: "#71717A", fontSize: 13, textAlign: "center", padding: "16px 0" }}>
+                      Không có sản phẩm nào để thanh toán
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ borderTop: "1px solid #F4F4F5", paddingTop: 16 }}>
