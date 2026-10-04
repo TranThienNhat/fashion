@@ -132,6 +132,7 @@ export interface Order {
   transaction_code?: string;
   paid_at?: string;
   note?: string;
+  address_changed_count?: number;
   created_at: string;
   items?: OrderItem[];
   total_items?: number;

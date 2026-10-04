@@ -109,6 +109,10 @@ export const orderAPI = {
   }) => api.post("/api/orders/checkout", data),
   getMyOrders: () => api.get("/api/orders/my-orders"),
   getOrderDetail: (id: number) => api.get(`/api/orders/${id}`),
+  updateOrderAddress: (
+    id: number,
+    data: { receiver_name: string; receiver_phone: string; shipping_address: string }
+  ) => api.put(`/api/orders/${id}/address`, data),
   cancelOrder: (id: number) => api.put(`/api/orders/${id}/cancel`),
 
   // Admin

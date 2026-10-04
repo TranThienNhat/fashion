@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Card,
   Tag,
   Button,
   Steps,
@@ -15,6 +14,8 @@ import {
   Empty,
   message,
   Popconfirm,
+  Form,
+  Select,
 } from "antd";
 import {
   ClockCircleOutlined,
@@ -23,12 +24,15 @@ import {
   InboxOutlined,
   CloseCircleOutlined,
   StarOutlined,
+  EditOutlined,
+  EnvironmentOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import MainLayout from "@/components/MainLayout";
-import { orderAPI, reviewBlogAPI } from "@/lib/api";
+import { orderAPI, reviewBlogAPI, authAPI } from "@/lib/api";
 import { authUtils } from "@/lib/auth";
 import { formatPrice, ORDER_STATUS_MAP, PAYMENT_STATUS_MAP } from "@/lib/constants";
-import type { Order } from "@/lib/types";
+import type { Order, UserAddress } from "@/lib/types";
 
 export default function OrdersPage() {
   const router = useRouter();
@@ -46,6 +50,14 @@ export default function OrdersPage() {
   // Detail Modal state
   const [selectedDetailOrder, setSelectedDetailOrder] = useState<Order | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // Address Edit Modal state
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
+  const [addressEditOrder, setAddressEditOrder] = useState<Order | null>(null);
+  const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
+  const [selectedAddressChoice, setSelectedAddressChoice] = useState<number | "custom">("custom");
+  const [addressForm] = Form.useForm();
+  const [submittingAddress, setSubmittingAddress] = useState(false);
 
   const fetchOrders = async () => {
     try {
@@ -85,6 +97,69 @@ export default function OrdersPage() {
       setIsDetailOpen(true);
     } catch {
       message.error("Lỗi khi lấy chi tiết đơn hàng");
+    }
+  };
+
+  const handleOpenAddressModal = async (order: Order) => {
+    setAddressEditOrder(order);
+    setSelectedAddressChoice("custom");
+    addressForm.setFieldsValue({
+      receiver_name: order.receiver_name || "",
+      receiver_phone: order.receiver_phone || "",
+      shipping_address: order.shipping_address || "",
+    });
+    setIsAddressModalOpen(true);
+
+    try {
+      const res = await authAPI.getAddresses();
+      const aList = res.data?.data || res.data?.items || (Array.isArray(res.data) ? res.data : []);
+      const addrs: UserAddress[] = Array.isArray(aList) ? aList : [];
+      setUserAddresses(addrs);
+    } catch (err) {
+      console.error("Lỗi tải sổ địa chỉ:", err);
+    }
+  };
+
+  const handleSelectSavedAddress = (val: number | "custom") => {
+    setSelectedAddressChoice(val);
+    if (val !== "custom") {
+      const addr = userAddresses.find((a) => a.address_id === val);
+      if (addr) {
+        addressForm.setFieldsValue({
+          receiver_name: addr.receiver_name,
+          receiver_phone: addr.receiver_phone,
+          shipping_address: `${addr.street_detail}, ${addr.ward}, ${addr.district}, ${addr.province}`,
+        });
+      }
+    }
+  };
+
+  const handleSaveOrderAddress = async () => {
+    if (!addressEditOrder) return;
+    try {
+      const values = await addressForm.validateFields();
+      setSubmittingAddress(true);
+      await orderAPI.updateOrderAddress(addressEditOrder.order_id, {
+        receiver_name: values.receiver_name.trim(),
+        receiver_phone: values.receiver_phone.trim(),
+        shipping_address: values.shipping_address.trim(),
+      });
+      message.success("Đã cập nhật địa chỉ giao hàng thành công (Đã tính 1 lần đổi duy nhất)!");
+      setIsAddressModalOpen(false);
+
+      // Cập nhật lại danh sách đơn hàng
+      await fetchOrders();
+
+      // Nếu đang mở chi tiết của chính đơn đó, cập nhật lại dữ liệu chi tiết
+      if (selectedDetailOrder && selectedDetailOrder.order_id === addressEditOrder.order_id) {
+        const res = await orderAPI.getOrderDetail(addressEditOrder.order_id);
+        setSelectedDetailOrder(res.data);
+      }
+    } catch (err: any) {
+      if (err?.errorFields) return;
+      message.error(err?.response?.data?.error || "Không thể cập nhật địa chỉ giao hàng");
+    } finally {
+      setSubmittingAddress(false);
     }
   };
 
@@ -164,6 +239,8 @@ export default function OrdersPage() {
               const statusCfg = ORDER_STATUS_MAP[o.order_status] || { label: o.order_status, color: "#71717A", bg: "#F4F4F5" };
               const payCfg = PAYMENT_STATUS_MAP[o.payment_status] || { label: o.payment_status, color: "#71717A", bg: "#F4F4F5" };
               const stepIdx = getStepCurrent(o.order_status);
+              const addressCount = o.address_changed_count || 0;
+              const canChangeAddress = o.order_status === "PENDING" && addressCount < 1;
 
               return (
                 <div
@@ -184,7 +261,7 @@ export default function OrdersPage() {
                       </span>
                     </div>
 
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                       <Tag style={{ borderRadius: 0, color: payCfg.color, background: payCfg.bg, borderColor: "transparent" }}>
                         {payCfg.label}
                       </Tag>
@@ -214,6 +291,42 @@ export default function OrdersPage() {
                     </div>
                   )}
 
+                  {/* Địa chỉ giao hàng & Trạng thái đổi địa chỉ */}
+                  <div style={{ margin: "8px 0 16px", padding: "12px 16px", background: "#FAF9F6", border: "1px solid #F4F4F5", fontSize: 13, lineHeight: 1.6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 8 }}>
+                      <div>
+                        <span style={{ fontWeight: 600, color: "#18181B" }}>Địa chỉ giao hàng: </span>
+                        <span style={{ color: "#3F3F46" }}>
+                          {o.receiver_name ? `${o.receiver_name} (${o.receiver_phone}) - ` : ""}
+                          {o.shipping_address}
+                        </span>
+                      </div>
+                      <div>
+                        {o.order_status === "PENDING" && (
+                          canChangeAddress ? (
+                            <Button
+                              size="small"
+                              type="link"
+                              onClick={() => handleOpenAddressModal(o)}
+                              icon={<EditOutlined />}
+                              style={{ padding: 0, height: "auto", color: "#B45309", fontWeight: 600 }}>
+                              Đổi địa chỉ (Còn 1 lần)
+                            </Button>
+                          ) : (
+                            <Tag color="orange" style={{ margin: 0, fontSize: 11, borderRadius: 0 }}>
+                              Đã đổi địa chỉ (1/1 lần)
+                            </Tag>
+                          )
+                        )}
+                        {o.order_status !== "PENDING" && addressCount >= 1 && (
+                          <Tag style={{ margin: 0, fontSize: 11, borderRadius: 0, color: "#71717A" }}>
+                            Đã đổi địa chỉ (1/1)
+                          </Tag>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Footer thông tin và thao tác */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 16, borderTop: "1px solid #F4F4F5", flexWrap: "wrap", gap: 16 }}>
                     <div>
@@ -223,10 +336,19 @@ export default function OrdersPage() {
                       </span>
                     </div>
 
-                    <div style={{ display: "flex", gap: 12 }}>
+                    <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                       <Button onClick={() => handleOpenDetail(o.order_id)} style={{ borderRadius: 0 }}>
                         Chi Tiết Đơn Hàng
                       </Button>
+
+                      {canChangeAddress && (
+                        <Button
+                          onClick={() => handleOpenAddressModal(o)}
+                          style={{ borderRadius: 0, borderColor: "#D97706", color: "#B45309" }}
+                          icon={<EditOutlined />}>
+                          Đổi Địa Chỉ
+                        </Button>
+                      )}
 
                       {o.order_status === "PENDING" && (
                         <Popconfirm
@@ -268,7 +390,23 @@ export default function OrdersPage() {
           {selectedDetailOrder && (
             <div style={{ padding: "12px 0" }}>
               <div style={{ background: "#FAF9F6", padding: 16, marginBottom: 20, fontSize: 13, lineHeight: 1.8 }}>
-                <div><b>Người nhận:</b> {selectedDetailOrder.receiver_name} ({selectedDetailOrder.receiver_phone})</div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
+                  <div><b>Người nhận:</b> {selectedDetailOrder.receiver_name} ({selectedDetailOrder.receiver_phone})</div>
+                  {selectedDetailOrder.order_status === "PENDING" && (
+                    (selectedDetailOrder.address_changed_count || 0) < 1 ? (
+                      <Button
+                        size="small"
+                        type="primary"
+                        icon={<EditOutlined />}
+                        onClick={() => handleOpenAddressModal(selectedDetailOrder)}
+                        style={{ background: "#18181B", borderRadius: 0, fontSize: 12 }}>
+                        Đổi Địa Chỉ (1 lần duy nhất)
+                      </Button>
+                    ) : (
+                      <Tag color="orange" style={{ borderRadius: 0 }}>Đã đổi địa chỉ (1/1 lần)</Tag>
+                    )
+                  )}
+                </div>
                 <div><b>Địa chỉ giao hàng:</b> {selectedDetailOrder.shipping_address}</div>
                 <div><b>Phương thức thanh toán:</b> {selectedDetailOrder.payment_method}</div>
                 {selectedDetailOrder.note && <div><b>Ghi chú:</b> {selectedDetailOrder.note}</div>}
@@ -298,6 +436,115 @@ export default function OrdersPage() {
               </div>
             </div>
           )}
+        </Modal>
+
+        {/* Modal Thay Đổi Địa Chỉ Nhận Hàng (Chỉ 1 lần khi PENDING) */}
+        <Modal
+          title={
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <EnvironmentOutlined style={{ color: "#C5A880", fontSize: 20 }} />
+              <span style={{ fontFamily: "serif", fontSize: 20 }}>
+                Đổi Địa Chỉ Nhận Hàng - Đơn #{addressEditOrder?.order_code}
+              </span>
+            </div>
+          }
+          open={isAddressModalOpen}
+          onCancel={() => setIsAddressModalOpen(false)}
+          footer={null}
+          width={620}
+          destroyOnClose>
+          <div style={{ padding: "8px 0" }}>
+            <div
+              style={{
+                background: "#FFFBEB",
+                border: "1px solid #FDE68A",
+                padding: "12px 16px",
+                borderRadius: 4,
+                marginBottom: 20,
+                fontSize: 13,
+                color: "#92400E",
+                lineHeight: 1.5,
+              }}>
+              <div style={{ fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+                <ExclamationCircleOutlined /> QUY ĐỊNH THAY ĐỔI ĐỊA CHỈ NHẬN HÀNG:
+              </div>
+              <div style={{ marginTop: 6 }}>
+                Quý khách chỉ được phép thay đổi địa chỉ <strong>1 LẦN DUY NHẤT</strong> khi đơn hàng đang ở trạng thái <strong>Chờ xử lý</strong>. Sau khi xác nhận thay đổi thành công, địa chỉ sẽ được khóa vĩnh viễn để bàn giao cho đối tác vận chuyển.
+              </div>
+            </div>
+
+            {userAddresses.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: "block", marginBottom: 8, fontWeight: 600, fontSize: 13 }}>
+                  Chọn nhanh từ Sổ địa chỉ của bạn:
+                </label>
+                <Select
+                  style={{ width: "100%" }}
+                  placeholder="Chọn địa chỉ đã lưu trong sổ địa chỉ"
+                  value={selectedAddressChoice}
+                  onChange={handleSelectSavedAddress}
+                  options={[
+                    { value: "custom", label: "✍️ Tự nhập / Điều chỉnh địa chỉ bên dưới" },
+                    ...userAddresses.map((a) => ({
+                      value: a.address_id,
+                      label: `📍 ${a.receiver_name} (${a.receiver_phone}) - ${a.street_detail}, ${a.ward}, ${a.district}, ${a.province}${a.is_default ? " [Mặc định]" : ""}`,
+                    })),
+                  ]}
+                />
+              </div>
+            )}
+
+            <Form form={addressForm} layout="vertical">
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <Form.Item
+                  label="Tên Người Nhận"
+                  name="receiver_name"
+                  rules={[{ required: true, message: "Vui lòng nhập tên người nhận" }]}>
+                  <Input placeholder="Nguyễn Văn A" style={{ borderRadius: 0 }} />
+                </Form.Item>
+
+                <Form.Item
+                  label="Số Điện Thoại"
+                  name="receiver_phone"
+                  rules={[
+                    { required: true, message: "Vui lòng nhập số điện thoại" },
+                    { pattern: /^[0-9]{9,11}$/, message: "Số điện thoại không hợp lệ" },
+                  ]}>
+                  <Input placeholder="0901234567" style={{ borderRadius: 0 }} />
+                </Form.Item>
+              </div>
+
+              <Form.Item
+                label="Địa Chỉ Chi Tiết (Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành)"
+                name="shipping_address"
+                rules={[{ required: true, message: "Vui lòng nhập địa chỉ nhận hàng" }]}>
+                <Input.TextArea
+                  rows={3}
+                  placeholder="Số 123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"
+                  style={{ borderRadius: 0 }}
+                />
+              </Form.Item>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 24, paddingTop: 16, borderTop: "1px solid #F4F4F5" }}>
+                <Button onClick={() => setIsAddressModalOpen(false)} style={{ borderRadius: 0 }}>
+                  Hủy Bỏ
+                </Button>
+                <Popconfirm
+                  title="Xác nhận đổi địa chỉ nhận hàng?"
+                  description="Bạn chỉ được đổi 1 lần duy nhất cho đơn hàng này. Sau khi lưu sẽ không thể sửa lại nữa!"
+                  onConfirm={handleSaveOrderAddress}
+                  okText="Xác Nhận Đổi"
+                  cancelText="Xem Lại">
+                  <Button
+                    type="primary"
+                    loading={submittingAddress}
+                    style={{ borderRadius: 0, background: "#18181B", borderColor: "#18181B" }}>
+                    Lưu Địa Chỉ Mới
+                  </Button>
+                </Popconfirm>
+              </div>
+            </Form>
+          </div>
         </Modal>
 
         {/* Modal Viết Đánh Giá Sản Phẩm (Sau khi DELIVERED) */}

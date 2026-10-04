@@ -14,6 +14,8 @@ import {
   Spin,
   message,
   Modal,
+  Checkbox,
+  Tag,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -21,6 +23,7 @@ import {
   EnvironmentOutlined,
   CreditCardOutlined,
   QrcodeOutlined,
+  PlusOutlined,
 } from "@ant-design/icons";
 import MainLayout from "@/components/MainLayout";
 import { authAPI, cartAPI, orderAPI, catalogAPI } from "@/lib/api";
@@ -34,6 +37,7 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const { cart, fetchCart } = useCart();
   const [form] = Form.useForm();
+  const [addressForm] = Form.useForm();
 
   // Buy Now params (if any)
   const buyNowVariantId = searchParams.get("variant_id");
@@ -45,6 +49,8 @@ function CheckoutContent() {
   const [paymentMethod, setPaymentMethod] = useState<string>("COD");
   const [loading, setLoading] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState<any>(null);
+  const [isAddAddressModalOpen, setIsAddAddressModalOpen] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
 
   useEffect(() => {
     if (!authUtils.isAuthenticated()) {
@@ -119,6 +125,48 @@ function CheckoutContent() {
           shipping_address: `${addr.street_detail}, ${addr.ward}, ${addr.district}, ${addr.province}`,
         });
       }
+    }
+  };
+
+  const handleCreateAddress = async () => {
+    try {
+      const values = await addressForm.validateFields();
+      setSavingAddress(true);
+      const res = await authAPI.addAddress({
+        receiver_name: values.receiver_name.trim(),
+        receiver_phone: values.receiver_phone.trim(),
+        province: values.province.trim(),
+        district: values.district.trim(),
+        ward: values.ward.trim(),
+        street_detail: values.street_detail.trim(),
+        is_default: Boolean(values.is_default),
+      });
+
+      message.success("Đã thêm địa chỉ mới vào sổ địa chỉ thành công!");
+      setIsAddAddressModalOpen(false);
+      addressForm.resetFields();
+
+      // Cập nhật lại danh sách địa chỉ và chọn ngay địa chỉ vừa tạo
+      const addrRes = await authAPI.getAddresses();
+      const aList = addrRes.data?.data || addrRes.data?.items || (Array.isArray(addrRes.data) ? addrRes.data : []);
+      const addrs: UserAddress[] = Array.isArray(aList) ? aList : [];
+      setAddresses(addrs);
+
+      const newAddrId = res.data?.address_id || res.data?.data?.address_id;
+      const createdAddr = addrs.find((a) => a.address_id === newAddrId) || addrs[0];
+      if (createdAddr) {
+        setSelectedAddressId(createdAddr.address_id);
+        form.setFieldsValue({
+          receiver_name: createdAddr.receiver_name,
+          receiver_phone: createdAddr.receiver_phone,
+          shipping_address: `${createdAddr.street_detail}, ${createdAddr.ward}, ${createdAddr.district}, ${createdAddr.province}`,
+        });
+      }
+    } catch (err: any) {
+      if (err?.errorFields) return;
+      message.error(err?.response?.data?.error || "Không thể lưu địa chỉ vào sổ");
+    } finally {
+      setSavingAddress(false);
     }
   };
 
@@ -211,13 +259,25 @@ function CheckoutContent() {
             <Col xs={24} md={14}>
               {/* SỔ ĐỊA CHỈ */}
               <div style={{ background: "#FFFFFF", border: "1px solid #E4E4E7", padding: "24px", marginBottom: 24 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <EnvironmentOutlined style={{ color: "#C5A880" }} /> Địa Chỉ Giao Hàng
-                </h3>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
+                    <EnvironmentOutlined style={{ color: "#C5A880" }} /> Sổ Địa Chỉ Giao Hàng
+                  </h3>
+                  <Button
+                    type="dashed"
+                    onClick={() => {
+                      addressForm.resetFields();
+                      setIsAddAddressModalOpen(true);
+                    }}
+                    icon={<PlusOutlined />}
+                    style={{ fontSize: 12, borderRadius: 0, borderColor: "#18181B", color: "#18181B" }}>
+                    + Thêm Địa Chỉ Mới Vào Sổ
+                  </Button>
+                </div>
 
-                {addresses.length > 0 && (
+                {addresses.length > 0 ? (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 13, color: "#71717A", marginBottom: 8 }}>Chọn từ sổ địa chỉ đã lưu:</div>
+                    <div style={{ fontSize: 13, color: "#71717A", marginBottom: 10 }}>Chọn địa chỉ nhận hàng từ sổ:</div>
                     <Radio.Group
                       value={selectedAddressId}
                       onChange={(e) => handleAddressSelect(e.target.value)}
@@ -227,55 +287,75 @@ function CheckoutContent() {
                           key={a.address_id}
                           value={a.address_id}
                           style={{
-                            border: "1px solid #E4E4E7",
-                            padding: "10px 14px",
+                            border: selectedAddressId === a.address_id ? "1px solid #18181B" : "1px solid #E4E4E7",
+                            padding: "12px 16px",
                             background: selectedAddressId === a.address_id ? "#FAF9F6" : "#FFFFFF",
+                            transition: "all 0.2s ease",
                           }}>
                           <div>
-                            <b>{a.receiver_name}</b> ({a.receiver_phone})
-                            {a.is_default && <span style={{ color: "#C5A880", marginLeft: 8, fontSize: 11 }}>[Mặc định]</span>}
+                            <b style={{ color: "#18181B" }}>{a.receiver_name}</b> ({a.receiver_phone})
+                            {a.is_default && <Tag color="gold" style={{ marginLeft: 8, fontSize: 11, borderRadius: 0 }}>Mặc định</Tag>}
                           </div>
-                          <div style={{ fontSize: 12, color: "#71717A", marginTop: 2 }}>
+                          <div style={{ fontSize: 12.5, color: "#52525B", marginTop: 4 }}>
                             {a.street_detail}, {a.ward}, {a.district}, {a.province}
                           </div>
                         </Radio>
                       ))}
-                      <Radio value="new" style={{ border: "1px dashed #D4D4D8", padding: "10px 14px" }}>
-                        + Nhập địa chỉ giao hàng khác
-                      </Radio>
                     </Radio.Group>
+                  </div>
+                ) : (
+                  <div style={{ background: "#FAF9F6", border: "1px dashed #D4D4D8", padding: "20px", textAlign: "center", marginBottom: 20 }}>
+                    <p style={{ margin: "0 0 12px", color: "#71717A", fontSize: 13 }}>
+                      Bạn chưa có địa chỉ giao hàng nào trong sổ địa chỉ. Hãy thêm địa chỉ để giao hàng nhanh chóng:
+                    </p>
+                    <Button
+                      type="primary"
+                      onClick={() => {
+                        addressForm.resetFields();
+                        setIsAddAddressModalOpen(true);
+                      }}
+                      icon={<PlusOutlined />}
+                      style={{ borderRadius: 0, background: "#18181B", borderColor: "#18181B" }}>
+                      Thêm Địa Chỉ Giao Hàng Đầu Tiên
+                    </Button>
                   </div>
                 )}
 
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Họ và tên người nhận"
-                      name="receiver_name"
-                      rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}>
-                      <Input size="large" style={{ borderRadius: 0 }} />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item
-                      label="Số điện thoại liên hệ"
-                      name="receiver_phone"
-                      rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
-                      <Input size="large" style={{ borderRadius: 0 }} />
-                    </Form.Item>
-                  </Col>
-                </Row>
+                <div style={{ borderTop: "1px solid #F4F4F5", paddingTop: 16, marginTop: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#18181B", marginBottom: 12 }}>
+                    Thông tin người nhận đơn hàng:
+                  </div>
 
-                <Form.Item
-                  label="Địa chỉ nhận hàng chi tiết"
-                  name="shipping_address"
-                  rules={[{ required: true, message: "Vui lòng nhập địa chỉ nhận hàng" }]}>
-                  <Input.TextArea rows={2} placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..." style={{ borderRadius: 0 }} />
-                </Form.Item>
+                  <Row gutter={16}>
+                    <Col span={12}>
+                      <Form.Item
+                        label="Họ và tên người nhận"
+                        name="receiver_name"
+                        rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}>
+                        <Input size="large" style={{ borderRadius: 0 }} />
+                      </Form.Item>
+                    </Col>
+                    <Col span={12}>
+                      <Form.Item
+                        label="Số điện thoại liên hệ"
+                        name="receiver_phone"
+                        rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
+                        <Input size="large" style={{ borderRadius: 0 }} />
+                      </Form.Item>
+                    </Col>
+                  </Row>
 
-                <Form.Item label="Ghi chú đơn hàng (Tùy chọn)" name="note">
-                  <Input placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..." style={{ borderRadius: 0 }} />
-                </Form.Item>
+                  <Form.Item
+                    label="Địa chỉ giao hàng đầy đủ"
+                    name="shipping_address"
+                    rules={[{ required: true, message: "Vui lòng nhập địa chỉ nhận hàng" }]}>
+                    <Input.TextArea rows={2} placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..." style={{ borderRadius: 0 }} />
+                  </Form.Item>
+
+                  <Form.Item label="Ghi chú đơn hàng (Tùy chọn)" name="note">
+                    <Input placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..." style={{ borderRadius: 0 }} />
+                  </Form.Item>
+                </div>
               </div>
 
               {/* PHƯƠNG THỨC THANH TOÁN */}
@@ -372,6 +452,75 @@ function CheckoutContent() {
           </Row>
         </Form>
       </div>
+
+      {/* Modal Thêm Địa Chỉ Mới Vào Sổ */}
+      <Modal
+        title={<span style={{ fontFamily: "serif", fontSize: 20 }}>Thêm Địa Chỉ Mới Vào Sổ Địa Chỉ</span>}
+        open={isAddAddressModalOpen}
+        onCancel={() => setIsAddAddressModalOpen(false)}
+        onOk={handleCreateAddress}
+        confirmLoading={savingAddress}
+        okText="Lưu Vào Sổ Địa Chỉ"
+        cancelText="Hủy"
+        width={560}>
+        <Form form={addressForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Họ tên người nhận"
+                name="receiver_name"
+                rules={[{ required: true, message: "Vui lòng nhập tên người nhận" }]}>
+                <Input placeholder="Nguyễn Văn A" style={{ borderRadius: 0 }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Số điện thoại"
+                name="receiver_phone"
+                rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
+                <Input placeholder="0901234567" style={{ borderRadius: 0 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Tỉnh / Thành phố"
+                name="province"
+                rules={[{ required: true, message: "Vui lòng nhập Tỉnh/Thành phố" }]}>
+                <Input placeholder="TP. Hồ Chí Minh" style={{ borderRadius: 0 }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Quận / Huyện"
+                name="district"
+                rules={[{ required: true, message: "Vui lòng nhập Quận/Huyện" }]}>
+                <Input placeholder="Quận 1" style={{ borderRadius: 0 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            label="Phường / Xã"
+            name="ward"
+            rules={[{ required: true, message: "Vui lòng nhập Phường/Xã" }]}>
+            <Input placeholder="Phường Bến Nghé" style={{ borderRadius: 0 }} />
+          </Form.Item>
+
+          <Form.Item
+            label="Địa chỉ chi tiết (Số nhà, tên đường, tòa nhà)"
+            name="street_detail"
+            rules={[{ required: true, message: "Vui lòng nhập số nhà, tên đường" }]}>
+            <Input placeholder="Số 123 Đường Lê Lợi..." style={{ borderRadius: 0 }} />
+          </Form.Item>
+
+          <Form.Item name="is_default" valuePropName="checked">
+            <Checkbox>Đặt làm địa chỉ giao hàng mặc định</Checkbox>
+          </Form.Item>
+        </Form>
+      </Modal>
     </MainLayout>
   );
 }

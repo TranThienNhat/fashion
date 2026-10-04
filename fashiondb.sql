@@ -55,7 +55,7 @@ CREATE TABLE `products` (
     `category_id` INT NOT NULL,
     `brand_id` INT DEFAULT NULL,
     `name` VARCHAR(255) NOT NULL,
-    `slug` VARCHAR(255) NOT NULL UNIQUE,
+    `slug` VARCHAR(255) NOT NULL,
     `description` LONGTEXT DEFAULT NULL,
     `base_price` DECIMAL(12, 2) NOT NULL,
     `thumbnail` VARCHAR(255) DEFAULT NULL,
@@ -171,6 +171,7 @@ CREATE TABLE `orders` (
     `transaction_code` VARCHAR(100) DEFAULT NULL,
     `paid_at` DATETIME DEFAULT NULL,
     `note` VARCHAR(255) DEFAULT NULL,
+    `address_changed_count` INT NOT NULL DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     CONSTRAINT `fk_order_user` FOREIGN KEY (`user_id`) 

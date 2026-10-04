@@ -43,6 +43,7 @@ export default function AdminBannersPage() {
   const fetchBanners = async () => {
     setLoading(true);
     try {
+      const response = await bannerAPI.layTatCa();
       const bList = response.data?.data || response.data?.items || (Array.isArray(response.data) ? response.data : []);
       setBanners(Array.isArray(bList) ? bList : []);
     } catch (error) {

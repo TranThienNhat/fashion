@@ -75,7 +75,8 @@ function ProductsContent() {
           catalogAPI.getCategories(),
           catalogAPI.getBrands(),
         ]);
-        const catData = catRes.data?.tree || catRes.data?.data?.tree || catRes.data?.flat || catRes.data?.data?.flat || (Array.isArray(catRes.data) ? catRes.data : []);
+        const flatCats = catRes.data?.flat || catRes.data?.data?.flat || [];
+        const catData = flatCats.length > 0 ? flatCats : (catRes.data?.tree || catRes.data?.data?.tree || (Array.isArray(catRes.data) ? catRes.data : []));
         setCategories(Array.isArray(catData) ? catData : []);
 
         const brandList = brandRes.data?.data || brandRes.data?.items || (Array.isArray(brandRes.data) ? brandRes.data : []);
@@ -169,11 +170,8 @@ function ProductsContent() {
 
   const getPageTitle = () => {
     if (searchKeyword) return `Kết quả tìm kiếm cho "${searchKeyword}"`;
-    if (selectedCategory === "1") return "Thời Trang Nam";
-    if (selectedCategory === "2") return "Thời Trang Nữ";
-    if (selectedCategory === "3") return "Phụ Kiện Cao Cấp";
     if (selectedCategory) {
-      const cat = categories.find((c) => String(c.category_id) === selectedCategory);
+      const cat = categories.find((c) => String(c.category_id) === String(selectedCategory));
       if (cat) return cat.name;
     }
     if (sortOption === "newest" && !selectedCategory && !selectedBrand) return "Bộ Sưu Tập Mới Nhất";
@@ -181,11 +179,8 @@ function ProductsContent() {
   };
 
   const getBreadcrumb = () => {
-    if (selectedCategory === "1") return "Thời Trang Nam";
-    if (selectedCategory === "2") return "Thời Trang Nữ";
-    if (selectedCategory === "3") return "Phụ Kiện Cao Cấp";
     if (selectedCategory) {
-      const cat = categories.find((c) => String(c.category_id) === selectedCategory);
+      const cat = categories.find((c) => String(c.category_id) === String(selectedCategory));
       if (cat) return cat.name;
     }
     return "Danh Mục Sản Phẩm";
@@ -301,7 +296,7 @@ function ProductsContent() {
                         {/* Danh mục con nằm ngay bên dưới danh mục cha tương ứng */}
                         {hasChildren && (
                           <div style={{ display: "flex", flexDirection: "column", gap: 3, paddingLeft: 12 }}>
-                            {parent.children.map((child: any) => {
+                            {(parent.children || []).map((child: any) => {
                               const isChildSelected = selectedCategory === String(child.category_id);
                               return (
                                 <div

@@ -189,11 +189,13 @@ def get_my_orders():
     builder = (NativeSqlBuilder.create()
                .select("o.order_id", "o.order_code", "o.total_amount", "o.order_status",
                        "o.payment_method", "o.payment_status", "o.created_at",
+                       "o.receiver_name", "o.receiver_phone", "o.shipping_address",
+                       "COALESCE(o.address_changed_count, 0) AS address_changed_count",
                        "COUNT(oi.order_item_id) AS total_items")
                .from_table("orders", "o")
                .left_join("order_items", "oi", "o.order_id = oi.order_id")
                .where("user_id", user_id, "=", "o")
-               .group_by("o.order_id, o.order_code, o.total_amount, o.order_status, o.payment_method, o.payment_status, o.created_at")
+               .group_by("o.order_id, o.order_code, o.total_amount, o.order_status, o.payment_method, o.payment_status, o.created_at, o.receiver_name, o.receiver_phone, o.shipping_address, o.address_changed_count")
                .order_by_col("order_id", "DESC", "o"))
 
     orders = builder.fetch(cursor)
@@ -228,6 +230,63 @@ def get_order_detail(order_id):
     order["items"] = item_builder.fetch(cursor)
 
     return api_success(order, code="ORDER_DETAIL_FETCHED", message="Lấy chi tiết đơn hàng thành công")
+
+
+@don_hang.route('/api/orders/<int:order_id>/address', methods=['PUT'])
+@token_required
+def update_order_address(order_id):
+    """
+    Cập nhật địa chỉ nhận hàng của đơn hàng:
+    - Chỉ cho phép khi đơn hàng ở trạng thái PENDING (đang xử lý / chờ xác nhận).
+    - Chỉ được thay đổi tối đa 1 lần duy nhất (address_changed_count == 0).
+    - Sau khi đã đổi 1 lần, hoặc đơn hàng đã sang trạng thái khác, không được đổi nữa!
+    """
+    user_id = g.current_user["user_id"]
+    data = request.get_json() or {}
+
+    receiver_name = (data.get("receiver_name") or "").strip()
+    receiver_phone = (data.get("receiver_phone") or "").strip()
+    shipping_address = (data.get("shipping_address") or "").strip()
+
+    if not receiver_name or not receiver_phone or not shipping_address:
+        return api_error("Vui lòng cung cấp đầy đủ tên người nhận, số điện thoại và địa chỉ giao hàng", code="ORDER_MISSING_ADDRESS_INFO", status=400)
+
+    cursor = get_cursor()
+    order = (NativeSqlBuilder.create()
+             .select("order_id", "order_status", "COALESCE(address_changed_count, 0) AS address_changed_count")
+             .from_table("orders", "o")
+             .where("order_id", order_id, "=", "o")
+             .where("user_id", user_id, "=", "o")
+             .fetch_one(cursor))
+
+    if not order:
+        return api_error("Không tìm thấy đơn hàng", code="ORDER_NOT_FOUND", status=404)
+
+    if order["order_status"] != "PENDING":
+        return api_error(
+            f"Đơn hàng hiện không ở trạng thái Chờ xử lý (hiện tại: {order['order_status']}). Không thể thay đổi địa chỉ nhận hàng.",
+            code="ORDER_CANNOT_CHANGE_ADDRESS",
+            status=400
+        )
+
+    if int(order.get("address_changed_count", 0)) >= 1:
+        return api_error(
+            "Địa chỉ nhận hàng của đơn hàng này đã được thay đổi 1 lần trước đó. Bạn không thể thay đổi thêm lần nào nữa.",
+            code="ADDRESS_CHANGE_LIMIT_EXCEEDED",
+            status=400
+        )
+
+    (NativeSqlBuilder.update_table("orders")
+     .set({
+         "receiver_name": receiver_name,
+         "receiver_phone": receiver_phone,
+         "shipping_address": shipping_address,
+         "address_changed_count": 1
+     })
+     .where("order_id", order_id)
+     .execute_update(cursor))
+
+    return api_success(message="Đã cập nhật địa chỉ nhận hàng thành công (Lưu ý: chỉ được đổi 1 lần duy nhất)", code="ORDER_ADDRESS_UPDATED")
 
 
 @don_hang.route('/api/orders/<int:order_id>/cancel', methods=['PUT'])
