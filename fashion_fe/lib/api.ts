@@ -141,6 +141,8 @@ export const warehouseAPI = {
     note?: string;
     items: Array<{ variant_id: number; import_price: number; quantity: number }>;
   }) => api.post("/api/admin/receipts", data),
+  adminGetWarehouseVariants: (params?: { search?: string; product_id?: number }) =>
+    api.get("/api/admin/warehouse/variants", { params }),
 };
 
 // ============================================================================

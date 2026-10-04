@@ -222,3 +222,43 @@ def create_purchase_receipt():
         "receipt_code": receipt_code,
         "total_cost": total_cost
     }, message="Lập phiếu nhập kho thành công và đã tự động cập nhật tồn kho", code="RECEIPT_CREATED", status=201)
+
+
+# =============================================================================
+# 3. BIẾN THỂ KHO HÀNG (WAREHOUSE VARIANTS)
+# =============================================================================
+
+@warehouse_bp.route('/api/admin/warehouse/variants', methods=['GET'])
+@admin_required
+def get_warehouse_variants():
+    """
+    Lấy danh sách tất cả các biến thể kèm thông tin sản phẩm và số lượng tồn kho hiện tại,
+    phục vụ cho việc chọn sản phẩm lập phiếu nhập kho và theo dõi tồn kho.
+    """
+    cursor = get_cursor()
+    search = request.args.get('search', '').strip()
+    product_id = request.args.get('product_id')
+
+    builder = (NativeSqlBuilder.create()
+               .select("pv.variant_id", "pv.product_id", "pv.sku", "pv.color", "pv.size",
+                       "pv.price", "pv.stock_quantity", "p.name AS product_name", 
+                       "p.thumbnail", "p.base_price", "c.name AS category_name")
+               .from_table("product_variants", "pv")
+               .inner_join("products", "p", "pv.product_id = p.product_id")
+               .left_join("categories", "c", "p.category_id = c.category_id")
+               .where("is_active", 1, "=", "p")
+               .order_by_col("name", "ASC", "p")
+               .order_by_col("color", "ASC", "pv")
+               .order_by_col("size", "ASC", "pv"))
+
+    if product_id:
+        builder.where("product_id", int(product_id), "=", "pv")
+
+    if search:
+        builder.where_or_group(lambda g: g.where_like("p", "name", search, LikeMatch.CONTAINS)
+                                         .where_like("pv", "sku", search, LikeMatch.CONTAINS)
+                                         .where_like("pv", "color", search, LikeMatch.CONTAINS)
+                                         .where_like("pv", "size", search, LikeMatch.CONTAINS))
+
+    variants = builder.fetch(cursor)
+    return api_success(variants, code="WAREHOUSE_VARIANTS_FETCHED", message="Lấy danh sách biến thể kho thành công")

@@ -49,6 +49,13 @@ export interface ProductVariant {
   stock_quantity: number;
 }
 
+export interface WarehouseVariant extends ProductVariant {
+  product_name: string;
+  thumbnail?: string;
+  base_price?: number;
+  category_name?: string;
+}
+
 export interface ProductImage {
   image_id: number;
   product_id?: number;
