@@ -37,7 +37,7 @@ CREATE TABLE `categories` (
     `category_id` INT AUTO_INCREMENT PRIMARY KEY,
     `parent_id` INT DEFAULT NULL,
     `name` VARCHAR(100) NOT NULL,
-    `slug` VARCHAR(120) NOT NULL UNIQUE,
+    `slug` VARCHAR(120) NOT NULL,
     `is_active` BOOLEAN NOT NULL DEFAULT TRUE,
     CONSTRAINT `fk_category_parent` FOREIGN KEY (`parent_id`) 
         REFERENCES `categories`(`category_id`) ON DELETE SET NULL
@@ -46,7 +46,7 @@ CREATE TABLE `categories` (
 CREATE TABLE `brands` (
     `brand_id` INT AUTO_INCREMENT PRIMARY KEY,
     `name` VARCHAR(100) NOT NULL UNIQUE,
-    `slug` VARCHAR(120) NOT NULL UNIQUE,
+    `slug` VARCHAR(120) NOT NULL,
     `logo_url` VARCHAR(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

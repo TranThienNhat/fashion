@@ -58,10 +58,26 @@ def create_category():
         return api_error("Tên danh mục là bắt buộc", code="CATEGORY_NAME_REQUIRED", status=400)
 
     cursor = get_cursor()
+
+    if parent_id:
+        parent_cat = (NativeSqlBuilder.create()
+                      .select("category_id", "parent_id", "name")
+                      .from_table("categories", "c")
+                      .where("category_id", int(parent_id), "=", "c")
+                      .fetch_one(cursor))
+        if not parent_cat:
+            return api_error("Danh mục cha được chọn không tồn tại", code="PARENT_CATEGORY_NOT_FOUND", status=400)
+        if parent_cat.get("parent_id") is not None:
+            return api_error(
+                f"Danh mục cha '{parent_cat['name']}' không phải là danh mục gốc. Hệ thống chỉ hỗ trợ tối đa 2 cấp (Gốc -> Con).",
+                code="PARENT_MUST_BE_ROOT",
+                status=400
+            )
+
     ins_builder = (NativeSqlBuilder.insert("categories")
                    .values({
                        "name": name,
-                       "parent_id": parent_id if parent_id else None,
+                       "parent_id": int(parent_id) if parent_id else None,
                        "slug": slug,
                        "is_active": True
                    }))
@@ -78,11 +94,66 @@ def update_category(cat_id):
     slug = data.get("slug", "").strip() or slugify(name)
     is_active = data.get("is_active", True)
 
+    if not name:
+        return api_error("Tên danh mục là bắt buộc", code="CATEGORY_NAME_REQUIRED", status=400)
+
     cursor = get_cursor()
+
+    # 1. Kiểm tra danh mục hiện tại trong DB
+    current_cat = (NativeSqlBuilder.create()
+                   .select("category_id", "parent_id", "name")
+                   .from_table("categories", "c")
+                   .where("category_id", cat_id, "=", "c")
+                   .fetch_one(cursor))
+    if not current_cat:
+        return api_error("Không tìm thấy danh mục", code="CATEGORY_NOT_FOUND", status=404)
+
+    is_currently_root = current_cat.get("parent_id") is None
+
+    # 2. Quy tắc quan trọng: Nếu là nốt root thì KHÔNG ĐƯỢC set là con của danh mục nào cả
+    if is_currently_root and parent_id is not None and str(parent_id).strip() != "":
+        return api_error(
+            f"Danh mục '{current_cat['name']}' là danh mục gốc (Root Node). Theo quy định hệ thống, nốt root không được phép chuyển làm con của bất kỳ danh mục nào!",
+            code="ROOT_CATEGORY_CANNOT_HAVE_PARENT",
+            status=400
+        )
+
+    # 3. Kiểm tra nếu danh mục đang có các danh mục con trực thuộc
+    child_count = (NativeSqlBuilder.create()
+                   .from_table("categories", "c")
+                   .where("parent_id", cat_id, "=", "c")
+                   .fetch_count(cursor))
+    if child_count > 0 and parent_id is not None and str(parent_id).strip() != "":
+        return api_error(
+            f"Danh mục '{current_cat['name']}' đang chứa {child_count} danh mục con. Không thể gán danh mục này làm con của danh mục khác!",
+            code="PARENT_CATEGORY_CANNOT_BE_CHILD",
+            status=400
+        )
+
+    # 4. Không được chọn chính nó làm danh mục cha
+    if parent_id and int(parent_id) == cat_id:
+        return api_error("Danh mục không thể chọn chính nó làm danh mục cha.", code="CANNOT_PARENT_ITSELF", status=400)
+
+    # 5. Nếu có gán parent_id (cho danh mục con), kiểm tra parent_id phải là root
+    if parent_id:
+        parent_cat = (NativeSqlBuilder.create()
+                      .select("category_id", "parent_id", "name")
+                      .from_table("categories", "c")
+                      .where("category_id", int(parent_id), "=", "c")
+                      .fetch_one(cursor))
+        if not parent_cat:
+            return api_error("Danh mục cha được chọn không tồn tại", code="PARENT_CATEGORY_NOT_FOUND", status=400)
+        if parent_cat.get("parent_id") is not None:
+            return api_error(
+                f"Danh mục cha '{parent_cat['name']}' không phải là danh mục gốc (Chỉ danh mục gốc mới được có danh mục con).",
+                code="PARENT_MUST_BE_ROOT",
+                status=400
+            )
+
     (NativeSqlBuilder.update_table("categories")
      .set({
          "name": name,
-         "parent_id": parent_id if parent_id else None,
+         "parent_id": None if is_currently_root else (int(parent_id) if parent_id else None),
          "slug": slug,
          "is_active": is_active
      })
