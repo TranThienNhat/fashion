@@ -25,11 +25,44 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const currentUser = authUtils.getUser();
-    if (currentUser) {
-      setUser(currentUser);
-      setIsAuthenticated(true);
-    }
+    const checkAuthStatus = () => {
+      const token = authUtils.getToken();
+      if (token) {
+        if (authUtils.isTokenExpired(token)) {
+          authUtils.handleTokenExpired();
+          setUser(null);
+          setIsAuthenticated(false);
+          return;
+        }
+        const currentUser = authUtils.getUser();
+        if (currentUser) {
+          setUser(currentUser);
+          setIsAuthenticated(true);
+        }
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+    };
+
+    // Kiểm tra ngay khi khởi chạy app
+    checkAuthStatus();
+
+    // Kiểm tra định kỳ mỗi 30 giây để tự động đăng xuất ngay khi token hết hạn
+    const interval = setInterval(checkAuthStatus, 30000);
+
+    // Kiểm tra lại mỗi khi người dùng chuyển lại tab (focus vào trình duyệt)
+    const handleFocus = () => {
+      checkAuthStatus();
+    };
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleFocus);
+    };
   }, []);
 
   const logout = () => {

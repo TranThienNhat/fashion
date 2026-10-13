@@ -1,6 +1,5 @@
 import React from "react";
 import Link from "next/link";
-import { Input, Button } from "antd";
 
 export default function MainFooter() {
   return (
@@ -50,42 +49,6 @@ export default function MainFooter() {
               <span style={{ color: "#737373" }}>Chính Sách Đổi Trả 30 Ngày</span>
               <span style={{ color: "#737373" }}>Bảo Quản Chất Liệu Cashmere & Lụa</span>
               <span style={{ color: "#737373" }}>Dịch Vụ Chỉnh Sửa May Đo Riêng</span>
-            </div>
-          </div>
-
-          {/* Newsletter Subscribe */}
-          <div>
-            <h4 style={{ color: "#FFFFFF", fontSize: 12, letterSpacing: "0.18em", textTransform: "uppercase", marginBottom: 20, fontWeight: 600 }}>
-              Bản Tin Thời Trang
-            </h4>
-            <p style={{ color: "#737373", fontSize: 13, lineHeight: 1.6, marginBottom: 16 }}>
-              Đăng ký để nhận thông tin về các bộ sưu tập giới hạn và lời mời tham dự sự kiện thời trang độc quyền.
-            </p>
-            <div style={{ display: "flex", gap: 0 }}>
-              <Input
-                placeholder="Địa chỉ email của bạn..."
-                style={{
-                  background: "#171717",
-                  border: "1px solid #27272A",
-                  color: "#FFFFFF",
-                  borderRadius: 0,
-                  fontSize: 13,
-                }}
-              />
-              <Button
-                type="primary"
-                style={{
-                  background: "#FFFFFF",
-                  color: "#0D0D0D",
-                  border: "1px solid #FFFFFF",
-                  borderRadius: 0,
-                  fontWeight: 600,
-                  fontSize: 12,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                }}>
-                Gửi
-              </Button>
             </div>
           </div>
         </div>

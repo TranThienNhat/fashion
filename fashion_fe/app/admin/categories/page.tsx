@@ -24,6 +24,7 @@ import {
   LockOutlined,
   ApartmentOutlined,
   SearchOutlined,
+  SubnodeOutlined,
 } from "@ant-design/icons";
 import { catalogAPI, getApiMessage, getApiError } from "@/lib/api";
 import type { Category } from "@/lib/types";
@@ -247,8 +248,8 @@ export default function AdminCategoriesPage() {
               style={{ width: 160, borderRadius: 0 }}
               options={[
                 { value: "ALL", label: "Tất cả cấp bậc" },
-                { value: "ROOT", label: "📁 Chỉ Cấp Gốc (Root)" },
-                { value: "SUB", label: "↳ Chỉ Cấp Con (Sub)" },
+                { value: "ROOT", label: "Chỉ Cấp Gốc (Root)" },
+                { value: "SUB", label: "Chỉ Cấp Con (Sub)" },
               ]}
             />
             <Select
@@ -283,7 +284,7 @@ export default function AdminCategoriesPage() {
                     {isRoot ? (
                       <FolderFilled style={{ color: "#C5A880", fontSize: 17 }} />
                     ) : (
-                      <span style={{ color: "#C5A880", fontSize: 14, fontWeight: 700 }}>↳</span>
+                      <SubnodeOutlined style={{ color: "#C5A880", fontSize: 15 }} />
                     )}
                     <span style={{ fontWeight: isRoot ? 700 : 500, fontSize: isRoot ? 14 : 13, color: isRoot ? "#0D0D0D" : "#3F3F46" }}>
                       {name}
@@ -315,19 +316,20 @@ export default function AdminCategoriesPage() {
               ),
             },
             {
-              title: "Phân cấp trực thuộc",
+              title: "Danh mục cha",
               dataIndex: "parent_name",
               key: "parent_name",
-              render: (p, rec) =>
-                rec.parent_id ? (
-                  <Tag style={{ borderRadius: 0, background: "#F4F4F5", color: "#3F3F46", border: "1px solid #E4E4E7" }}>
-                    ↳ Thuộc: <b>{p}</b>
+              render: (p, rec) => {
+                if (!rec.parent_id) return null;
+                const parentDisplayName = p || categories.find((c) => c.category_id === rec.parent_id)?.name;
+                return (
+                  <Tag
+                    icon={<ApartmentOutlined style={{ color: "#71717A" }} />}
+                    style={{ borderRadius: 0, background: "#F4F4F5", color: "#3F3F46", border: "1px solid #E4E4E7" }}>
+                    {parentDisplayName}
                   </Tag>
-                ) : (
-                  <Tag color="gold" style={{ borderRadius: 0, fontWeight: 700, letterSpacing: "0.02em" }}>
-                    📁 CẤP GỐC (ROOT)
-                  </Tag>
-                ),
+                );
+              },
             },
             {
               title: "Trạng thái",
@@ -500,7 +502,7 @@ export default function AdminCategoriesPage() {
               }>
               <Input
                 disabled
-                value="📁 Cấp Gốc (Root Node) — Danh mục điều hướng cấp cao nhất"
+                value="Cấp Gốc (Root Node) — Danh mục điều hướng cấp cao nhất"
                 prefix={<FolderFilled style={{ color: "#D97706" }} />}
                 suffix={
                   <Tooltip title="Cấp gốc cố định - Không thể chuyển thành con">
@@ -520,7 +522,7 @@ export default function AdminCategoriesPage() {
             <Form.Item
               label={
                 <Space size={6}>
-                  <span style={{ fontWeight: 600 }}>Phân Cấp Trực Thuộc</span>
+                  <span style={{ fontWeight: 600 }}>Danh Mục Cha Trực Thuộc</span>
                   <Tooltip title="Để trống mục này nếu bạn muốn tạo Danh Mục Gốc (hiển thị trực tiếp trên thanh điều hướng Menu chính). Chọn một danh mục cha nếu bạn muốn đây là danh mục con (nhánh phân loại chi tiết).">
                     <QuestionCircleOutlined style={{ color: "#71717A", cursor: "pointer", fontSize: 14 }} />
                   </Tooltip>
@@ -528,7 +530,7 @@ export default function AdminCategoriesPage() {
               }
               name="parent_id">
               <Select
-                placeholder="-- 📁 Cấp Gốc (Root Node) - Không có cha --"
+                placeholder="-- Cấp Gốc (Root Node) - Không có cha --"
                 allowClear
                 style={{ borderRadius: 0 }}
                 options={[
@@ -536,7 +538,7 @@ export default function AdminCategoriesPage() {
                     .filter((p) => !editingCategory || p.category_id !== editingCategory.category_id)
                     .map((p) => ({
                       value: p.category_id,
-                      label: `↳ Trực thuộc danh mục gốc: ${p.name}`,
+                      label: `Danh mục cha: ${p.name}`,
                     })),
                 ]}
               />

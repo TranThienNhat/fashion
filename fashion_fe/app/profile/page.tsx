@@ -224,7 +224,7 @@ export default function ProfilePage() {
                             )}
                           </div>
                           <div style={{ fontSize: 13, color: "#52525B", marginTop: 4 }}>
-                            {a.street_detail}, {a.ward}, {a.district}, {a.province}
+                            {a.street_detail}, {a.ward}, {a.province}
                           </div>
                         </div>
 
@@ -274,18 +274,13 @@ export default function ProfilePage() {
               </Col>
             </Row>
             <Row gutter={16}>
-              <Col span={8}>
-                <Form.Item label="Tỉnh / Thành phố" name="province" rules={[{ required: true }]}>
+              <Col span={12}>
+                <Form.Item label="Tỉnh / Thành phố" name="province" rules={[{ required: true, message: "Vui lòng nhập Tỉnh / Thành phố" }]}>
                   <Input placeholder="Hà Nội" style={{ borderRadius: 0 }} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
-                <Form.Item label="Quận / Huyện" name="district" rules={[{ required: true }]}>
-                  <Input placeholder="Hoàn Kiếm" style={{ borderRadius: 0 }} />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item label="Phường / Xã" name="ward" rules={[{ required: true }]}>
+              <Col span={12}>
+                <Form.Item label="Phường / Xã" name="ward" rules={[{ required: true, message: "Vui lòng nhập Phường / Xã" }]}>
                   <Input placeholder="Tràng Tiền" style={{ borderRadius: 0 }} />
                 </Form.Item>
               </Col>

@@ -1,5 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import { authUtils } from "./auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
@@ -10,19 +11,39 @@ const api = axios.create({
   },
 });
 
-// Tự động đính kèm token từ Cookie hoặc LocalStorage vào header
+// Tự động đính kèm token và kiểm tra hạn sử dụng của token trước khi gửi request
 api.interceptors.request.use((config: any) => {
   const token = Cookies.get("token") || (typeof window !== "undefined" ? localStorage.getItem("token") : null);
-  if (token && config.headers) {
-    config.headers.Authorization = `Bearer ${token}`;
+  if (token) {
+    // Nếu token đã hết hạn, chặn gửi request vô ích và kích hoạt tự động đăng xuất kèm thông báo
+    if (authUtils.isTokenExpired(token)) {
+      authUtils.handleTokenExpired("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại để tiếp tục!");
+      return Promise.reject(new Error("Phiên đăng nhập đã hết hạn"));
+    }
+    if (config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
 
-// Tự động chuẩn hóa và ưu tiên thông điệp tiếng Việt từ Backend gửi về
+// Tự động xử lý lỗi 401 khi token hết hạn trên server và chuẩn hóa thông điệp tiếng Việt
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Bắt lỗi 401 Unauthorized từ Backend
+    if (error.response?.status === 401) {
+      const beCode = error.response?.data?.code;
+      const beMsg = error.response?.data?.message;
+      let expMsg = "Phiên đăng nhập của bạn đã hết hạn hoặc không hợp lệ. Vui lòng đăng nhập lại!";
+      if (beCode === "AUTH_TOKEN_EXPIRED") {
+        expMsg = "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại để tiếp tục!";
+      } else if (beMsg) {
+        expMsg = beMsg;
+      }
+      authUtils.handleTokenExpired(expMsg);
+    }
+
     const beMessage =
       error.response?.data?.message ||
       error.response?.data?.error ||
@@ -102,7 +123,8 @@ export const catalogAPI = {
     api.get("/api/admin/products", { params }),
   adminCreateProduct: (data: any) => api.post("/api/admin/products", data),
   adminUpdateProduct: (id: number, data: any) => api.put(`/api/admin/products/${id}`, data),
-  adminDeleteProduct: (id: number) => api.delete(`/api/admin/products/${id}`),
+  adminDeleteProduct: (id: number, purge = false) => api.delete(`/api/admin/products/${id}`, { params: { purge } }),
+  adminDeleteVariant: (variant_id: number) => api.delete(`/api/admin/variants/${variant_id}`),
 
   adminCreateCategory: (data: any) => api.post("/api/admin/categories", data),
   adminUpdateCategory: (id: number, data: any) => api.put(`/api/admin/categories/${id}`, data),

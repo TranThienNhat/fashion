@@ -749,6 +749,27 @@ def admin_update_product(product_id):
 
     # Cập nhật biến thể nếu có
     if variants is not None:
+        kept_variant_ids = [v["variant_id"] for v in variants if v.get("variant_id")]
+        # Xóa các biến thể không còn trong payload nếu chưa phát sinh đơn hàng hoặc phiếu nhập
+        if kept_variant_ids:
+            format_strings = ','.join(['%s'] * len(kept_variant_ids))
+            cursor.execute(f"""
+                SELECT variant_id, color, size FROM product_variants 
+                WHERE product_id = %s AND variant_id NOT IN ({format_strings})
+            """, [product_id] + kept_variant_ids)
+        else:
+            cursor.execute("SELECT variant_id, color, size FROM product_variants WHERE product_id = %s", (product_id,))
+        removed_variants = cursor.fetchall() or []
+        for rv in removed_variants:
+            rv_id = rv["variant_id"]
+            cursor.execute("SELECT COUNT(1) AS cnt FROM order_items WHERE variant_id = %s", (rv_id,))
+            chk_order = cursor.fetchone()
+            cursor.execute("SELECT COUNT(1) AS cnt FROM purchase_receipt_items WHERE variant_id = %s", (rv_id,))
+            chk_rcpt = cursor.fetchone()
+            if not ((chk_order and (chk_order.get("cnt") or 0) > 0) or (chk_rcpt and (chk_rcpt.get("cnt") or 0) > 0)):
+                cursor.execute("DELETE FROM cart_items WHERE variant_id = %s", (rv_id,))
+                cursor.execute("DELETE FROM product_variants WHERE variant_id = %s", (rv_id,))
+
         for v in variants:
             if v.get("variant_id"):
                 (NativeSqlBuilder.update_table("product_variants")
@@ -781,8 +802,106 @@ def admin_update_product(product_id):
 @catalog_bp.route('/api/admin/products/<int:product_id>', methods=['DELETE'])
 @admin_required
 def admin_delete_product(product_id):
+    purge = request.args.get("purge", "false").lower() in ("true", "1")
     cursor = get_cursor()
-    (NativeSqlBuilder.update_table("products", {"is_active": False})
-     .where("product_id", product_id)
-     .execute_update(cursor))
-    return api_success(message="Đã ẩn sản phẩm", code="PRODUCT_DELETED")
+
+    prod = (NativeSqlBuilder.create()
+            .select("product_id", "name")
+            .from_table("products", "p")
+            .where("product_id", product_id, "=", "p")
+            .fetch_one(cursor))
+    if not prod:
+        return api_error("Không tìm thấy sản phẩm", code="PRODUCT_NOT_FOUND", status=404)
+
+    if purge:
+        # Kiểm tra đơn hàng liên quan
+        cursor.execute("""
+            SELECT COUNT(1) AS cnt
+            FROM order_items oi
+            INNER JOIN product_variants pv ON oi.variant_id = pv.variant_id
+            WHERE pv.product_id = %s
+        """, (product_id,))
+        row = cursor.fetchone()
+        cnt = row.get("cnt") if row else 0
+        if cnt > 0:
+            return api_error(
+                f"Sản phẩm '{prod['name']}' đã có {cnt} lượt mua trong đơn hàng. Không thể xóa hẳn khỏi DB, vui lòng chọn Ẩn sản phẩm!",
+                code="PRODUCT_HAS_ORDERS",
+                status=400
+            )
+
+        # Kiểm tra phiếu nhập kho liên quan
+        cursor.execute("""
+            SELECT COUNT(1) AS cnt
+            FROM purchase_receipt_items pri
+            INNER JOIN product_variants pv ON pri.variant_id = pv.variant_id
+            WHERE pv.product_id = %s
+        """, (product_id,))
+        r_row = cursor.fetchone()
+        rcnt = r_row.get("cnt") if r_row else 0
+        if rcnt > 0:
+            return api_error(
+                f"Sản phẩm '{prod['name']}' đã có phiếu nhập kho liên kết. Không thể xóa hẳn khỏi DB, vui lòng chọn Ẩn sản phẩm!",
+                code="PRODUCT_HAS_RECEIPTS",
+                status=400
+            )
+
+        # Xóa các dữ liệu phụ thuộc
+        cursor.execute("""
+            DELETE FROM cart_items 
+            WHERE variant_id IN (SELECT variant_id FROM product_variants WHERE product_id = %s)
+        """, (product_id,))
+        cursor.execute("DELETE FROM product_reviews WHERE product_id = %s", (product_id,))
+        cursor.execute("DELETE FROM product_images WHERE product_id = %s", (product_id,))
+        cursor.execute("DELETE FROM product_variants WHERE product_id = %s", (product_id,))
+        cursor.execute("DELETE FROM products WHERE product_id = %s", (product_id,))
+
+        return api_success(message=f"Đã xóa vĩnh viễn sản phẩm '{prod['name']}' khỏi cơ sở dữ liệu", code="PRODUCT_PURGED")
+    else:
+        (NativeSqlBuilder.update_table("products", {"is_active": False})
+         .where("product_id", product_id)
+         .execute_update(cursor))
+        return api_success(message="Đã ẩn sản phẩm khỏi cửa hàng", code="PRODUCT_DELETED")
+
+
+@catalog_bp.route('/api/admin/variants/<int:variant_id>', methods=['DELETE'])
+@admin_required
+def admin_delete_variant(variant_id):
+    cursor = get_cursor()
+    variant = (NativeSqlBuilder.create()
+               .select("variant_id", "product_id", "sku", "color", "size")
+               .from_table("product_variants", "pv")
+               .where("variant_id", variant_id, "=", "pv")
+               .fetch_one(cursor))
+    if not variant:
+        return api_error("Không tìm thấy biến thể", code="VARIANT_NOT_FOUND", status=404)
+
+    # Kiểm tra đơn hàng
+    cursor.execute("SELECT COUNT(1) AS cnt FROM order_items WHERE variant_id = %s", (variant_id,))
+    o_row = cursor.fetchone()
+    ocnt = o_row.get("cnt") if o_row else 0
+    if ocnt > 0:
+        return api_error(
+            f"Biến thể ({variant['color']} - {variant['size']}) đã có trong {ocnt} đơn hàng, không thể xóa khỏi Database!",
+            code="VARIANT_HAS_ORDERS",
+            status=400
+        )
+
+    # Kiểm tra phiếu nhập kho
+    cursor.execute("SELECT COUNT(1) AS cnt FROM purchase_receipt_items WHERE variant_id = %s", (variant_id,))
+    r_row = cursor.fetchone()
+    rcnt = r_row.get("cnt") if r_row else 0
+    if rcnt > 0:
+        return api_error(
+            f"Biến thể ({variant['color']} - {variant['size']}) đã có trong phiếu nhập kho, không thể xóa khỏi Database!",
+            code="VARIANT_HAS_RECEIPTS",
+            status=400
+        )
+
+    # Xóa khỏi giỏ hàng
+    cursor.execute("DELETE FROM cart_items WHERE variant_id = %s", (variant_id,))
+
+    # Xóa khỏi bảng product_variants
+    cursor.execute("DELETE FROM product_variants WHERE variant_id = %s", (variant_id,))
+
+    return api_success(message=f"Đã xóa vĩnh viễn biến thể ({variant['color']} - {variant['size']}) khỏi cơ sở dữ liệu", code="VARIANT_DELETED")

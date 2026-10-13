@@ -199,6 +199,26 @@ def get_my_orders():
                .order_by_col("order_id", "DESC", "o"))
 
     orders = builder.fetch(cursor)
+    for ord_obj in orders:
+        oid = ord_obj["order_id"]
+        cursor.execute("""
+            SELECT review_id, rating, comment, COALESCE(edit_count, 0) AS edit_count
+            FROM product_reviews
+            WHERE order_id = %s AND user_id = %s
+            ORDER BY review_id DESC LIMIT 1
+        """, (oid, user_id))
+        rv = cursor.fetchone()
+        if rv:
+            ord_obj["has_review"] = True
+            ord_obj["review_edit_count"] = rv["edit_count"]
+            ord_obj["review_rating"] = rv["rating"]
+            ord_obj["review_comment"] = rv["comment"]
+        else:
+            ord_obj["has_review"] = False
+            ord_obj["review_edit_count"] = 0
+            ord_obj["review_rating"] = None
+            ord_obj["review_comment"] = ""
+
     return api_success(orders, code="ORDERS_FETCHED", message="Lấy danh sách đơn hàng thành công")
 
 
@@ -228,6 +248,24 @@ def get_order_detail(order_id):
                     .left_join("products", "p", "pv.product_id = p.product_id")
                     .where("order_id", order_id, "=", "oi"))
     order["items"] = item_builder.fetch(cursor)
+
+    cursor.execute("""
+        SELECT review_id, rating, comment, COALESCE(edit_count, 0) AS edit_count
+        FROM product_reviews
+        WHERE order_id = %s AND user_id = %s
+        ORDER BY review_id DESC LIMIT 1
+    """, (order_id, user_id))
+    rv = cursor.fetchone()
+    if rv:
+        order["has_review"] = True
+        order["review_edit_count"] = rv["edit_count"]
+        order["review_rating"] = rv["rating"]
+        order["review_comment"] = rv["comment"]
+    else:
+        order["has_review"] = False
+        order["review_edit_count"] = 0
+        order["review_rating"] = None
+        order["review_comment"] = ""
 
     return api_success(order, code="ORDER_DETAIL_FETCHED", message="Lấy chi tiết đơn hàng thành công")
 

@@ -140,6 +140,10 @@ export interface Order {
   paid_at?: string;
   note?: string;
   address_changed_count?: number;
+  has_review?: boolean;
+  review_edit_count?: number;
+  review_rating?: number;
+  review_comment?: string;
   created_at: string;
   items?: OrderItem[];
   total_items?: number;

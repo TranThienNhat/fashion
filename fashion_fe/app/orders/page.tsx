@@ -128,7 +128,7 @@ export default function OrdersPage() {
         addressForm.setFieldsValue({
           receiver_name: addr.receiver_name,
           receiver_phone: addr.receiver_phone,
-          shipping_address: `${addr.street_detail}, ${addr.ward}, ${addr.district}, ${addr.province}`,
+          shipping_address: [addr.street_detail, addr.ward, addr.province].filter(Boolean).join(", "),
         });
       }
     }
@@ -166,9 +166,17 @@ export default function OrdersPage() {
   const handleOpenReview = async (order: Order) => {
     try {
       const res = await orderAPI.getOrderDetail(order.order_id);
-      setReviewOrder(res.data);
-      if (res.data.items && res.data.items.length > 0) {
-        setSelectedProductId(res.data.items[0].product_id || res.data.items[0].variant_id);
+      const fullOrder = res.data;
+      setReviewOrder(fullOrder);
+      if (fullOrder.items && fullOrder.items.length > 0) {
+        setSelectedProductId(fullOrder.items[0].product_id || fullOrder.items[0].variant_id);
+      }
+      if (fullOrder.has_review || order.has_review) {
+        setRating(fullOrder.review_rating || order.review_rating || 5);
+        setComment(fullOrder.review_comment || order.review_comment || "");
+      } else {
+        setRating(5);
+        setComment("");
       }
       setIsReviewOpen(true);
     } catch (err: any) {
@@ -180,15 +188,24 @@ export default function OrdersPage() {
     if (!selectedProductId) return;
     try {
       setSubmittingReview(true);
+      const isEditing = Boolean(reviewOrder?.has_review);
       const res = await reviewBlogAPI.submitReview({
         product_id: selectedProductId,
         order_id: reviewOrder?.order_id,
         rating,
         comment,
       });
-      message.success(getApiMessage(res, "Cảm ơn bạn đã gửi đánh giá sản phẩm!"));
+      message.success(
+        getApiMessage(
+          res,
+          isEditing
+            ? "Đã cập nhật đánh giá thành công (Đã hoàn tất 1 lần sửa duy nhất)!"
+            : "Cảm ơn bạn đã gửi đánh giá sản phẩm!"
+        )
+      );
       setIsReviewOpen(false);
       setComment("");
+      await fetchOrders();
     } catch (err: any) {
       message.error(getApiError(err, "Lỗi khi gửi đánh giá"));
     } finally {
@@ -364,13 +381,51 @@ export default function OrdersPage() {
                       )}
 
                       {o.order_status === "DELIVERED" && (
-                        <Button
-                          type="primary"
-                          onClick={() => handleOpenReview(o)}
-                          style={{ borderRadius: 0, background: "#C5A880", borderColor: "#C5A880", color: "#18181B", fontWeight: 600 }}
-                          icon={<StarOutlined />}>
-                          Viết Đánh Giá
-                        </Button>
+                        !o.has_review ? (
+                          <Button
+                            type="primary"
+                            onClick={() => handleOpenReview(o)}
+                            style={{
+                              borderRadius: 0,
+                              background: "#18181B",
+                              borderColor: "#18181B",
+                              color: "#FFFFFF",
+                              fontWeight: 600,
+                            }}
+                            icon={<StarOutlined />}>
+                            Viết Đánh Giá
+                          </Button>
+                        ) : (o.review_edit_count ?? 0) < 1 ? (
+                          <Button
+                            type="primary"
+                            onClick={() => handleOpenReview(o)}
+                            style={{
+                              borderRadius: 0,
+                              background: "#18181B",
+                              borderColor: "#18181B",
+                              color: "#FFFFFF",
+                              fontWeight: 600,
+                            }}
+                            icon={<EditOutlined />}>
+                            Sửa Đánh Giá (Còn 1 lần)
+                          </Button>
+                        ) : (
+                          <Tag
+                            style={{
+                              borderRadius: 0,
+                              padding: "5px 12px",
+                              fontSize: 13,
+                              background: "#F4F4F5",
+                              color: "#71717A",
+                              border: "1px solid #E4E4E7",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 6,
+                              fontWeight: 500,
+                            }}>
+                            <CheckCircleOutlined style={{ color: "#16A34A" }} /> Đã đánh giá ({o.review_rating || 5}★)
+                          </Tag>
+                        )
                       )}
                     </div>
                   </div>
@@ -487,7 +542,7 @@ export default function OrdersPage() {
                     { value: "custom", label: "✍️ Tự nhập / Điều chỉnh địa chỉ bên dưới" },
                     ...userAddresses.map((a) => ({
                       value: a.address_id,
-                      label: `📍 ${a.receiver_name} (${a.receiver_phone}) - ${a.street_detail}, ${a.ward}, ${a.district}, ${a.province}${a.is_default ? " [Mặc định]" : ""}`,
+                      label: `📍 ${a.receiver_name} (${a.receiver_phone}) - ${[a.street_detail, a.ward, a.province].filter(Boolean).join(", ")}${a.is_default ? " [Mặc định]" : ""}`,
                     })),
                   ]}
                 />
@@ -515,7 +570,7 @@ export default function OrdersPage() {
               </div>
 
               <Form.Item
-                label="Địa Chỉ Chi Tiết (Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành)"
+                label="Địa Chỉ Chi Tiết (Số nhà, tên đường, phường/xã, tỉnh/thành)"
                 name="shipping_address"
                 rules={[{ required: true, message: "Vui lòng nhập địa chỉ nhận hàng" }]}>
                 <Input.TextArea
@@ -547,19 +602,39 @@ export default function OrdersPage() {
           </div>
         </Modal>
 
-        {/* Modal Viết Đánh Giá Sản Phẩm (Sau khi DELIVERED) */}
+        {/* Modal Viết / Sửa Đánh Giá Sản Phẩm (Sau khi DELIVERED) */}
         <Modal
-          title={<span style={{ fontFamily: "serif", fontSize: 20 }}>Đánh Giá Sản Phẩm</span>}
+          title={
+            <span style={{ fontFamily: "serif", fontSize: 20 }}>
+              {reviewOrder?.has_review ? "Chỉnh Sửa Đánh Giá (Còn 1 lần duy nhất)" : "Đánh Giá Sản Phẩm"}
+            </span>
+          }
           open={isReviewOpen}
           onCancel={() => setIsReviewOpen(false)}
           onOk={handleSubmitReview}
           confirmLoading={submittingReview}
-          okText="Gửi Đánh Giá"
+          okText={reviewOrder?.has_review ? "Cập Nhật Đánh Giá" : "Gửi Đánh Giá"}
           cancelText="Hủy">
           <div style={{ padding: "12px 0" }}>
-            <p style={{ fontSize: 13, color: "#71717A" }}>
-              Chia sẻ cảm nhận của bạn về chất liệu, độ vừa vặn và phom dáng của sản phẩm để giúp cộng đồng mua sắm tốt hơn.
-            </p>
+            {reviewOrder?.has_review ? (
+              <div
+                style={{
+                  background: "#FFFBEB",
+                  border: "1px solid #FDE68A",
+                  padding: "10px 14px",
+                  borderRadius: 4,
+                  marginBottom: 16,
+                  fontSize: 13,
+                  color: "#92400E",
+                  lineHeight: 1.5,
+                }}>
+                ⚠️ <b>QUY ĐỊNH CHỈNH SỬA ĐÁNH GIÁ:</b> Quý khách chỉ được phép chỉnh sửa đánh giá <b>1 LẦN DUY NHẤT</b> cho đơn hàng này. Sau khi xác nhận cập nhật, đánh giá sẽ được khóa vĩnh viễn và không thể thay đổi nữa.
+              </div>
+            ) : (
+              <p style={{ fontSize: 13, color: "#71717A" }}>
+                Chia sẻ cảm nhận của bạn về chất liệu, độ vừa vặn và phom dáng của sản phẩm để giúp cộng đồng mua sắm tốt hơn. Bạn sẽ có 1 lần chỉnh sửa lại sau khi gửi.
+              </p>
+            )}
 
             <div style={{ marginBottom: 16 }}>
               <label style={{ display: "block", marginBottom: 6, fontWeight: 500 }}>Chấm điểm số sao:</label>

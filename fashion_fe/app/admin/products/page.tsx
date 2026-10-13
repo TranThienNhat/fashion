@@ -15,6 +15,7 @@ import {
   Space,
   message,
   Popconfirm,
+  Tooltip,
 } from "antd";
 import {
   PlusOutlined,
@@ -39,6 +40,7 @@ export default function AdminProductsPage() {
   // Form Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteModalProduct, setDeleteModalProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
   const [variantsList, setVariantsList] = useState<any[]>([]);
 
@@ -118,8 +120,19 @@ export default function AdminProductsPage() {
     ]);
   };
 
-  const handleRemoveVariantRow = (idx: number) => {
-    setVariantsList(variantsList.filter((_, i) => i !== idx));
+  const handleRemoveVariantRow = async (idx: number, v?: any) => {
+    if (v && v.variant_id) {
+      try {
+        const res = await catalogAPI.adminDeleteVariant(v.variant_id);
+        message.success(getApiMessage(res, `Đã xóa vĩnh viễn biến thể (${v.color || ""} ${v.size || ""}) khỏi DB.`));
+        setVariantsList((prev) => prev.filter((_, i) => i !== idx));
+        fetchProducts();
+      } catch (err: any) {
+        message.error(getApiError(err, "Không thể xóa biến thể này. Có thể biến thể đã phát sinh đơn hàng hoặc phiếu nhập kho."));
+      }
+    } else {
+      setVariantsList((prev) => prev.filter((_, i) => i !== idx));
+    }
   };
 
   const handleVariantChange = (idx: number, field: string, val: any) => {
@@ -150,13 +163,36 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleDeleteProduct = async (id: number) => {
+  const handleToggleActiveProduct = async (prod: Product, newActive: boolean) => {
     try {
-      const res = await catalogAPI.adminDeleteProduct(id);
-      message.success(getApiMessage(res, "Đã cập nhật trạng thái ngừng kinh doanh sản phẩm."));
+      if (newActive) {
+        const res = await catalogAPI.adminUpdateProduct(prod.product_id, {
+          name: prod.name,
+          category_id: prod.category_id,
+          brand_id: prod.brand_id,
+          base_price: prod.base_price,
+          description: prod.description,
+          thumbnail: prod.thumbnail,
+          is_active: true,
+        });
+        message.success(getApiMessage(res, `Đã mở bán hiển thị lại sản phẩm '${prod.name}'.`));
+      } else {
+        const res = await catalogAPI.adminDeleteProduct(prod.product_id, false);
+        message.success(getApiMessage(res, `Đã tạm ẩn sản phẩm '${prod.name}' khỏi storefront.`));
+      }
       fetchProducts();
     } catch (err: any) {
-      message.error(getApiError(err, "Không thể thao tác với sản phẩm. Vui lòng thử lại."));
+      message.error(getApiError(err, "Không thể cập nhật trạng thái sản phẩm."));
+    }
+  };
+
+  const handlePurgeProduct = async (prod: Product) => {
+    try {
+      const res = await catalogAPI.adminDeleteProduct(prod.product_id, true);
+      message.success(getApiMessage(res, `Đã xóa vĩnh viễn sản phẩm '${prod.name}' khỏi Database.`));
+      fetchProducts();
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể xóa vĩnh viễn sản phẩm."));
     }
   };
 
@@ -267,21 +303,114 @@ export default function AdminProductsPage() {
               key: "action",
               render: (_, record) => (
                 <Space>
-                  <Button size="small" icon={<EditOutlined />} onClick={() => handleOpenModal(record)} />
-                  <Popconfirm
-                    title="Ẩn sản phẩm?"
-                    description="Sản phẩm sẽ không còn xuất hiện trên cửa hàng storefront."
-                    onConfirm={() => handleDeleteProduct(record.product_id)}
-                    okText="Ẩn"
-                    cancelText="Hủy">
-                    <Button size="small" danger icon={<DeleteOutlined />} />
-                  </Popconfirm>
+                  <Tooltip title="Chỉnh sửa thông tin & biến thể">
+                    <Button size="small" icon={<EditOutlined />} onClick={() => handleOpenModal(record)} />
+                  </Tooltip>
+
+                  {record.is_active ? (
+                    <Popconfirm
+                      title="Ẩn sản phẩm?"
+                      description="Sản phẩm sẽ tạm ngừng hiển thị trên trang bán hàng (vẫn lưu trữ trong DB)."
+                      onConfirm={() => handleToggleActiveProduct(record, false)}
+                      okText="Ẩn"
+                      cancelText="Hủy">
+                      <Tooltip title="Tạm ẩn khỏi cửa hàng">
+                        <Button size="small" style={{ color: "#D97706", borderColor: "#FCD34D", fontSize: 12 }}>
+                          Ẩn
+                        </Button>
+                      </Tooltip>
+                    </Popconfirm>
+                  ) : (
+                    <Tooltip title="Kích hoạt bán lại trên cửa hàng">
+                      <Button
+                        size="small"
+                        onClick={() => handleToggleActiveProduct(record, true)}
+                        style={{ color: "#16A34A", borderColor: "#86EFAC", fontSize: 12, fontWeight: 500 }}>
+                        Hiện lại
+                      </Button>
+                    </Tooltip>
+                  )}
+
+                  <Tooltip title="Tùy chọn xóa (Chỉ Ẩn hoặc Xóa hẳn khỏi DB)">
+                    <Button
+                      size="small"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={() => setDeleteModalProduct(record)}
+                    />
+                  </Tooltip>
                 </Space>
               ),
             },
           ]}
         />
       </div>
+
+      {/* Modal Tùy Chọn Xóa Sản Phẩm */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#DC2626" }}>
+            <DeleteOutlined style={{ fontSize: 18 }} />
+            <span style={{ fontFamily: "serif", fontSize: 18, color: "#111827" }}>
+              Tùy Chọn Xóa Sản Phẩm
+            </span>
+          </div>
+        }
+        open={!!deleteModalProduct}
+        onCancel={() => setDeleteModalProduct(null)}
+        footer={null}
+        width={500}>
+        <div style={{ padding: "8px 0" }}>
+          <p style={{ fontSize: 14, color: "#1F2937", marginBottom: 12 }}>
+            Bạn muốn thực hiện thao tác xóa nào đối với sản phẩm: <b>{deleteModalProduct?.name}</b>?
+          </p>
+
+          <div style={{ background: "#F9FAFB", border: "1px solid #E5E7EB", padding: "12px 14px", borderRadius: 4, fontSize: 13, color: "#4B5563", lineHeight: 1.6, marginBottom: 20 }}>
+            <div>
+              🟡 <b>Chỉ Ẩn Sản Phẩm:</b> Sản phẩm sẽ tạm dừng hiển thị đối với khách hàng trên storefront, nhưng vẫn bảo lưu toàn bộ dữ liệu, biến thể và lịch sử đơn hàng.
+            </div>
+            <div style={{ marginTop: 8 }}>
+              🔴 <b>Xác Nhận Xóa Hẳn Khỏi DB:</b> Sản phẩm và toàn bộ biến thể sẽ bị xóa vĩnh viễn khỏi cơ sở dữ liệu MySQL (chỉ khả dụng khi sản phẩm chưa phát sinh đơn hàng).
+            </div>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, flexWrap: "wrap" }}>
+            <Button onClick={() => setDeleteModalProduct(null)}>
+              Hủy
+            </Button>
+
+            {deleteModalProduct?.is_active && (
+              <Button
+                style={{ color: "#D97706", borderColor: "#FCD34D" }}
+                onClick={() => {
+                  if (deleteModalProduct) {
+                    handleToggleActiveProduct(deleteModalProduct, false);
+                    setDeleteModalProduct(null);
+                  }
+                }}>
+                Chỉ Ẩn Sản Phẩm
+              </Button>
+            )}
+
+            <Popconfirm
+              title="Xóa vĩnh viễn sản phẩm?"
+              description="Thao tác này không thể hoàn tác. Dữ liệu sản phẩm và biến thể sẽ bị xóa hoàn toàn khỏi Database!"
+              onConfirm={() => {
+                if (deleteModalProduct) {
+                  handlePurgeProduct(deleteModalProduct);
+                  setDeleteModalProduct(null);
+                }
+              }}
+              okText="Đồng ý xóa hẳn"
+              okButtonProps={{ danger: true }}
+              cancelText="Hủy">
+              <Button type="primary" danger>
+                Xác Nhận Xóa Hẳn Khỏi DB
+              </Button>
+            </Popconfirm>
+          </div>
+        </div>
+      </Modal>
 
       {/* Modal Thêm / Chỉnh Sửa Sản Phẩm */}
       <Modal
@@ -385,7 +514,21 @@ export default function AdminProductsPage() {
                     onChange={(val) => handleVariantChange(idx, "stock_quantity", val)}
                     style={{ width: 90 }}
                   />
-                  <Button danger size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveVariantRow(idx)} />
+                  <Popconfirm
+                    title="Xóa biến thể này?"
+                    description={
+                      v.variant_id
+                        ? `Xác nhận xóa hẳn biến thể (${v.color || ""} - ${v.size || ""}) khỏi Database?`
+                        : "Xóa dòng biến thể chưa lưu này?"
+                    }
+                    onConfirm={() => handleRemoveVariantRow(idx, v)}
+                    okText="Xóa hẳn"
+                    okButtonProps={{ danger: true }}
+                    cancelText="Hủy">
+                    <Tooltip title={v.variant_id ? "Xóa vĩnh viễn khỏi Database" : "Xóa dòng"}>
+                      <Button danger size="small" icon={<DeleteOutlined />} />
+                    </Tooltip>
+                  </Popconfirm>
                 </div>
               ))}
             </div>

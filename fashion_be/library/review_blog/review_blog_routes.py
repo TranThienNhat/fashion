@@ -42,6 +42,7 @@ def get_product_reviews(product_id):
 def create_review():
     """
     Gửi đánh giá sau khi đơn hàng chuyển sang trạng thái DELIVERED.
+    Hỗ trợ chỉnh sửa đánh giá tối đa 1 lần duy nhất.
     """
     user_id = g.current_user["user_id"]
     data = request.get_json() or {}
@@ -59,6 +60,12 @@ def create_review():
 
     cursor = get_cursor()
 
+    # Đảm bảo bảng product_reviews có cột edit_count
+    try:
+        cursor.execute("ALTER TABLE product_reviews ADD COLUMN edit_count INT NOT NULL DEFAULT 0")
+    except Exception:
+        pass
+
     # Kiểm tra điều kiện: nếu kèm order_id thì đơn hàng phải thuộc về user và đã DELIVERED
     if order_id:
         chk_order = (NativeSqlBuilder.create()
@@ -74,17 +81,73 @@ def create_review():
                 status=400
             )
 
+        # Kiểm tra xem đơn hàng đã từng có đánh giá của user chưa
+        chk_review = (NativeSqlBuilder.create()
+                      .select("review_id", "COALESCE(edit_count, 0) AS edit_count")
+                      .from_table("product_reviews", "pr")
+                      .where("order_id", order_id, "=", "pr")
+                      .where("user_id", user_id, "=", "pr")
+                      .fetch_one(cursor))
+
+        if chk_review:
+            edit_cnt = chk_review.get("edit_count", 0)
+            if edit_cnt >= 1:
+                return api_error(
+                    "Bạn đã sử dụng hết 1 lần sửa đánh giá duy nhất cho đơn hàng này. Không thể đánh giá thêm!",
+                    code="REVIEW_EDIT_LIMIT_EXCEEDED",
+                    status=400
+                )
+
+            # Cập nhật đánh giá hiện tại và tăng edit_count lên 1
+            cursor.execute("""
+                UPDATE product_reviews 
+                SET rating = %s, comment = %s, edit_count = edit_count + 1 
+                WHERE review_id = %s
+            """, (rating, comment, chk_review["review_id"]))
+
+            return api_success(
+                {"review_id": chk_review["review_id"], "edit_count": edit_cnt + 1},
+                message="Đã cập nhật đánh giá thành công (Đã hoàn tất 1 lần sửa duy nhất)!",
+                code="REVIEW_UPDATED"
+            )
+
     ins_builder = (NativeSqlBuilder.insert("product_reviews")
                    .values({
                        "product_id": product_id,
                        "user_id": user_id,
                        "order_id": order_id if order_id else None,
                        "rating": rating,
-                       "comment": comment
+                       "comment": comment,
+                       "edit_count": 0
                    }))
     review_id = ins_builder.execute_insert(cursor)
 
-    return api_success({"review_id": review_id}, message="Cảm ơn bạn đã gửi đánh giá sản phẩm!", code="REVIEW_SUBMITTED", status=201)
+    return api_success({"review_id": review_id, "edit_count": 0}, message="Cảm ơn bạn đã gửi đánh giá sản phẩm! (Bạn còn 1 lần sửa duy nhất)", code="REVIEW_SUBMITTED", status=201)
+
+
+@review_blog_bp.route('/api/reviews/order/<int:order_id>', methods=['GET'])
+@token_required
+def get_order_review(order_id):
+    user_id = g.current_user["user_id"]
+    cursor = get_cursor()
+    try:
+        cursor.execute("ALTER TABLE product_reviews ADD COLUMN edit_count INT NOT NULL DEFAULT 0")
+    except Exception:
+        pass
+
+    review = (NativeSqlBuilder.create()
+              .select("review_id", "rating", "comment", "COALESCE(edit_count, 0) AS edit_count", "created_at")
+              .from_table("product_reviews", "pr")
+              .where("order_id", order_id, "=", "pr")
+              .where("user_id", user_id, "=", "pr")
+              .fetch_one(cursor))
+    if not review:
+        return api_success({"has_review": False, "can_edit": True, "review": None})
+    return api_success({
+        "has_review": True,
+        "can_edit": (review.get("edit_count", 0) < 1),
+        "review": review
+    })
 
 
 @review_blog_bp.route('/api/admin/reviews', methods=['GET'])
