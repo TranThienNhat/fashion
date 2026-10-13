@@ -84,6 +84,28 @@ export default function ProductDetailPage({ params }: PageProps) {
     loadData();
   }, [productId]);
 
+  // Kiểm tra xem sản phẩm có phải phụ kiện hoặc sản phẩm đơn lẻ không có biến thể size
+  const isAccessory = useMemo(() => {
+    if (!product) return false;
+    if (product.has_variants === false) return true;
+    const catSlug = product.category_slug || "";
+    const catName = product.category_name || "";
+    return (
+      catSlug.includes("phu-kien") ||
+      catSlug.includes("tui-xach") ||
+      catSlug.includes("that-lung") ||
+      catSlug.includes("dong-ho") ||
+      catSlug.includes("kinh") ||
+      catSlug.includes("vi-da") ||
+      catName.toLowerCase().includes("phụ kiện") ||
+      catName.toLowerCase().includes("túi xách") ||
+      catName.toLowerCase().includes("thắt lưng") ||
+      catName.toLowerCase().includes("đồng hồ") ||
+      catName.toLowerCase().includes("kính") ||
+      catName.toLowerCase().includes("ví")
+    );
+  }, [product]);
+
   // Danh sách kích thước (size) THỰC TẾ có của màu đang chọn
   const availableSizesForSelectedColor = useMemo(() => {
     if (!product?.variants || !selectedColor) return [];
@@ -355,12 +377,12 @@ export default function ProductDetailPage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* BỘ CHỌN KÍCH THƯỚC (SIZE) - CHỈ HIỂN THỊ CÁC SIZE CỦA MÀU ĐANG CHỌN */}
-              {availableSizesForSelectedColor.length > 0 && (
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12 }}>
-                    <span style={{ color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Kích Thước: <b style={{ color: "#0D0D0D" }}>{selectedSize}</b>
+              {/* BỘ CHỌN KÍCH THƯỚC (SIZE) / QUY CÁCH PHỤ KIỆN */}
+              {isAccessory ? (
+                <div style={{ background: "#FAFAF9", border: "1px solid #EAEAE8", padding: "12px 14px", borderRadius: 2 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 12, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      Quy cách thiết kế: <b style={{ color: "#0D0D0D" }}>Tiêu Chuẩn (One Size / Free Size)</b>
                     </span>
                     <button
                       onClick={() => setIsSizeGuideOpen(true)}
@@ -372,22 +394,49 @@ export default function ProductDetailPage({ params }: PageProps) {
                         cursor: "pointer",
                         fontSize: 11,
                         letterSpacing: "0.05em",
+                        fontWeight: 500,
                       }}>
-                      Bảng Hướng Dẫn Chọn Size
+                      Quy Cách & Bảo Dưỡng
                     </button>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {availableSizesForSelectedColor.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => handleSizeChange(s)}
-                        className={`size-chip ${selectedSize === s ? "active" : ""}`}
-                        style={{ minWidth: 44, textAlign: "center" }}>
-                        {s}
-                      </button>
-                    ))}
+                  <div style={{ fontSize: 12, color: "#52525B", marginTop: 4, lineHeight: 1.5 }}>
+                    Kích thước tiêu chuẩn phù hợp hoàn hảo với vóc dáng. Sản phẩm hoàn thiện thủ công tinh xảo, sẵn sàng sử dụng.
                   </div>
                 </div>
+              ) : (
+                availableSizesForSelectedColor.length > 0 && (
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12 }}>
+                      <span style={{ color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                        Kích Thước: <b style={{ color: "#0D0D0D" }}>{selectedSize}</b>
+                      </span>
+                      <button
+                        onClick={() => setIsSizeGuideOpen(true)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#0D0D0D",
+                          textDecoration: "underline",
+                          cursor: "pointer",
+                          fontSize: 11,
+                          letterSpacing: "0.05em",
+                        }}>
+                        Bảng Hướng Dẫn Chọn Size
+                      </button>
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {availableSizesForSelectedColor.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => handleSizeChange(s)}
+                          className={`size-chip ${selectedSize === s ? "active" : ""}`}
+                          style={{ minWidth: 44, textAlign: "center" }}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )
               )}
 
               {/* TÌNH TRẠNG TỒN KHO THỜI GIAN THỰC */}
@@ -473,7 +522,11 @@ export default function ProductDetailPage({ params }: PageProps) {
               <div style={{ background: "#FAFAF9", border: "1px solid #EAEAE8", padding: "16px", marginTop: 8, fontSize: 12, color: "#6B6B6B", lineHeight: 1.7 }}>
                 ✓ Đóng gói hộp quà cao cấp kèm thiệp cảm ơn Vinh Store<br />
                 ✓ Kiểm tra sản phẩm cẩn trọng trước khi nhận hàng<br />
-                ✓ Miễn phí đổi size trong 30 ngày nếu không vừa vặn
+                {isAccessory ? (
+                  <>✓ Đổi mới trong 30 ngày nếu phát hiện lỗi chế tác hoặc phụ kiện da/kim loại</>
+                ) : (
+                  <>✓ Miễn phí đổi size trong 30 ngày nếu không vừa vặn</>
+                )}
               </div>
             </div>
           </Col>
@@ -490,12 +543,26 @@ export default function ProductDetailPage({ params }: PageProps) {
                 children: (
                   <div style={{ maxWidth: 840, padding: "16px 0", lineHeight: 1.8, fontSize: 14, color: "#3F3F46" }}>
                     <p>{product.description || "Sản phẩm may đo cao cấp với chất liệu tự nhiên, chuẩn form dáng thanh lịch và hiện đại."}</p>
-                    <h4 style={{ margin: "24px 0 12px", color: "#18181B" }}>Hướng Dẫn Bảo Quản</h4>
-                    <ul style={{ paddingLeft: 20, margin: 0 }}>
-                      <li>Giặt khô chuyên dụng hoặc giặt tay với nước lạnh và dầu gội nhẹ.</li>
-                      <li>Không sử dụng chất tẩy mạnh, không vắt xoắn làm hỏng phom áo.</li>
-                      <li>Ủi hơi nước ở nhiệt độ thích hợp cho lụa / len cashmere.</li>
-                    </ul>
+                    {isAccessory ? (
+                      <>
+                        <h4 style={{ margin: "24px 0 12px", color: "#18181B" }}>Hướng Dẫn Bảo Quản & Sử Dụng Phụ Kiện</h4>
+                        <ul style={{ paddingLeft: 20, margin: 0 }}>
+                          <li>Lau nhẹ bề mặt bằng khăn cotton mềm khô định kỳ để duy trì độ bóng sáng.</li>
+                          <li>Tránh tiếp xúc trực tiếp với nước hoa, cồn, chất tẩy rửa hóa học hoặc môi trường ẩm ướt kéo dài.</li>
+                          <li>Bảo quản trong túi vải (dust bag) và cất nơi thoáng mát khi không sử dụng.</li>
+                          <li>Đối với phụ kiện da thật: định kỳ dưỡng sáp chuyên dụng 3-6 tháng/lần.</li>
+                        </ul>
+                      </>
+                    ) : (
+                      <>
+                        <h4 style={{ margin: "24px 0 12px", color: "#18181B" }}>Hướng Dẫn Bảo Quản</h4>
+                        <ul style={{ paddingLeft: 20, margin: 0 }}>
+                          <li>Giặt khô chuyên dụng hoặc giặt tay với nước lạnh và dầu gội nhẹ.</li>
+                          <li>Không sử dụng chất tẩy mạnh, không vắt xoắn làm hỏng phom áo.</li>
+                          <li>Ủi hơi nước ở nhiệt độ thích hợp cho lụa / len cashmere.</li>
+                        </ul>
+                      </>
+                    )}
                   </div>
                 ),
               },
@@ -536,50 +603,87 @@ export default function ProductDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Modal Hướng Dẫn Chọn Size */}
+      {/* Modal Hướng Dẫn Chọn Size / Quy Cách Phụ Kiện */}
       <Modal
-        title={<span style={{ fontFamily: "serif", fontSize: 20 }}>Bảng Quy Chuẩn Kích Cỡ (Size Guide)</span>}
+        title={
+          <span style={{ fontFamily: "serif", fontSize: 20 }}>
+            {isAccessory ? "Quy Cách Chế Tác & Bảo Quản Phụ Kiện" : "Bảng Quy Chuẩn Kích Cỡ (Size Guide)"}
+          </span>
+        }
         open={isSizeGuideOpen}
         onOk={() => setIsSizeGuideOpen(false)}
         onCancel={() => setIsSizeGuideOpen(false)}
         footer={null}
-        width={600}>
-        <div style={{ padding: "12px 0" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, textAlign: "center" }}>
-            <thead>
-              <tr style={{ background: "#F4F4F5", height: 40 }}>
-                <th style={{ border: "1px solid #E4E4E7" }}>Size</th>
-                <th style={{ border: "1px solid #E4E4E7" }}>Chiều cao (cm)</th>
-                <th style={{ border: "1px solid #E4E4E7" }}>Cân nặng (kg)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>S</b></td>
-                <td style={{ border: "1px solid #E4E4E7" }}>155 - 165</td>
-                <td style={{ border: "1px solid #E4E4E7" }}>45 - 55</td>
-              </tr>
-              <tr>
-                <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>M</b></td>
-                <td style={{ border: "1px solid #E4E4E7" }}>165 - 172</td>
-                <td style={{ border: "1px solid #E4E4E7" }}>55 - 65</td>
-              </tr>
-              <tr>
-                <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>L</b></td>
-                <td style={{ border: "1px solid #E4E4E7" }}>170 - 178</td>
-                <td style={{ border: "1px solid #E4E4E7" }}>65 - 75</td>
-              </tr>
-              <tr>
-                <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>XL</b></td>
-                <td style={{ border: "1px solid #E4E4E7" }}>175 - 185</td>
-                <td style={{ border: "1px solid #E4E4E7" }}>75 - 85</td>
-              </tr>
-            </tbody>
-          </table>
-          <p style={{ fontSize: 12, color: "#71717A", marginTop: 16 }}>
-            * Nếu số đo của bạn nằm giữa 2 size, chúng tôi khuyên bạn nên chọn size lớn hơn để mặc thoải mái và có độ rủ sang trọng nhất.
-          </p>
-        </div>
+        width={isAccessory ? 650 : 600}>
+        {isAccessory ? (
+          <div style={{ padding: "12px 0", fontSize: 13, lineHeight: 1.7, color: "#3F3F46" }}>
+            <div style={{ background: "#F4F4F5", padding: "12px 16px", borderRadius: 4, marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, color: "#18181B", marginBottom: 4 }}>Quy Cách Chuẩn Mực Vinh Store:</div>
+              <div>• Kích thước: Thiết kế tỷ lệ công thái học hoàn hảo, phù hợp vóc dáng người Á Đông.</div>
+              <div>• Chi tiết kim loại: Khóa, móc hoặc dây kéo được mạ điện phân chống oxy hóa và xỉn màu.</div>
+              <div>• Đóng gói bàn giao: Hộp carton cứng bọc lót chống sốc + túi vải nhung chống bụi (dustbag).</div>
+            </div>
+
+            <div style={{ fontWeight: 600, color: "#18181B", marginBottom: 6 }}>Nguyên Tắc Bảo Dưỡng Độ Bền:</div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 16 }}>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px", background: "#FAFAF9", width: 140, fontWeight: 600 }}>Chống ẩm ướt</td>
+                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px" }}>Không mang khi trời mưa lớn; nếu ướt hãy thấm khô tự nhiên bằng khăn mềm, tuyệt đối không dùng máy sấy nhiệt.</td>
+                </tr>
+                <tr>
+                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px", background: "#FAFAF9", fontWeight: 600 }}>Chống biến dạng</td>
+                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px" }}>Đặt giấy độn mềm bên trong túi xách hoặc ví khi cất giữ để giữ nguyên form dáng nguyên bản.</td>
+                </tr>
+                <tr>
+                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px", background: "#FAFAF9", fontWeight: 600 }}>Dưỡng chất liệu</td>
+                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px" }}>Sử dụng kem sáp dưỡng da chuyên dụng định kỳ mỗi quý một lần để duy trì độ mềm mại sang trọng.</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style={{ fontSize: 12, color: "#71717A", fontStyle: "italic" }}>
+              * Quý khách được hỗ trợ làm sạch và bảo dưỡng bề mặt da miễn phí trong vòng 12 tháng tại hệ thống cửa hàng Vinh Store.
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: "12px 0" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, textAlign: "center" }}>
+              <thead>
+                <tr style={{ background: "#F4F4F5", height: 40 }}>
+                  <th style={{ border: "1px solid #E4E4E7" }}>Size</th>
+                  <th style={{ border: "1px solid #E4E4E7" }}>Chiều cao (cm)</th>
+                  <th style={{ border: "1px solid #E4E4E7" }}>Cân nặng (kg)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>S</b></td>
+                  <td style={{ border: "1px solid #E4E4E7" }}>155 - 165</td>
+                  <td style={{ border: "1px solid #E4E4E7" }}>45 - 55</td>
+                </tr>
+                <tr>
+                  <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>M</b></td>
+                  <td style={{ border: "1px solid #E4E4E7" }}>165 - 172</td>
+                  <td style={{ border: "1px solid #E4E4E7" }}>55 - 65</td>
+                </tr>
+                <tr>
+                  <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>L</b></td>
+                  <td style={{ border: "1px solid #E4E4E7" }}>170 - 178</td>
+                  <td style={{ border: "1px solid #E4E4E7" }}>65 - 75</td>
+                </tr>
+                <tr>
+                  <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>XL</b></td>
+                  <td style={{ border: "1px solid #E4E4E7" }}>175 - 185</td>
+                  <td style={{ border: "1px solid #E4E4E7" }}>75 - 85</td>
+                </tr>
+              </tbody>
+            </table>
+            <p style={{ fontSize: 12, color: "#71717A", marginTop: 16 }}>
+              * Nếu số đo của bạn nằm giữa 2 size, chúng tôi khuyên bạn nên chọn size lớn hơn để mặc thoải mái và có độ rủ sang trọng nhất.
+            </p>
+          </div>
+        )}
       </Modal>
     </MainLayout>
   );

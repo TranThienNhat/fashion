@@ -13,6 +13,7 @@ import {
   Row,
   Col,
   Space,
+  Switch,
   message,
   Popconfirm,
   Tooltip,
@@ -43,6 +44,7 @@ export default function AdminProductsPage() {
   const [deleteModalProduct, setDeleteModalProduct] = useState<Product | null>(null);
   const [form] = Form.useForm();
   const [variantsList, setVariantsList] = useState<any[]>([]);
+  const [hasVariants, setHasVariants] = useState<boolean>(true);
 
   const fetchProducts = async () => {
     try {
@@ -90,6 +92,8 @@ export default function AdminProductsPage() {
       try {
         const detailRes = await catalogAPI.getProductDetail(prod.product_id);
         const fullProd = detailRes.data;
+        const isVar = fullProd.has_variants !== undefined ? Boolean(fullProd.has_variants) : (prod.has_variants !== undefined ? Boolean(prod.has_variants) : true);
+        setHasVariants(isVar);
         form.setFieldsValue({
           name: fullProd.name,
           category_id: fullProd.category_id,
@@ -97,6 +101,8 @@ export default function AdminProductsPage() {
           base_price: fullProd.base_price,
           thumbnail: fullProd.thumbnail,
           description: fullProd.description,
+          stock_quantity: fullProd.variants?.[0]?.stock_quantity ?? fullProd.total_stock ?? 50,
+          sku: fullProd.variants?.[0]?.sku ?? "",
         });
         setVariantsList(fullProd.variants || []);
       } catch (err: any) {
@@ -104,13 +110,33 @@ export default function AdminProductsPage() {
       }
     } else {
       setEditingProduct(null);
+      setHasVariants(true);
       form.resetFields();
+      form.setFieldsValue({
+        stock_quantity: 50,
+        sku: "",
+      });
       setVariantsList([
         { color: "Đen", size: "S", sku: "", price: 1000000, stock_quantity: 20 },
         { color: "Đen", size: "M", sku: "", price: 1000000, stock_quantity: 20 },
       ]);
     }
     setIsModalOpen(true);
+  };
+
+  const handleCategorySelect = (catId: number) => {
+    form.setFieldValue("category_id", catId);
+    const selectedCat = categories.find((c) => c.category_id === catId);
+    if (selectedCat) {
+      const isAccessory =
+        selectedCat.slug?.includes("phu-kien") ||
+        selectedCat.slug?.includes("tui-xach") ||
+        selectedCat.name?.toLowerCase().includes("phụ kiện") ||
+        selectedCat.name?.toLowerCase().includes("túi xách");
+      if (isAccessory) {
+        setHasVariants(false);
+      }
+    }
   };
 
   const handleAddVariantRow = () => {
@@ -144,10 +170,17 @@ export default function AdminProductsPage() {
   const handleSaveProduct = async () => {
     try {
       const values = await form.validateFields();
-      const payload = {
+      const payload: any = {
         ...values,
-        variants: variantsList,
+        has_variants: hasVariants,
       };
+
+      if (hasVariants) {
+        payload.variants = variantsList;
+      } else {
+        payload.stock_quantity = values.stock_quantity ?? 0;
+        payload.sku = values.sku ?? "";
+      }
 
       if (editingProduct) {
         const res = await catalogAPI.adminUpdateProduct(editingProduct.product_id, payload);
@@ -273,10 +306,15 @@ export default function AdminProductsPage() {
               render: (v) => <b>{formatPrice(v)}</b>,
             },
             {
-              title: "Biến thể",
+              title: "Phân loại / Biến thể",
               dataIndex: "variant_count",
               key: "variant_count",
-              render: (c) => <Tag color="blue">{c} biến thể</Tag>,
+              render: (c, record) =>
+                record.has_variants === false ? (
+                  <Tag color="purple">Phụ kiện / Đơn lẻ</Tag>
+                ) : (
+                  <Tag color="blue">{c} biến thể</Tag>
+                ),
             },
             {
               title: "Tổng tồn kho",
@@ -442,7 +480,10 @@ export default function AdminProductsPage() {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Danh mục sản phẩm" name="category_id" rules={[{ required: true }]}>
-                <Select placeholder="Chọn danh mục" style={{ borderRadius: 0 }}>
+                <Select
+                  placeholder="Chọn danh mục"
+                  style={{ borderRadius: 0 }}
+                  onChange={handleCategorySelect}>
                   {(Array.isArray(categories) ? categories : []).map((c) => (
                     <Select.Option key={c.category_id} value={c.category_id}>
                       {c.parent_id ? "↳ " : ""}{c.name}
@@ -472,66 +513,110 @@ export default function AdminProductsPage() {
             <Input.TextArea rows={3} placeholder="Chất liệu sợi tự nhiên, xuất xứ, phom dáng..." style={{ borderRadius: 0 }} />
           </Form.Item>
 
-          {/* Ma Trận Quản Lý Biến Thể */}
+          {/* Cấu Hình Phân Loại / Biến Thể */}
           <div style={{ borderTop: "1px solid #E4E4E7", paddingTop: 16, marginTop: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <b style={{ fontSize: 14 }}>Ma Trận Biến Thể Thời Trang (Color / Size / SKU / Giá / Tồn Kho):</b>
-              <Button size="small" onClick={handleAddVariantRow} icon={<PlusOutlined />}>
-                Thêm Dòng Biến Thể
-              </Button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, background: "#F4F4F5", padding: "10px 14px", borderRadius: 4 }}>
+              <div>
+                <b style={{ fontSize: 13, color: "#18181B" }}>Sản phẩm có biến thể (Kích thước / Màu sắc):</b>
+                <div style={{ fontSize: 12, color: "#71717A", marginTop: 2 }}>
+                  {hasVariants
+                    ? "BẬT: Dành cho quần áo cần ma trận chọn Size S/M/L và nhiều màu sắc."
+                    : "TẮT: Dành cho Phụ kiện, túi xách, đồng hồ hoặc sản phẩm đơn lẻ (chỉ cần nhập tồn kho & SKU)."}
+                </div>
+              </div>
+              <Switch
+                checked={hasVariants}
+                onChange={(checked) => setHasVariants(checked)}
+                checkedChildren="Có biến thể"
+                unCheckedChildren="Đơn lẻ"
+              />
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {variantsList.map((v, idx) => (
-                <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", background: "#FAFAF9", border: "1px solid #EAEAE8", padding: 8 }}>
-                  <Input
-                    placeholder="Màu (vd: Đen)"
-                    value={v.color}
-                    onChange={(e) => handleVariantChange(idx, "color", e.target.value)}
-                    style={{ width: 110 }}
-                  />
-                  <Input
-                    placeholder="Size (vd: M)"
-                    value={v.size}
-                    onChange={(e) => handleVariantChange(idx, "size", e.target.value)}
-                    style={{ width: 90 }}
-                  />
-                  <Input
-                    placeholder="SKU (Tự sinh nếu trống)"
-                    value={v.sku}
-                    onChange={(e) => handleVariantChange(idx, "sku", e.target.value)}
-                    style={{ flex: 1 }}
-                  />
-                  <InputNumber
-                    placeholder="Giá bán"
-                    value={v.price}
-                    onChange={(val) => handleVariantChange(idx, "price", val)}
-                    style={{ width: 130 }}
-                  />
-                  <InputNumber
-                    placeholder="Tồn kho"
-                    value={v.stock_quantity}
-                    onChange={(val) => handleVariantChange(idx, "stock_quantity", val)}
-                    style={{ width: 90 }}
-                  />
-                  <Popconfirm
-                    title="Xóa biến thể này?"
-                    description={
-                      v.variant_id
-                        ? `Xác nhận xóa hẳn biến thể (${v.color || ""} - ${v.size || ""}) khỏi Database?`
-                        : "Xóa dòng biến thể chưa lưu này?"
-                    }
-                    onConfirm={() => handleRemoveVariantRow(idx, v)}
-                    okText="Xóa hẳn"
-                    okButtonProps={{ danger: true }}
-                    cancelText="Hủy">
-                    <Tooltip title={v.variant_id ? "Xóa vĩnh viễn khỏi Database" : "Xóa dòng"}>
-                      <Button danger size="small" icon={<DeleteOutlined />} />
-                    </Tooltip>
-                  </Popconfirm>
+            {!hasVariants ? (
+              <div style={{ background: "#FAFAF9", border: "1px dashed #D4D4D8", padding: 16, borderRadius: 4 }}>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Form.Item
+                      label={<span style={{ fontWeight: 600 }}>Số lượng tồn kho sản phẩm</span>}
+                      name="stock_quantity"
+                      rules={[{ required: true, message: "Vui lòng nhập số lượng tồn kho" }]}>
+                      <InputNumber min={0} style={{ width: "100%", borderRadius: 0 }} placeholder="Ví dụ: 100" />
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Form.Item
+                      label={<span style={{ fontWeight: 600 }}>Mã SKU sản phẩm (Tùy chọn)</span>}
+                      name="sku">
+                      <Input placeholder="Tự sinh nếu để trống (vd: PK-DA-01)" style={{ borderRadius: 0 }} />
+                    </Form.Item>
+                  </Col>
+                </Row>
+                <div style={{ fontSize: 12, color: "#8F877F", fontStyle: "italic" }}>
+                  💡 Lưu ý: Phụ kiện hoặc sản phẩm đơn chiếc sẽ tự động tạo 1 quy cách tiêu chuẩn (One Size) để khách hàng có thể thêm vào giỏ và đặt mua ngay mà không cần chọn size rườm rà.
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <b style={{ fontSize: 14 }}>Ma Trận Biến Thể Thời Trang (Color / Size / SKU / Giá / Tồn Kho):</b>
+                  <Button size="small" onClick={handleAddVariantRow} icon={<PlusOutlined />}>
+                    Thêm Dòng Biến Thể
+                  </Button>
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {variantsList.map((v, idx) => (
+                    <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", background: "#FAFAF9", border: "1px solid #EAEAE8", padding: 8 }}>
+                      <Input
+                        placeholder="Màu (vd: Đen)"
+                        value={v.color}
+                        onChange={(e) => handleVariantChange(idx, "color", e.target.value)}
+                        style={{ width: 110 }}
+                      />
+                      <Input
+                        placeholder="Size (vd: M)"
+                        value={v.size}
+                        onChange={(e) => handleVariantChange(idx, "size", e.target.value)}
+                        style={{ width: 90 }}
+                      />
+                      <Input
+                        placeholder="SKU (Tự sinh nếu trống)"
+                        value={v.sku}
+                        onChange={(e) => handleVariantChange(idx, "sku", e.target.value)}
+                        style={{ flex: 1 }}
+                      />
+                      <InputNumber
+                        placeholder="Giá bán"
+                        value={v.price}
+                        onChange={(val) => handleVariantChange(idx, "price", val)}
+                        style={{ width: 130 }}
+                      />
+                      <InputNumber
+                        placeholder="Tồn kho"
+                        value={v.stock_quantity}
+                        onChange={(val) => handleVariantChange(idx, "stock_quantity", val)}
+                        style={{ width: 90 }}
+                      />
+                      <Popconfirm
+                        title="Xóa biến thể này?"
+                        description={
+                          v.variant_id
+                            ? `Xác nhận xóa hẳn biến thể (${v.color || ""} - ${v.size || ""}) khỏi Database?`
+                            : "Xóa dòng biến thể chưa lưu này?"
+                        }
+                        onConfirm={() => handleRemoveVariantRow(idx, v)}
+                        okText="Xóa hẳn"
+                        okButtonProps={{ danger: true }}
+                        cancelText="Hủy">
+                        <Tooltip title={v.variant_id ? "Xóa vĩnh viễn khỏi Database" : "Xóa dòng"}>
+                          <Button danger size="small" icon={<DeleteOutlined />} />
+                        </Tooltip>
+                      </Popconfirm>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </Form>
       </Modal>

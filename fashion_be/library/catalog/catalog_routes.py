@@ -528,6 +528,7 @@ def get_product_detail(product_id):
     prod_builder = (NativeSqlBuilder.create()
                     .select("p.product_id", "p.category_id", "p.brand_id", "p.name", "p.slug",
                             "p.description", "p.base_price", "p.thumbnail", "p.created_at",
+                            "COALESCE(p.has_variants, 1) AS has_variants",
                             "c.name AS category_name", "c.slug AS category_slug",
                             "b.name AS brand_name", "b.slug AS brand_slug", "b.logo_url AS brand_logo")
                     .from_table("products", "p")
@@ -538,6 +539,7 @@ def get_product_detail(product_id):
     product = prod_builder.fetch_one(cursor)
     if not product:
         return api_error("Không tìm thấy sản phẩm", code="PRODUCT_NOT_FOUND", status=404)
+    product["has_variants"] = bool(product.get("has_variants", 1))
 
     # 2. Bộ sưu tập ảnh slider
     img_builder = (NativeSqlBuilder.create()
@@ -609,6 +611,7 @@ def admin_get_products():
 
     builder = (NativeSqlBuilder.create()
                .select("p.product_id", "p.name", "p.slug", "p.base_price", "p.thumbnail", "p.is_active",
+                       "COALESCE(p.has_variants, 1) AS has_variants",
                        "p.created_at", "c.name AS category_name", "b.name AS brand_name",
                        "COUNT(pv.variant_id) AS variant_count",
                        "COALESCE(SUM(pv.stock_quantity), 0) AS total_stock")
@@ -616,7 +619,7 @@ def admin_get_products():
                .left_join("categories", "c", "p.category_id = c.category_id")
                .left_join("brands", "b", "p.brand_id = b.brand_id")
                .left_join("product_variants", "pv", "p.product_id = pv.product_id")
-               .group_by("p.product_id, p.name, p.slug, p.base_price, p.thumbnail, p.is_active, p.created_at, c.name, b.name"))
+               .group_by("p.product_id, p.name, p.slug, p.base_price, p.thumbnail, p.has_variants, p.is_active, p.created_at, c.name, b.name"))
 
     if search:
         builder.where_or_group(lambda g: g.where_like("p", "name", search, LikeMatch.CONTAINS)
@@ -641,6 +644,9 @@ def admin_create_product():
     slug = data.get("slug", "").strip() or slugify(name)
     images = data.get("images", [])  # list of URLs
     variants = data.get("variants", [])  # list of dicts: {sku, color, size, price, stock_quantity}
+    has_variants = bool(data.get("has_variants", True))
+    stock_quantity = int(data.get("stock_quantity", 0))
+    sku_input = data.get("sku", "").strip()
 
     if not name or not category_id:
         return api_error("Vui lòng nhập tên sản phẩm và chọn danh mục", code="PRODUCT_MISSING_REQUIRED_FIELDS", status=400)
@@ -657,6 +663,7 @@ def admin_create_product():
                     "description": description,
                     "base_price": base_price,
                     "thumbnail": thumbnail,
+                    "has_variants": has_variants,
                     "is_active": True
                 }))
     product_id = ins_prod.execute_insert(cursor)
@@ -674,7 +681,20 @@ def admin_create_product():
                  .execute_insert(cursor))
 
     # Thêm biến thể
-    if variants:
+    if not has_variants:
+        # Sản phẩm đơn lẻ (phụ kiện hoặc không biến thể): Tạo đúng 1 biến thể mặc định
+        default_sku = sku_input or f"{slug[:15].upper()}-STD"
+        (NativeSqlBuilder.insert("product_variants")
+         .values({
+             "product_id": product_id,
+             "sku": default_sku,
+             "color": "Tiêu chuẩn",
+             "size": "Tiêu chuẩn",
+             "price": base_price,
+             "stock_quantity": stock_quantity
+         })
+         .execute_insert(cursor))
+    elif variants:
         for v in variants:
             sku = v.get("sku") or f"{slug[:10]}-{v.get('color', '')[:3]}-{v.get('size', '')}".upper()
             (NativeSqlBuilder.insert("product_variants")
@@ -689,7 +709,7 @@ def admin_create_product():
              .execute_insert(cursor))
     else:
         # Tạo biến thể mặc định nếu không khai báo
-        default_sku = f"{slug[:15].upper()}-STD"
+        default_sku = sku_input or f"{slug[:15].upper()}-STD"
         (NativeSqlBuilder.insert("product_variants")
          .values({
              "product_id": product_id,
@@ -697,7 +717,7 @@ def admin_create_product():
              "color": "Tiêu chuẩn",
              "size": "Freesize",
              "price": base_price,
-             "stock_quantity": 100
+             "stock_quantity": stock_quantity or 100
          })
          .execute_insert(cursor))
 
@@ -718,17 +738,25 @@ def admin_update_product(product_id):
     variants = data.get("variants")
     images = data.get("images")
 
+    has_variants = data.get("has_variants")
+    stock_quantity = data.get("stock_quantity")
+    sku_input = data.get("sku", "").strip() if data.get("sku") else ""
+
     cursor = get_cursor()
+    prod_update_dict = {
+        "name": name,
+        "category_id": category_id,
+        "brand_id": brand_id if brand_id else None,
+        "base_price": base_price,
+        "description": description,
+        "thumbnail": thumbnail,
+        "is_active": is_active
+    }
+    if has_variants is not None:
+        prod_update_dict["has_variants"] = bool(has_variants)
+
     (NativeSqlBuilder.update_table("products")
-     .set({
-         "name": name,
-         "category_id": category_id,
-         "brand_id": brand_id if brand_id else None,
-         "base_price": base_price,
-         "description": description,
-         "thumbnail": thumbnail,
-         "is_active": is_active
-     })
+     .set(prod_update_dict)
      .where("product_id", product_id)
      .execute_update(cursor))
 
@@ -747,8 +775,37 @@ def admin_update_product(product_id):
                  })
                  .execute_insert(cursor))
 
-    # Cập nhật biến thể nếu có
-    if variants is not None:
+    # Cập nhật biến thể
+    if has_variants is False:
+        # Chuyển sang hoặc duy trì không biến thể: Đồng bộ về 1 biến thể tiêu chuẩn duy nhất
+        cursor.execute("SELECT variant_id, sku, stock_quantity FROM product_variants WHERE product_id = %s ORDER BY variant_id ASC", (product_id,))
+        existing_vars = cursor.fetchall() or []
+        if existing_vars:
+            main_var = existing_vars[0]
+            new_stock = int(stock_quantity) if stock_quantity is not None else main_var.get("stock_quantity", 0)
+            target_sku = sku_input or main_var.get("sku") or f"SKU-{product_id}-STD"
+            cursor.execute("""
+                UPDATE product_variants 
+                SET sku = %s, color = 'Tiêu chuẩn', size = 'Tiêu chuẩn', price = %s, stock_quantity = %s
+                WHERE variant_id = %s
+            """, (target_sku, base_price, new_stock, main_var["variant_id"]))
+
+            # Dọn dẹp các biến thể thừa
+            for extra_v in existing_vars[1:]:
+                ev_id = extra_v["variant_id"]
+                cursor.execute("SELECT COUNT(1) AS cnt FROM order_items WHERE variant_id = %s", (ev_id,))
+                chk_order = cursor.fetchone()
+                if not (chk_order and (chk_order.get("cnt") or 0) > 0):
+                    cursor.execute("DELETE FROM cart_items WHERE variant_id = %s", (ev_id,))
+                    cursor.execute("DELETE FROM product_variants WHERE variant_id = %s", (ev_id,))
+        else:
+            default_sku = sku_input or f"SKU-{product_id}-STD"
+            cursor.execute("""
+                INSERT INTO product_variants (product_id, sku, color, size, price, stock_quantity)
+                VALUES (%s, %s, 'Tiêu chuẩn', 'Tiêu chuẩn', %s, %s)
+            """, (product_id, default_sku, base_price, int(stock_quantity or 0)))
+
+    elif variants is not None:
         kept_variant_ids = [v["variant_id"] for v in variants if v.get("variant_id")]
         # Xóa các biến thể không còn trong payload nếu chưa phát sinh đơn hàng hoặc phiếu nhập
         if kept_variant_ids:

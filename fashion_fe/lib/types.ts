@@ -72,6 +72,8 @@ export interface Product {
   description?: string;
   base_price: number;
   thumbnail?: string;
+  has_variants?: boolean;
+  stock_quantity?: number;
   is_active: boolean;
   created_at?: string;
   category_name?: string;
