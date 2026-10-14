@@ -506,15 +506,10 @@ function ProductsContent() {
                                 <div>
                                   {hasDiscount ? (
                                     <div>
-                                      <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                                        <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
-                                          {formatPrice(minPrice)}
-                                        </span>
-                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#DC2626" }}>
-                                          (-{discountPercent}%)
-                                        </span>
-                                      </div>
-                                      <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through" }}>
+                                      <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                                        {formatPrice(minPrice)}
+                                      </span>
+                                      <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through", marginTop: 2 }}>
                                         {formatPrice(basePrice)}
                                       </div>
                                     </div>

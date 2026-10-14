@@ -49,7 +49,7 @@ export default function AdminInventoryPage() {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   const [receiptForm] = Form.useForm();
   const [receiptItems, setReceiptItems] = useState<any[]>([
-    { variant_id: undefined, import_price: 500000, quantity: 20 },
+    { variant_id: undefined, import_price: undefined, quantity: 20 },
   ]);
 
   // Detail modal
@@ -126,24 +126,18 @@ export default function AdminInventoryPage() {
   // RECEIPT ACTIONS
   const handleOpenReceiptModal = () => {
     receiptForm.resetFields();
-    const firstVar = variants[0];
-    const initialPrice = firstVar ? Math.round((Number(firstVar.price) * 0.6) / 1000) * 1000 : 500000;
-    setReceiptItems([{ variant_id: firstVar ? firstVar.variant_id : undefined, import_price: initialPrice, quantity: 20 }]);
+    setReceiptItems([{ variant_id: undefined, import_price: undefined, quantity: 20 }]);
     setIsReceiptModalOpen(true);
   };
 
   const handleQuickImport = (variantId: number) => {
-    const foundVar = variants.find((v) => v.variant_id === variantId);
-    const suggested = foundVar ? Math.round((Number(foundVar.price) * 0.6) / 1000) * 1000 : 500000;
     receiptForm.resetFields();
-    setReceiptItems([{ variant_id: variantId, import_price: suggested, quantity: 20 }]);
+    setReceiptItems([{ variant_id: variantId, import_price: undefined, quantity: 20 }]);
     setIsReceiptModalOpen(true);
   };
 
   const handleAddReceiptItemRow = () => {
-    const firstVar = variants[0];
-    const initialPrice = firstVar ? Math.round((Number(firstVar.price) * 0.6) / 1000) * 1000 : 500000;
-    setReceiptItems([...receiptItems, { variant_id: undefined, import_price: initialPrice, quantity: 10 }]);
+    setReceiptItems([...receiptItems, { variant_id: undefined, import_price: undefined, quantity: 10 }]);
   };
 
   const handleRemoveReceiptItemRow = (idx: number) => {
@@ -153,14 +147,6 @@ export default function AdminInventoryPage() {
   const handleReceiptItemChange = (idx: number, field: string, val: any) => {
     const updated = [...receiptItems];
     updated[idx][field] = val;
-    if (field === "variant_id") {
-      const foundVar = variants.find((v) => v.variant_id === val);
-      if (foundVar) {
-        // Tự động gợi ý giá vốn nếu chưa chỉnh hoặc đang ở mặc định
-        const suggested = Math.round((Number(foundVar.price) * 0.6) / 1000) * 1000;
-        updated[idx].import_price = suggested > 0 ? suggested : 500000;
-      }
-    }
     setReceiptItems(updated);
   };
 
@@ -170,6 +156,13 @@ export default function AdminInventoryPage() {
       const validItems = receiptItems.filter((it) => it.variant_id && it.quantity > 0);
       if (validItems.length === 0) {
         message.warning("Vui lòng chọn ít nhất một biến thể sản phẩm hợp lệ để lập phiếu nhập.");
+        return;
+      }
+
+      // Kiểm tra xem có dòng nào chưa nhập đơn giá vốn không
+      const missingPriceItem = validItems.find((it) => it.import_price === undefined || it.import_price === null || it.import_price === "" || Number(it.import_price) < 0);
+      if (missingPriceItem) {
+        message.warning("Vui lòng nhập đầy đủ đơn giá nhập vốn cho từng mặt hàng trong phiếu.");
         return;
       }
 
@@ -642,13 +635,14 @@ export default function AdminInventoryPage() {
                       />
                     </div>
 
-                    <Tooltip title="Đơn giá nhập vốn">
+                    <Tooltip title="Đơn giá nhập vốn (VNĐ)">
                       <InputNumber
-                        placeholder="Đơn giá nhập"
+                        placeholder="Nhập giá vốn..."
+                        min={0}
                         value={it.import_price}
                         onChange={(val) => handleReceiptItemChange(idx, "import_price", val)}
-                        formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                        parser={(value) => (value ? Number(value.replace(/\$\s?|(,*)/g, "")) : 0)}
+                        formatter={(value) => (value !== undefined && value !== null && value !== "" ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "")}
+                        parser={(value) => (value ? Number(value.replace(/\$\s?|(,*)/g, "")) : (undefined as any))}
                         style={{ width: 140, flexShrink: 0 }}
                       />
                     </Tooltip>

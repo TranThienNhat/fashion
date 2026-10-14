@@ -343,14 +343,9 @@ export default function Home() {
                           <div>
                             {hasDiscount ? (
                               <div>
-                                <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                                  <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626", letterSpacing: "0.02em" }}>
-                                    {formatPrice(minPrice)}
-                                  </span>
-                                  <span style={{ fontSize: 11, fontWeight: 700, color: "#DC2626" }}>
-                                    (-{discountPercent}%)
-                                  </span>
-                                </div>
+                                <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626", letterSpacing: "0.02em" }}>
+                                  {formatPrice(minPrice)}
+                                </span>
                                 <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through", marginTop: 2 }}>
                                   {formatPrice(basePrice)}
                                 </div>

@@ -377,68 +377,74 @@ export default function ProductDetailPage({ params }: PageProps) {
               </div>
 
               {/* BỘ CHỌN MÀU SẮC */}
-              {product.available_colors && product.available_colors.length > 0 && (
+              {product.available_colors && product.available_colors.length > 0 && !["tiêu chuẩn", "standard", "mặc định"].includes((selectedColor || "").toLowerCase()) && (
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: product.available_colors.length > 1 ? 8 : 0, fontSize: 12 }}>
                     <span style={{ color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                       Màu Sắc: <b style={{ color: "#0D0D0D" }}>{selectedColor}</b>
                     </span>
                   </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {(Array.isArray(product.available_colors) ? product.available_colors : []).map((c) => (
-                      <button
-                        key={c}
-                        onClick={() => handleColorChange(c)}
-                        style={{
-                          padding: "6px 16px",
-                          border: selectedColor === c ? "1px solid #0D0D0D" : "1px solid #EAEAE8",
-                          background: selectedColor === c ? "#0D0D0D" : "#FFFFFF",
-                          color: selectedColor === c ? "#FFFFFF" : "#0D0D0D",
-                          fontWeight: selectedColor === c ? 500 : 400,
-                          cursor: "pointer",
-                          fontSize: 12,
-                          letterSpacing: "0.05em",
-                          transition: "all 0.2s ease",
-                        }}>
-                        {c}
-                      </button>
-                    ))}
-                  </div>
+                  {product.available_colors.length > 1 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {(Array.isArray(product.available_colors) ? product.available_colors : []).map((c) => (
+                        <button
+                          key={c}
+                          onClick={() => handleColorChange(c)}
+                          style={{
+                            padding: "6px 16px",
+                            border: selectedColor === c ? "1px solid #0D0D0D" : "1px solid #EAEAE8",
+                            background: selectedColor === c ? "#0D0D0D" : "#FFFFFF",
+                            color: selectedColor === c ? "#FFFFFF" : "#0D0D0D",
+                            fontWeight: selectedColor === c ? 500 : 400,
+                            cursor: "pointer",
+                            fontSize: 12,
+                            letterSpacing: "0.05em",
+                            transition: "all 0.2s ease",
+                          }}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* BỘ CHỌN KÍCH THƯỚC (SIZE) - ẨN HOÀN TOÀN NẾU LÀ PHỤ KIỆN */}
               {!isAccessory && availableSizesForSelectedColor.length > 0 && (
                 <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: availableSizesForSelectedColor.length > 1 ? 8 : 0, fontSize: 12 }}>
                     <span style={{ color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                       Kích Thước: <b style={{ color: "#0D0D0D" }}>{selectedSize}</b>
                     </span>
-                    <button
-                      onClick={() => setIsSizeGuideOpen(true)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        color: "#0D0D0D",
-                        textDecoration: "underline",
-                        cursor: "pointer",
-                        fontSize: 11,
-                        letterSpacing: "0.05em",
-                      }}>
-                      Bảng Hướng Dẫn Chọn Size
-                    </button>
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {availableSizesForSelectedColor.map((s) => (
+                    {availableSizesForSelectedColor.length > 1 && (
                       <button
-                        key={s}
-                        onClick={() => handleSizeChange(s)}
-                        className={`size-chip ${selectedSize === s ? "active" : ""}`}
-                        style={{ minWidth: 44, textAlign: "center" }}>
-                        {s}
+                        onClick={() => setIsSizeGuideOpen(true)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#0D0D0D",
+                          textDecoration: "underline",
+                          cursor: "pointer",
+                          fontSize: 11,
+                          letterSpacing: "0.05em",
+                        }}>
+                        Bảng Hướng Dẫn Chọn Size
                       </button>
-                    ))}
+                    )}
                   </div>
+                  {availableSizesForSelectedColor.length > 1 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {availableSizesForSelectedColor.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => handleSizeChange(s)}
+                          className={`size-chip ${selectedSize === s ? "active" : ""}`}
+                          style={{ minWidth: 44, textAlign: "center" }}>
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
