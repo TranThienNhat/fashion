@@ -22,6 +22,8 @@ import {
   InfoCircleOutlined,
   ShareAltOutlined,
   HeartOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from "@ant-design/icons";
 import MainLayout from "@/components/MainLayout";
 import { catalogAPI, reviewBlogAPI } from "@/lib/api";
@@ -50,6 +52,15 @@ export default function ProductDetailPage({ params }: PageProps) {
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
+  const carouselRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollCarousel = (direction: "left" | "right") => {
+    if (carouselRef.current) {
+      const scrollAmount = direction === "left" ? -500 : 500;
+      carouselRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -74,6 +85,29 @@ export default function ProductDetailPage({ params }: PageProps) {
           setSelectedColor(first.color);
           setSelectedSize(first.size);
           setSelectedVariant(first);
+        }
+
+        // Tải danh sách sản phẩm gợi ý "Có thể bạn cũng thích" (cùng danh mục hoặc nổi bật)
+        try {
+          const recRes = await catalogAPI.getProducts({
+            category_id: prod.category_id,
+            page: 0,
+            page_size: 10,
+          });
+          const content = recRes.data?.data?.content || recRes.data?.content || [];
+          let filtered = content.filter((p: any) => p.product_id !== prod.product_id);
+
+          if (filtered.length < 5) {
+            const featRes = await catalogAPI.getFeatured(10);
+            const featItems = featRes.data?.data || featRes.data?.items || (Array.isArray(featRes.data) ? featRes.data : []);
+            const more = featItems.filter(
+              (p: any) => p.product_id !== prod.product_id && !filtered.some((f: any) => f.product_id === p.product_id)
+            );
+            filtered = [...filtered, ...more];
+          }
+          setRecommendedProducts(filtered.slice(0, 10));
+        } catch (recErr) {
+          console.error("Lỗi tải sản phẩm gợi ý:", recErr);
         }
       } catch (err) {
         console.error("Lỗi tải chi tiết sản phẩm:", err);
@@ -610,6 +644,202 @@ export default function ProductDetailPage({ params }: PageProps) {
             ]}
           />
         </div>
+
+        {/* KHU VỰC GỢI Ý: CÓ THỂ BẠN CŨNG THÍCH */}
+        {recommendedProducts.length > 0 && (
+          <div style={{ marginTop: 64, paddingTop: 40, borderTop: "1px solid #EAEAE8" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
+              <div>
+                <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600 }}>
+                  GỢI Ý TƯƠNG ĐỒNG
+                </span>
+                <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 28, margin: "4px 0 0", color: "#0D0D0D", letterSpacing: "0.02em" }}>
+                  Có Thể Bạn Cũng Thích
+                </h3>
+              </div>
+
+              {recommendedProducts.length > 4 && (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    onClick={() => scrollCarousel("left")}
+                    aria-label="Previous"
+                    style={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #EAEAE8",
+                      background: "#FFFFFF",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#0D0D0D";
+                      e.currentTarget.style.background = "#0D0D0D";
+                      e.currentTarget.style.color = "#FFFFFF";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#EAEAE8";
+                      e.currentTarget.style.background = "#FFFFFF";
+                      e.currentTarget.style.color = "#0D0D0D";
+                    }}>
+                    <LeftOutlined style={{ fontSize: 13 }} />
+                  </button>
+                  <button
+                    onClick={() => scrollCarousel("right")}
+                    aria-label="Next"
+                    style={{
+                      width: 38,
+                      height: 38,
+                      border: "1px solid #EAEAE8",
+                      background: "#FFFFFF",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all 0.2s ease",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#0D0D0D";
+                      e.currentTarget.style.background = "#0D0D0D";
+                      e.currentTarget.style.color = "#FFFFFF";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#EAEAE8";
+                      e.currentTarget.style.background = "#FFFFFF";
+                      e.currentTarget.style.color = "#0D0D0D";
+                    }}>
+                    <RightOutlined style={{ fontSize: 13 }} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div
+              ref={carouselRef}
+              style={{
+                display: "flex",
+                gap: 16,
+                overflowX: "auto",
+                scrollBehavior: "smooth",
+                paddingBottom: 16,
+                scrollbarWidth: "none",
+              }}>
+              {recommendedProducts.map((p) => {
+                const basePrice = Number(p.base_price) || 0;
+                const minPrice = Number(p.min_price) || 0;
+                const hasDiscount = minPrice > 0 && basePrice > minPrice;
+                const discountPercent = hasDiscount ? Math.round(((basePrice - minPrice) / basePrice) * 100) : 0;
+
+                return (
+                  <div
+                    key={p.product_id}
+                    style={{
+                      flex: "0 0 calc(20% - 13px)",
+                      minWidth: 210,
+                      maxWidth: 240,
+                      background: "#FFFFFF",
+                      border: "1px solid #F0F0EE",
+                      display: "flex",
+                      flexDirection: "column",
+                      transition: "all 0.25s ease",
+                      position: "relative",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#0D0D0D";
+                      e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.06)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#F0F0EE";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}>
+                    <Link href={`/products/${p.product_id}`} style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", height: "100%" }}>
+                      <div style={{ position: "relative", width: "100%", paddingBottom: "125%", overflow: "hidden", background: "#F4F4F5" }}>
+                        <img
+                          src={p.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400"}
+                          alt={p.name}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            transition: "transform 0.4s ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = "scale(1)";
+                          }}
+                        />
+                        {hasDiscount && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              top: 8,
+                              right: 8,
+                              background: "#DC2626",
+                              color: "#FFFFFF",
+                              fontSize: 10,
+                              padding: "2px 6px",
+                              letterSpacing: "0.05em",
+                              fontWeight: 700,
+                              borderRadius: 2,
+                            }}>
+                            -{discountPercent}%
+                          </span>
+                        )}
+                      </div>
+
+                      <div style={{ padding: "12px", display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 500 }}>
+                            {p.brand_name || p.category_name || "Vinh Store"}
+                          </div>
+                          <h4
+                            style={{
+                              margin: "4px 0 8px",
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: "#0D0D0D",
+                              lineHeight: 1.4,
+                              overflow: "hidden",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                              height: 36,
+                            }}>
+                            {p.name}
+                          </h4>
+                        </div>
+
+                        <div>
+                          {hasDiscount ? (
+                            <div>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                                {formatPrice(minPrice)}
+                              </span>
+                              <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through", marginTop: 2 }}>
+                                {formatPrice(basePrice)}
+                              </div>
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D" }}>
+                              {formatPrice(basePrice)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal Hướng Dẫn Chọn Size / Quy Cách Phụ Kiện */}
