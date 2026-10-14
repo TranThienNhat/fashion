@@ -711,8 +711,8 @@ def admin_create_product():
              .values({
                  "product_id": product_id,
                  "sku": sku,
-                 "color": v.get("color", "Tiêu chuẩn"),
-                 "size": v.get("size", "Free"),
+                 "color": v.get("color") or "Tiêu chuẩn",
+                 "size": v.get("size") if v.get("size") is not None else "",
                  "price": v.get("price", base_price),
                  "stock_quantity": v.get("stock_quantity", 0)
              })

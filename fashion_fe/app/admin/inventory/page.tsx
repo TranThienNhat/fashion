@@ -198,11 +198,22 @@ export default function AdminInventoryPage() {
   };
 
   // Danh sách biến thể hiển thị trong Select Lập Phiếu
-  const variantOptions = variants.map((v) => ({
-    value: v.variant_id,
-    label: `${v.product_name} - Màu: ${v.color} | Size: ${v.size} (SKU: ${v.sku} - Tồn: ${v.stock_quantity})`,
-    searchText: `${v.product_name} ${v.color} ${v.size} ${v.sku}`.toLowerCase(),
-  }));
+  const variantOptions = variants.map((v) => {
+    const rawName = (v.product_name || "Sản phẩm").trim();
+    // Cắt ngắn tên sản phẩm nếu dài quá để không bị tràn vỡ ô, kèm dấu ...
+    const shortName = rawName.length > 32 ? rawName.slice(0, 32) + "..." : rawName;
+    const hasSize = v.size && v.size.trim() !== "" && v.size !== "Tiêu chuẩn";
+    const colorPart = v.color ? `Màu: ${v.color}` : "";
+    const sizePart = hasSize ? `Size: ${v.size}` : "";
+    const spec = [colorPart, sizePart].filter(Boolean).join(" | ");
+
+    return {
+      value: v.variant_id,
+      label: `${shortName}${spec ? ` — [${spec}]` : ""} (Tồn: ${v.stock_quantity})`,
+      title: `${rawName}${spec ? ` - ${spec}` : ""} (SKU: ${v.sku} - Tồn kho: ${v.stock_quantity})`,
+      searchText: `${rawName} ${v.color || ""} ${v.size || ""} ${v.sku || ""}`.toLowerCase(),
+    };
+  });
 
   // Lọc biến thể cho Tab Tồn Kho
   const filteredVariants = variants.filter((v) => {
@@ -408,9 +419,9 @@ export default function AdminInventoryPage() {
                         width: 90,
                         ellipsis: true,
                         render: (s) => (
-                          <Tooltip title={s}>
+                          <Tooltip title={s && s !== "Tiêu chuẩn" ? s : "Không có size"}>
                             <b style={{ display: "inline-block", maxWidth: 80, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                              {s}
+                              {s && s !== "Tiêu chuẩn" ? s : <span style={{ color: "#9CA3AF", fontWeight: 400 }}>—</span>}
                             </b>
                           </Tooltip>
                         ),
@@ -571,7 +582,7 @@ export default function AdminInventoryPage() {
         onOk={handleCreateReceipt}
         okText="Xác Nhận Nhập Hàng"
         cancelText="Hủy"
-        width={850}>
+        width={880}>
         <Form form={receiptForm} layout="vertical" style={{ marginTop: 16 }}>
           <Row gutter={16}>
             <Col span={12}>
@@ -605,19 +616,31 @@ export default function AdminInventoryPage() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {(Array.isArray(receiptItems) ? receiptItems : []).map((it, idx) => (
-                  <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", background: "#FAFAF9", border: "1px solid #EAEAE8", padding: 8 }}>
-                    <Select
-                      showSearch
-                      filterOption={(input, option) => {
-                        const opt = variantOptions.find((o) => o.value === option?.value);
-                        return opt ? opt.searchText.includes(input.toLowerCase()) : false;
-                      }}
-                      placeholder="Tìm kiếm và chọn biến thể sản phẩm..."
-                      style={{ flex: 1 }}
-                      value={it.variant_id}
-                      onChange={(val) => handleReceiptItemChange(idx, "variant_id", val)}
-                      options={variantOptions}
-                    />
+                  <div
+                    key={idx}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "center",
+                      background: "#FAFAF9",
+                      border: "1px solid #EAEAE8",
+                      padding: "8px 12px",
+                      borderRadius: 4,
+                    }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Select
+                        showSearch
+                        filterOption={(input, option) => {
+                          const opt = variantOptions.find((o) => o.value === option?.value);
+                          return opt ? opt.searchText.includes(input.toLowerCase()) : false;
+                        }}
+                        placeholder="Tìm kiếm và chọn biến thể sản phẩm..."
+                        style={{ width: "100%" }}
+                        value={it.variant_id}
+                        onChange={(val) => handleReceiptItemChange(idx, "variant_id", val)}
+                        options={variantOptions}
+                      />
+                    </div>
 
                     <Tooltip title="Đơn giá nhập vốn">
                       <InputNumber
@@ -626,7 +649,7 @@ export default function AdminInventoryPage() {
                         onChange={(val) => handleReceiptItemChange(idx, "import_price", val)}
                         formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
                         parser={(value) => (value ? Number(value.replace(/\$\s?|(,*)/g, "")) : 0)}
-                        style={{ width: 140 }}
+                        style={{ width: 140, flexShrink: 0 }}
                       />
                     </Tooltip>
 
@@ -636,11 +659,19 @@ export default function AdminInventoryPage() {
                         min={1}
                         value={it.quantity}
                         onChange={(val) => handleReceiptItemChange(idx, "quantity", val)}
-                        style={{ width: 90 }}
+                        style={{ width: 95, flexShrink: 0 }}
                       />
                     </Tooltip>
 
-                    <Button danger size="small" icon={<DeleteOutlined />} onClick={() => handleRemoveReceiptItemRow(idx)} />
+                    <Tooltip title="Xóa dòng">
+                      <Button
+                        danger
+                        size="small"
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleRemoveReceiptItemRow(idx)}
+                        style={{ flexShrink: 0 }}
+                      />
+                    </Tooltip>
                   </div>
                 ))}
               </div>
@@ -697,7 +728,16 @@ export default function AdminInventoryPage() {
                     </Tooltip>
                   ),
                 },
-                { title: "Màu / Size", key: "var", width: 120, render: (_: any, r: any) => `${r?.color || ""} / ${r?.size || ""}` },
+                {
+                  title: "Màu / Size",
+                  key: "var",
+                  width: 130,
+                  render: (_: any, r: any) => {
+                    const hasSize = r?.size && r.size !== "Tiêu chuẩn";
+                    if (r?.color && hasSize) return `${r.color} / ${r.size}`;
+                    return r?.color || (hasSize ? r.size : "—");
+                  },
+                },
                 { title: "Giá nhập", dataIndex: "import_price", key: "import_price", width: 130, render: (v: any) => formatPrice(v) },
                 { title: "Số lượng", dataIndex: "quantity", key: "quantity", width: 90, render: (q: any) => <b>+{q}</b> },
               ]}

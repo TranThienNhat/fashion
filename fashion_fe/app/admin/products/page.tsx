@@ -146,7 +146,7 @@ export default function AdminProductsPage() {
         const vList = fullProd.variants || [];
         setVariantsList(
           isAcc
-            ? vList.map((v: any) => ({ ...v, size: v.size || "Tiêu chuẩn" }))
+            ? vList.map((v: any) => ({ ...v, size: "" }))
             : vList
         );
       } catch (err: any) {
@@ -177,9 +177,9 @@ export default function AdminProductsPage() {
       setHasVariants(true);
       setVariantsList((prev) => {
         if (!prev || prev.length === 0) {
-          return [{ color: "Đen", size: "Tiêu chuẩn", sku: "", price: form.getFieldValue("base_price") || 1000000, stock_quantity: 20 }];
+          return [{ color: "Đen", size: "", sku: "", price: form.getFieldValue("base_price") || 1000000, stock_quantity: 20 }];
         }
-        return prev.map((v) => ({ ...v, size: "Tiêu chuẩn" }));
+        return prev.map((v) => ({ ...v, size: "" }));
       });
     }
   };
@@ -189,7 +189,7 @@ export default function AdminProductsPage() {
     if (isAccessoryMode) {
       setVariantsList([
         ...variantsList,
-        { color: "", size: "Tiêu chuẩn", sku: "", price: basePrice, stock_quantity: 10 },
+        { color: "", size: "", sku: "", price: basePrice, stock_quantity: 10 },
       ]);
     } else {
       setVariantsList([
@@ -231,7 +231,9 @@ export default function AdminProductsPage() {
       if (hasVariants) {
         payload.variants = variantsList.map((v) => ({
           ...v,
-          size: isAccessoryMode ? "Tiêu chuẩn" : (v.size || "Tiêu chuẩn"),
+          price: Number(v.price) || Number(values.base_price) || 0,
+          stock_quantity: Number(v.stock_quantity) || 0,
+          size: isAccessoryMode ? "" : (v.size || ""),
         }));
       } else {
         payload.stock_quantity = values.stock_quantity ?? 0;
@@ -371,7 +373,7 @@ export default function AdminProductsPage() {
                   return <Tag color="purple">{isAcc ? "Phụ kiện (Đơn lẻ)" : "Đơn lẻ"}</Tag>;
                 }
                 return isAcc ? (
-                  <Tag color="cyan">{c} màu sắc (Không size)</Tag>
+                  <Tag color="cyan">{c} biến thể (Màu & Giá)</Tag>
                 ) : (
                   <Tag color="blue">{c} biến thể</Tag>
                 );
@@ -528,7 +530,21 @@ export default function AdminProductsPage() {
           <Row gutter={16}>
             <Col span={16}>
               <Form.Item label="Tên sản phẩm" name="name" rules={[{ required: true }]}>
-                <Input placeholder="Áo Blazer Cashmere May Đo..." style={{ borderRadius: 0 }} />
+                <Input
+                  placeholder="Áo Blazer Cashmere May Đo..."
+                  style={{ borderRadius: 0 }}
+                  onChange={(e) => {
+                    const isAcc = checkIfAccessory(form.getFieldValue("category_id"), e.target.value);
+                    if (isAcc !== isAccessoryMode) {
+                      setIsAccessoryMode(isAcc);
+                      if (isAcc) {
+                        setVariantsList((prev) =>
+                          prev.map((v) => ({ ...v, size: "" }))
+                        );
+                      }
+                    }
+                  }}
+                />
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -580,12 +596,12 @@ export default function AdminProductsPage() {
               <div>
                 <b style={{ fontSize: 13, color: "#18181B" }}>
                   {isAccessoryMode
-                    ? "Cấu hình biến thể Phụ Kiện (Chỉ quản lý Màu sắc):"
+                    ? "Cấu hình biến thể Phụ Kiện (Phân loại Màu & Giá bán riêng - Không dùng Size):"
                     : "Sản phẩm có biến thể (Kích thước / Màu sắc):"}
                 </b>
                 <div style={{ fontSize: 12, color: "#71717A", marginTop: 2 }}>
                   {isAccessoryMode
-                    ? "Chế độ phụ kiện: Phân loại theo Màu Sắc, kích thước tự động lưu Tiêu chuẩn (không cần nhập Size)."
+                    ? "✓ Chế độ phụ kiện: Tự do nhập Màu sắc, Giá bán và Tồn kho riêng cho từng biến thể (kích thước để trống)."
                     : (hasVariants
                         ? "BẬT: Dành cho quần áo thời trang cần ma trận chọn Size S/M/L và nhiều màu sắc."
                         : "TẮT: Dành cho sản phẩm đơn lẻ (chỉ cần nhập tồn kho & SKU tổng).")}
@@ -598,12 +614,12 @@ export default function AdminProductsPage() {
                     setIsAccessoryMode(checked);
                     if (checked) {
                       setVariantsList((prev) =>
-                        prev.map((v) => ({ ...v, size: "Tiêu chuẩn" }))
+                        prev.map((v) => ({ ...v, size: "" }))
                       );
                     }
                   }}
-                  checkedChildren="Phụ kiện (Chỉ màu)"
-                  unCheckedChildren="Trang phục (Size + Màu)"
+                  checkedChildren="Phụ kiện (Không size)"
+                  unCheckedChildren="Trang phục (Có size)"
                 />
                 <Switch
                   checked={hasVariants}
@@ -643,18 +659,28 @@ export default function AdminProductsPage() {
                   <div>
                     <b style={{ fontSize: 14 }}>
                       {isAccessoryMode
-                        ? "Danh Sách Màu Sắc Phụ Kiện (Chỉ Phân Loại Màu - Không Cần Size):"
+                        ? "Danh Sách Biến Thể Phụ Kiện (Nhập Màu Sắc, Giá Bán & Tồn Kho Từng Màu):"
                         : "Ma Trận Biến Thể Thời Trang (Color / Size / SKU / Giá / Tồn Kho):"}
                     </b>
                     {isAccessoryMode && (
                       <div style={{ fontSize: 12, color: "#059669", marginTop: 2 }}>
-                        ✓ Phụ kiện chỉ cần cấu hình Màu Sắc, giá và tồn kho. Kích thước đã được tối ưu tiêu chuẩn.
+                        ✓ Cho phép nhập riêng Giá bán, Tồn kho và Màu sắc cho từng biến thể phụ kiện. Size hoàn toàn để trống.
                       </div>
                     )}
                   </div>
                   <Button size="small" onClick={handleAddVariantRow} icon={<PlusOutlined />}>
-                    {isAccessoryMode ? "Thêm Màu Mới" : "Thêm Dòng Biến Thể"}
+                    Thêm Biến Thể Mới
                   </Button>
+                </div>
+
+                {/* Header nhãn các cột biến thể */}
+                <div style={{ display: "flex", gap: 8, padding: "6px 10px", background: "#F4F4F5", borderRadius: 4, fontWeight: 600, fontSize: 12, color: "#52525B", marginBottom: 4 }}>
+                  <div style={{ width: isAccessoryMode ? 170 : 110 }}>Màu Sắc *</div>
+                  {!isAccessoryMode && <div style={{ width: 90 }}>Kích Cỡ *</div>}
+                  <div style={{ flex: 1 }}>Mã SKU (Tùy chọn)</div>
+                  <div style={{ width: 140 }}>Giá Bán (VNĐ) *</div>
+                  <div style={{ width: 95 }}>Tồn Kho *</div>
+                  <div style={{ width: 32, textAlign: "center" }}>Xóa</div>
                 </div>
 
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -682,15 +708,19 @@ export default function AdminProductsPage() {
                       />
                       <InputNumber
                         placeholder="Giá bán"
+                        min={0}
                         value={v.price}
                         onChange={(val) => handleVariantChange(idx, "price", val)}
-                        style={{ width: 130 }}
+                        formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+                        parser={(value) => (value ? Number(value.replace(/\$\s?|(,*)/g, "")) : 0)}
+                        style={{ width: 140 }}
                       />
                       <InputNumber
                         placeholder="Tồn kho"
+                        min={0}
                         value={v.stock_quantity}
                         onChange={(val) => handleVariantChange(idx, "stock_quantity", val)}
-                        style={{ width: 90 }}
+                        style={{ width: 95 }}
                       />
                       <Popconfirm
                         title="Xóa biến thể này?"
@@ -704,7 +734,7 @@ export default function AdminProductsPage() {
                         okButtonProps={{ danger: true }}
                         cancelText="Hủy">
                         <Tooltip title={v.variant_id ? "Xóa vĩnh viễn khỏi Database" : "Xóa dòng"}>
-                          <Button danger size="small" icon={<DeleteOutlined />} />
+                          <Button danger size="small" icon={<DeleteOutlined />} style={{ width: 32 }} />
                         </Tooltip>
                       </Popconfirm>
                     </div>
