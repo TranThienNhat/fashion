@@ -45,6 +45,41 @@ export default function AdminProductsPage() {
   const [form] = Form.useForm();
   const [variantsList, setVariantsList] = useState<any[]>([]);
   const [hasVariants, setHasVariants] = useState<boolean>(true);
+  const [isAccessoryMode, setIsAccessoryMode] = useState<boolean>(false);
+
+  // Kiểm tra xem sản phẩm hoặc danh mục có thuộc nhóm phụ kiện không
+  const checkIfAccessory = (catId?: number, prodName?: string) => {
+    const name = (prodName || "").toLowerCase();
+    const isNameAccessory =
+      name.includes("túi") ||
+      name.includes("ví") ||
+      name.includes("thắt lưng") ||
+      name.includes("kính") ||
+      name.includes("đồng hồ") ||
+      name.includes("phụ kiện");
+
+    if (!catId) return isNameAccessory;
+    const selectedCat = categories.find((c) => c.category_id === catId);
+    if (!selectedCat) return isNameAccessory;
+
+    const slug = (selectedCat.slug || "").toLowerCase();
+    const catName = (selectedCat.name || "").toLowerCase();
+    return (
+      isNameAccessory ||
+      slug.includes("phu-kien") ||
+      slug.includes("tui-xach") ||
+      slug.includes("that-lung") ||
+      slug.includes("dong-ho") ||
+      slug.includes("kinh") ||
+      slug.includes("vi-da") ||
+      catName.includes("phụ kiện") ||
+      catName.includes("túi xách") ||
+      catName.includes("thắt lưng") ||
+      catName.includes("đồng hồ") ||
+      catName.includes("kính") ||
+      catName.includes("ví")
+    );
+  };
 
   const fetchProducts = async () => {
     try {
@@ -94,6 +129,10 @@ export default function AdminProductsPage() {
         const fullProd = detailRes.data;
         const isVar = fullProd.has_variants !== undefined ? Boolean(fullProd.has_variants) : (prod.has_variants !== undefined ? Boolean(prod.has_variants) : true);
         setHasVariants(isVar);
+
+        const isAcc = checkIfAccessory(fullProd.category_id, fullProd.name);
+        setIsAccessoryMode(isAcc);
+
         form.setFieldsValue({
           name: fullProd.name,
           category_id: fullProd.category_id,
@@ -104,13 +143,19 @@ export default function AdminProductsPage() {
           stock_quantity: fullProd.variants?.[0]?.stock_quantity ?? fullProd.total_stock ?? 50,
           sku: fullProd.variants?.[0]?.sku ?? "",
         });
-        setVariantsList(fullProd.variants || []);
+        const vList = fullProd.variants || [];
+        setVariantsList(
+          isAcc
+            ? vList.map((v: any) => ({ ...v, size: v.size || "Tiêu chuẩn" }))
+            : vList
+        );
       } catch (err: any) {
         message.error(getApiError(err, "Không thể tải chi tiết thông tin sản phẩm."));
       }
     } else {
       setEditingProduct(null);
       setHasVariants(true);
+      setIsAccessoryMode(false);
       form.resetFields();
       form.setFieldsValue({
         stock_quantity: 50,
@@ -126,24 +171,32 @@ export default function AdminProductsPage() {
 
   const handleCategorySelect = (catId: number) => {
     form.setFieldValue("category_id", catId);
-    const selectedCat = categories.find((c) => c.category_id === catId);
-    if (selectedCat) {
-      const isAccessory =
-        selectedCat.slug?.includes("phu-kien") ||
-        selectedCat.slug?.includes("tui-xach") ||
-        selectedCat.name?.toLowerCase().includes("phụ kiện") ||
-        selectedCat.name?.toLowerCase().includes("túi xách");
-      if (isAccessory) {
-        setHasVariants(false);
-      }
+    const isAcc = checkIfAccessory(catId, form.getFieldValue("name"));
+    setIsAccessoryMode(isAcc);
+    if (isAcc) {
+      setHasVariants(true);
+      setVariantsList((prev) => {
+        if (!prev || prev.length === 0) {
+          return [{ color: "Đen", size: "Tiêu chuẩn", sku: "", price: form.getFieldValue("base_price") || 1000000, stock_quantity: 20 }];
+        }
+        return prev.map((v) => ({ ...v, size: "Tiêu chuẩn" }));
+      });
     }
   };
 
   const handleAddVariantRow = () => {
-    setVariantsList([
-      ...variantsList,
-      { color: "Trắng", size: "M", sku: "", price: 1000000, stock_quantity: 10 },
-    ]);
+    const basePrice = form.getFieldValue("base_price") || 1000000;
+    if (isAccessoryMode) {
+      setVariantsList([
+        ...variantsList,
+        { color: "", size: "Tiêu chuẩn", sku: "", price: basePrice, stock_quantity: 10 },
+      ]);
+    } else {
+      setVariantsList([
+        ...variantsList,
+        { color: "Trắng", size: "M", sku: "", price: basePrice, stock_quantity: 10 },
+      ]);
+    }
   };
 
   const handleRemoveVariantRow = async (idx: number, v?: any) => {
@@ -176,7 +229,10 @@ export default function AdminProductsPage() {
       };
 
       if (hasVariants) {
-        payload.variants = variantsList;
+        payload.variants = variantsList.map((v) => ({
+          ...v,
+          size: isAccessoryMode ? "Tiêu chuẩn" : (v.size || "Tiêu chuẩn"),
+        }));
       } else {
         payload.stock_quantity = values.stock_quantity ?? 0;
         payload.sku = values.sku ?? "";
@@ -309,12 +365,17 @@ export default function AdminProductsPage() {
               title: "Phân loại / Biến thể",
               dataIndex: "variant_count",
               key: "variant_count",
-              render: (c, record) =>
-                record.has_variants === false ? (
-                  <Tag color="purple">Phụ kiện / Đơn lẻ</Tag>
+              render: (c, record) => {
+                const isAcc = checkIfAccessory(record.category_id, record.name);
+                if (record.has_variants === false) {
+                  return <Tag color="purple">{isAcc ? "Phụ kiện (Đơn lẻ)" : "Đơn lẻ"}</Tag>;
+                }
+                return isAcc ? (
+                  <Tag color="cyan">{c} màu sắc (Không size)</Tag>
                 ) : (
                   <Tag color="blue">{c} biến thể</Tag>
-                ),
+                );
+              },
             },
             {
               title: "Tổng tồn kho",
@@ -515,21 +576,42 @@ export default function AdminProductsPage() {
 
           {/* Cấu Hình Phân Loại / Biến Thể */}
           <div style={{ borderTop: "1px solid #E4E4E7", paddingTop: 16, marginTop: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, background: "#F4F4F5", padding: "10px 14px", borderRadius: 4 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, background: "#F4F4F5", padding: "10px 14px", borderRadius: 4, flexWrap: "wrap", gap: 10 }}>
               <div>
-                <b style={{ fontSize: 13, color: "#18181B" }}>Sản phẩm có biến thể (Kích thước / Màu sắc):</b>
+                <b style={{ fontSize: 13, color: "#18181B" }}>
+                  {isAccessoryMode
+                    ? "Cấu hình biến thể Phụ Kiện (Chỉ quản lý Màu sắc):"
+                    : "Sản phẩm có biến thể (Kích thước / Màu sắc):"}
+                </b>
                 <div style={{ fontSize: 12, color: "#71717A", marginTop: 2 }}>
-                  {hasVariants
-                    ? "BẬT: Dành cho quần áo cần ma trận chọn Size S/M/L và nhiều màu sắc."
-                    : "TẮT: Dành cho Phụ kiện, túi xách, đồng hồ hoặc sản phẩm đơn lẻ (chỉ cần nhập tồn kho & SKU)."}
+                  {isAccessoryMode
+                    ? "Chế độ phụ kiện: Phân loại theo Màu Sắc, kích thước tự động lưu Tiêu chuẩn (không cần nhập Size)."
+                    : (hasVariants
+                        ? "BẬT: Dành cho quần áo thời trang cần ma trận chọn Size S/M/L và nhiều màu sắc."
+                        : "TẮT: Dành cho sản phẩm đơn lẻ (chỉ cần nhập tồn kho & SKU tổng).")}
                 </div>
               </div>
-              <Switch
-                checked={hasVariants}
-                onChange={(checked) => setHasVariants(checked)}
-                checkedChildren="Có biến thể"
-                unCheckedChildren="Đơn lẻ"
-              />
+              <Space>
+                <Switch
+                  checked={isAccessoryMode}
+                  onChange={(checked) => {
+                    setIsAccessoryMode(checked);
+                    if (checked) {
+                      setVariantsList((prev) =>
+                        prev.map((v) => ({ ...v, size: "Tiêu chuẩn" }))
+                      );
+                    }
+                  }}
+                  checkedChildren="Phụ kiện (Chỉ màu)"
+                  unCheckedChildren="Trang phục (Size + Màu)"
+                />
+                <Switch
+                  checked={hasVariants}
+                  onChange={(checked) => setHasVariants(checked)}
+                  checkedChildren="Có biến thể"
+                  unCheckedChildren="Đơn lẻ"
+                />
+              </Space>
             </div>
 
             {!hasVariants ? (
@@ -558,9 +640,20 @@ export default function AdminProductsPage() {
             ) : (
               <div>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <b style={{ fontSize: 14 }}>Ma Trận Biến Thể Thời Trang (Color / Size / SKU / Giá / Tồn Kho):</b>
+                  <div>
+                    <b style={{ fontSize: 14 }}>
+                      {isAccessoryMode
+                        ? "Danh Sách Màu Sắc Phụ Kiện (Chỉ Phân Loại Màu - Không Cần Size):"
+                        : "Ma Trận Biến Thể Thời Trang (Color / Size / SKU / Giá / Tồn Kho):"}
+                    </b>
+                    {isAccessoryMode && (
+                      <div style={{ fontSize: 12, color: "#059669", marginTop: 2 }}>
+                        ✓ Phụ kiện chỉ cần cấu hình Màu Sắc, giá và tồn kho. Kích thước đã được tối ưu tiêu chuẩn.
+                      </div>
+                    )}
+                  </div>
                   <Button size="small" onClick={handleAddVariantRow} icon={<PlusOutlined />}>
-                    Thêm Dòng Biến Thể
+                    {isAccessoryMode ? "Thêm Màu Mới" : "Thêm Dòng Biến Thể"}
                   </Button>
                 </div>
 
@@ -568,17 +661,19 @@ export default function AdminProductsPage() {
                   {variantsList.map((v, idx) => (
                     <div key={idx} style={{ display: "flex", gap: 8, alignItems: "center", background: "#FAFAF9", border: "1px solid #EAEAE8", padding: 8 }}>
                       <Input
-                        placeholder="Màu (vd: Đen)"
+                        placeholder="Màu sắc (vd: Đen, Nâu...)"
                         value={v.color}
                         onChange={(e) => handleVariantChange(idx, "color", e.target.value)}
-                        style={{ width: 110 }}
+                        style={{ width: isAccessoryMode ? 170 : 110 }}
                       />
-                      <Input
-                        placeholder="Size (vd: M)"
-                        value={v.size}
-                        onChange={(e) => handleVariantChange(idx, "size", e.target.value)}
-                        style={{ width: 90 }}
-                      />
+                      {!isAccessoryMode && (
+                        <Input
+                          placeholder="Size (vd: M)"
+                          value={v.size}
+                          onChange={(e) => handleVariantChange(idx, "size", e.target.value)}
+                          style={{ width: 90 }}
+                        />
+                      )}
                       <Input
                         placeholder="SKU (Tự sinh nếu trống)"
                         value={v.sku}
@@ -601,7 +696,7 @@ export default function AdminProductsPage() {
                         title="Xóa biến thể này?"
                         description={
                           v.variant_id
-                            ? `Xác nhận xóa hẳn biến thể (${v.color || ""} - ${v.size || ""}) khỏi Database?`
+                            ? `Xác nhận xóa hẳn biến thể (${v.color || ""}${!isAccessoryMode ? ` - ${v.size || ""}` : ""}) khỏi Database?`
                             : "Xóa dòng biến thể chưa lưu này?"
                         }
                         onConfirm={() => handleRemoveVariantRow(idx, v)}

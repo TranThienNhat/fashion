@@ -86,6 +86,8 @@ export interface Product {
   available_colors?: string[];
   available_sizes?: string[];
   total_stock?: number;
+  min_variant_price?: number;
+  max_variant_price?: number;
   rating?: number;
   review_count?: number;
 }

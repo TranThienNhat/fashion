@@ -84,36 +84,57 @@ export default function ProductDetailPage({ params }: PageProps) {
     loadData();
   }, [productId]);
 
-  // Kiểm tra xem sản phẩm có phải phụ kiện hoặc sản phẩm đơn lẻ không có biến thể size
+  // Kiểm tra xem sản phẩm có phải phụ kiện hoặc sản phẩm chỉ có biến thể màu sắc
   const isAccessory = useMemo(() => {
     if (!product) return false;
     if (product.has_variants === false) return true;
-    const catSlug = product.category_slug || "";
-    const catName = product.category_name || "";
-    return (
+    const catSlug = (product.category_slug || "").toLowerCase();
+    const catName = (product.category_name || "").toLowerCase();
+    const prodName = (product.name || "").toLowerCase();
+    const isCatAcc =
       catSlug.includes("phu-kien") ||
       catSlug.includes("tui-xach") ||
       catSlug.includes("that-lung") ||
       catSlug.includes("dong-ho") ||
       catSlug.includes("kinh") ||
       catSlug.includes("vi-da") ||
-      catName.toLowerCase().includes("phụ kiện") ||
-      catName.toLowerCase().includes("túi xách") ||
-      catName.toLowerCase().includes("thắt lưng") ||
-      catName.toLowerCase().includes("đồng hồ") ||
-      catName.toLowerCase().includes("kính") ||
-      catName.toLowerCase().includes("ví")
-    );
+      catName.includes("phụ kiện") ||
+      catName.includes("túi xách") ||
+      catName.includes("thắt lưng") ||
+      catName.includes("đồng hồ") ||
+      catName.includes("kính") ||
+      catName.includes("ví");
+    const isNameAcc =
+      prodName.includes("túi") ||
+      prodName.includes("ví") ||
+      prodName.includes("thắt lưng") ||
+      prodName.includes("kính") ||
+      prodName.includes("đồng hồ") ||
+      prodName.includes("phụ kiện");
+
+    const hasOnlyStandardSize =
+      product.variants &&
+      product.variants.length > 0 &&
+      product.variants.every((v) => {
+        const s = (v.size || "").trim().toLowerCase();
+        return !s || ["tiêu chuẩn", "standard", "free", "freesize", "one size", "onesize"].includes(s);
+      });
+
+    return isCatAcc || isNameAcc || Boolean(hasOnlyStandardSize);
   }, [product]);
 
   // Danh sách kích thước (size) THỰC TẾ có của màu đang chọn
   const availableSizesForSelectedColor = useMemo(() => {
-    if (!product?.variants || !selectedColor) return [];
+    if (isAccessory || !product?.variants || !selectedColor) return [];
     const sizes = product.variants
       .filter((v) => (v.color || "").toLowerCase() === selectedColor.toLowerCase())
-      .map((v) => v.size);
+      .map((v) => v.size)
+      .filter((s) => {
+        const norm = (s || "").trim().toLowerCase();
+        return norm && !["tiêu chuẩn", "standard", "free", "freesize", "one size"].includes(norm);
+      });
     return Array.from(new Set(sizes));
-  }, [product?.variants, selectedColor]);
+  }, [isAccessory, product?.variants, selectedColor]);
 
   // Khi người dùng bấm đổi màu: chỉ giữ lại kích thước nếu màu đó có, ngược lại tự động chọn size đầu tiên của màu mới
   const handleColorChange = (newColor: string) => {
@@ -123,6 +144,15 @@ export default function ProductDetailPage({ params }: PageProps) {
     const variantsOfNewColor = product.variants.filter(
       (v) => (v.color || "").toLowerCase() === newColor.toLowerCase()
     );
+
+    if (isAccessory) {
+      if (variantsOfNewColor.length > 0) {
+        setSelectedVariant(variantsOfNewColor[0]);
+        setSelectedSize(variantsOfNewColor[0].size || "");
+      }
+      setQuantity(1);
+      return;
+    }
 
     const matchedSameSize = variantsOfNewColor.find(
       (v) => (v.size || "").toLowerCase() === (selectedSize || "").toLowerCase()
@@ -160,11 +190,11 @@ export default function ProductDetailPage({ params }: PageProps) {
   // Xử lý Thêm vào giỏ hàng
   const handleAddToCart = async () => {
     if (!selectedVariant) {
-      message.warning("Quý khách vui lòng chọn phân loại màu sắc và kích cỡ mong muốn.");
+      message.warning(isAccessory ? "Quý khách vui lòng chọn phân loại màu sắc mong muốn." : "Quý khách vui lòng chọn phân loại màu sắc và kích cỡ mong muốn.");
       return;
     }
     if (isOutOfStock) {
-      message.warning("Rất tiếc, biến thể sản phẩm này hiện đã tạm hết hàng. Quý khách vui lòng chọn màu sắc hoặc kích cỡ khác.");
+      message.warning(isAccessory ? "Rất tiếc, phân loại màu sắc này hiện đã tạm hết hàng." : "Rất tiếc, biến thể sản phẩm này hiện đã tạm hết hàng. Quý khách vui lòng chọn màu sắc hoặc kích cỡ khác.");
       return;
     }
     if (!authUtils.isAuthenticated()) {
@@ -184,11 +214,11 @@ export default function ProductDetailPage({ params }: PageProps) {
   // Xử lý Mua ngay
   const handleBuyNow = () => {
     if (!selectedVariant) {
-      message.warning("Quý khách vui lòng chọn phân loại màu sắc và kích cỡ mong muốn.");
+      message.warning(isAccessory ? "Quý khách vui lòng chọn phân loại màu sắc mong muốn." : "Quý khách vui lòng chọn phân loại màu sắc và kích cỡ mong muốn.");
       return;
     }
     if (isOutOfStock) {
-      message.warning("Rất tiếc, biến thể sản phẩm này hiện đã tạm hết hàng. Quý khách vui lòng chọn màu sắc hoặc kích cỡ khác.");
+      message.warning(isAccessory ? "Rất tiếc, phân loại màu sắc này hiện đã tạm hết hàng." : "Rất tiếc, biến thể sản phẩm này hiện đã tạm hết hàng. Quý khách vui lòng chọn màu sắc hoặc kích cỡ khác.");
       return;
     }
     if (!authUtils.isAuthenticated()) {
@@ -377,12 +407,12 @@ export default function ProductDetailPage({ params }: PageProps) {
                 </div>
               )}
 
-              {/* BỘ CHỌN KÍCH THƯỚC (SIZE) / QUY CÁCH PHỤ KIỆN */}
-              {isAccessory ? (
-                <div style={{ background: "#FAFAF9", border: "1px solid #EAEAE8", padding: "12px 14px", borderRadius: 2 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 12, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Quy cách thiết kế: <b style={{ color: "#0D0D0D" }}>Tiêu Chuẩn (One Size / Free Size)</b>
+              {/* BỘ CHỌN KÍCH THƯỚC (SIZE) - ẨN HOÀN TOÀN NẾU LÀ PHỤ KIỆN */}
+              {!isAccessory && availableSizesForSelectedColor.length > 0 && (
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12 }}>
+                    <span style={{ color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      Kích Thước: <b style={{ color: "#0D0D0D" }}>{selectedSize}</b>
                     </span>
                     <button
                       onClick={() => setIsSizeGuideOpen(true)}
@@ -394,49 +424,22 @@ export default function ProductDetailPage({ params }: PageProps) {
                         cursor: "pointer",
                         fontSize: 11,
                         letterSpacing: "0.05em",
-                        fontWeight: 500,
                       }}>
-                      Quy Cách & Bảo Dưỡng
+                      Bảng Hướng Dẫn Chọn Size
                     </button>
                   </div>
-                  <div style={{ fontSize: 12, color: "#52525B", marginTop: 4, lineHeight: 1.5 }}>
-                    Kích thước tiêu chuẩn phù hợp hoàn hảo với vóc dáng. Sản phẩm hoàn thiện thủ công tinh xảo, sẵn sàng sử dụng.
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {availableSizesForSelectedColor.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => handleSizeChange(s)}
+                        className={`size-chip ${selectedSize === s ? "active" : ""}`}
+                        style={{ minWidth: 44, textAlign: "center" }}>
+                        {s}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ) : (
-                availableSizesForSelectedColor.length > 0 && (
-                  <div>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 12 }}>
-                      <span style={{ color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                        Kích Thước: <b style={{ color: "#0D0D0D" }}>{selectedSize}</b>
-                      </span>
-                      <button
-                        onClick={() => setIsSizeGuideOpen(true)}
-                        style={{
-                          background: "none",
-                          border: "none",
-                          color: "#0D0D0D",
-                          textDecoration: "underline",
-                          cursor: "pointer",
-                          fontSize: 11,
-                          letterSpacing: "0.05em",
-                        }}>
-                        Bảng Hướng Dẫn Chọn Size
-                      </button>
-                    </div>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {availableSizesForSelectedColor.map((s) => (
-                        <button
-                          key={s}
-                          onClick={() => handleSizeChange(s)}
-                          className={`size-chip ${selectedSize === s ? "active" : ""}`}
-                          style={{ minWidth: 44, textAlign: "center" }}>
-                          {s}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )
               )}
 
               {/* TÌNH TRẠNG TỒN KHO THỜI GIAN THỰC */}

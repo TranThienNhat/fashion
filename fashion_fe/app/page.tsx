@@ -268,67 +268,109 @@ export default function Home() {
           <div style={{ textAlign: "center", padding: "60px 0" }}><Spin size="large" /></div>
         ) : (
           <Row gutter={[24, 32]}>
-            {(Array.isArray(newArrivals) ? newArrivals : []).filter(Boolean).slice(0, 8).map((prod) => (
-              <Col xs={12} sm={8} md={6} key={prod.product_id}>
-                <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
-                  <Link href={`/products/${prod.product_id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                    <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "#F9F9F8" }}>
-                      <img
-                        src={prod.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600"}
-                        alt={prod.name}
-                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      />
-                      <span
-                        style={{
-                          position: "absolute",
-                          top: 10,
-                          left: 10,
-                          background: "#0D0D0D",
-                          color: "#F9F9F8",
-                          fontSize: 9,
-                          padding: "3px 7px",
-                          letterSpacing: "0.15em",
-                          fontWeight: 500,
-                          textTransform: "uppercase",
-                        }}>
-                        MỚI
-                      </span>
-                    </div>
+            {(Array.isArray(newArrivals) ? newArrivals : []).filter(Boolean).slice(0, 8).map((prod) => {
+              const basePrice = Number(prod.base_price) || 0;
+              const minPrice = prod.min_variant_price !== undefined ? Number(prod.min_variant_price) : basePrice;
+              const hasDiscount = minPrice > 0 && basePrice > minPrice;
+              const discountPercent = hasDiscount ? Math.round(((basePrice - minPrice) / basePrice) * 100) : 0;
 
-                    <div style={{ padding: "16px 12px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                      <div>
-                        <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
-                          {prod.brand_name || prod.category_name}
-                        </div>
-                        <h4
+              return (
+                <Col xs={12} sm={8} md={6} key={prod.product_id}>
+                  <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
+                    <Link href={`/products/${prod.product_id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                      <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "#F9F9F8", position: "relative" }}>
+                        <img
+                          src={prod.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600"}
+                          alt={prod.name}
+                          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                        />
+                        <span
                           style={{
-                            margin: "6px 0",
-                            fontSize: 13,
+                            position: "absolute",
+                            top: 10,
+                            left: 10,
+                            background: "#0D0D0D",
+                            color: "#F9F9F8",
+                            fontSize: 9,
+                            padding: "3px 7px",
+                            letterSpacing: "0.15em",
                             fontWeight: 500,
-                            color: "#0D0D0D",
-                            overflow: "hidden",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                            lineHeight: 1.4,
+                            textTransform: "uppercase",
                           }}>
-                          {prod.name}
-                        </h4>
+                          MỚI
+                        </span>
+                        {hasDiscount && (
+                          <span
+                            style={{
+                              position: "absolute",
+                              top: 10,
+                              right: 10,
+                              background: "#DC2626",
+                              color: "#FFFFFF",
+                              fontSize: 10,
+                              padding: "3px 8px",
+                              letterSpacing: "0.08em",
+                              fontWeight: 700,
+                              borderRadius: 2,
+                            }}>
+                            -{discountPercent}%
+                          </span>
+                        )}
                       </div>
 
-                      <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D", letterSpacing: "0.02em" }}>
-                          {formatPrice(prod.base_price)}
-                        </span>
-                        <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                          Chi tiết →
-                        </span>
+                      <div style={{ padding: "16px 12px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                        <div>
+                          <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
+                            {prod.brand_name || prod.category_name}
+                          </div>
+                          <h4
+                            style={{
+                              margin: "6px 0",
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: "#0D0D0D",
+                              overflow: "hidden",
+                              display: "-webkit-box",
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: "vertical",
+                              lineHeight: 1.4,
+                            }}>
+                            {prod.name}
+                          </h4>
+                        </div>
+
+                        <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                          <div>
+                            {hasDiscount ? (
+                              <div>
+                                <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                                  <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626", letterSpacing: "0.02em" }}>
+                                    {formatPrice(minPrice)}
+                                  </span>
+                                  <span style={{ fontSize: 11, fontWeight: 700, color: "#DC2626" }}>
+                                    (-{discountPercent}%)
+                                  </span>
+                                </div>
+                                <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through", marginTop: 2 }}>
+                                  {formatPrice(basePrice)}
+                                </div>
+                              </div>
+                            ) : (
+                              <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D", letterSpacing: "0.02em" }}>
+                                {formatPrice(basePrice)}
+                              </span>
+                            )}
+                          </div>
+                          <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
+                            Chi tiết →
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                </div>
-              </Col>
-            ))}
+                    </Link>
+                  </div>
+                </Col>
+              );
+            })}
           </Row>
         )}
       </section>

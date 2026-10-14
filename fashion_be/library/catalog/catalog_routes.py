@@ -433,7 +433,9 @@ def get_products():
                .select("p.product_id", "p.category_id", "p.brand_id", "p.name", "p.slug",
                        "p.base_price", "p.thumbnail", "p.created_at",
                        "c.name AS category_name", "b.name AS brand_name",
-                       "COALESCE(SUM(pv.stock_quantity), 0) AS total_stock")
+                       "COALESCE(SUM(pv.stock_quantity), 0) AS total_stock",
+                       "COALESCE(MIN(pv.price), p.base_price) AS min_variant_price",
+                       "COALESCE(MAX(pv.price), p.base_price) AS max_variant_price")
                .from_table("products", "p")
                .left_join("categories", "c", "p.category_id = c.category_id")
                .left_join("brands", "b", "p.brand_id = b.brand_id")
@@ -489,11 +491,16 @@ def get_new_arrivals():
     limit = int(request.args.get('limit', 8))
     cursor = get_cursor()
     builder = (NativeSqlBuilder.create()
-               .select("p.product_id", "p.name", "p.slug", "p.base_price", "p.thumbnail", "c.name AS category_name", "b.name AS brand_name")
+               .select("p.product_id", "p.name", "p.slug", "p.base_price", "p.thumbnail",
+                       "c.name AS category_name", "b.name AS brand_name",
+                       "COALESCE(MIN(pv.price), p.base_price) AS min_variant_price",
+                       "COALESCE(MAX(pv.price), p.base_price) AS max_variant_price")
                .from_table("products", "p")
                .left_join("categories", "c", "p.category_id = c.category_id")
                .left_join("brands", "b", "p.brand_id = b.brand_id")
+               .left_join("product_variants", "pv", "p.product_id = pv.product_id")
                .where("is_active", 1, "=", "p")
+               .group_by("p.product_id, p.name, p.slug, p.base_price, p.thumbnail, c.name, b.name")
                .order_by_col("product_id", "DESC", "p")
                .paginate(0, limit))
     return api_success(builder.fetch(cursor), code="NEW_ARRIVALS_FETCHED")
@@ -508,11 +515,14 @@ def get_featured_products():
                .select("p.product_id", "p.name", "p.slug", "p.base_price", "p.thumbnail",
                        "c.name AS category_name", "b.name AS brand_name",
                        "COALESCE(AVG(pr.rating), 5.0) AS avg_rating",
-                       "COUNT(pr.review_id) AS total_reviews")
+                       "COUNT(pr.review_id) AS total_reviews",
+                       "COALESCE(MIN(pv.price), p.base_price) AS min_variant_price",
+                       "COALESCE(MAX(pv.price), p.base_price) AS max_variant_price")
                .from_table("products", "p")
                .left_join("categories", "c", "p.category_id = c.category_id")
                .left_join("brands", "b", "p.brand_id = b.brand_id")
                .left_join("product_reviews", "pr", "p.product_id = pr.product_id")
+               .left_join("product_variants", "pv", "p.product_id = pv.product_id")
                .where("is_active", 1, "=", "p")
                .group_by("p.product_id, p.name, p.slug, p.base_price, p.thumbnail, c.name, b.name")
                .order_by("avg_rating DESC, p.product_id DESC")

@@ -446,52 +446,94 @@ function ProductsContent() {
             ) : (
               <>
                 <Row gutter={[24, 28]}>
-                  {(Array.isArray(products) ? products : []).map((prod) => (
-                    <Col xs={12} sm={12} md={8} lg={6} key={prod.product_id}>
-                      <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
-                        <Link href={`/products/${prod.product_id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                          <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "#F9F9F8" }}>
-                            <img
-                              src={prod.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600"}
-                              alt={prod.name}
-                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                            />
-                          </div>
+                  {(Array.isArray(products) ? products : []).map((prod) => {
+                    const basePrice = Number(prod.base_price) || 0;
+                    const minPrice = prod.min_variant_price !== undefined ? Number(prod.min_variant_price) : basePrice;
+                    const hasDiscount = minPrice > 0 && basePrice > minPrice;
+                    const discountPercent = hasDiscount ? Math.round(((basePrice - minPrice) / basePrice) * 100) : 0;
 
-                          <div style={{ padding: "14px 10px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                            <div>
-                              <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                                {prod.brand_name || prod.category_name}
+                    return (
+                      <Col xs={12} sm={12} md={8} lg={6} key={prod.product_id}>
+                        <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
+                          <Link href={`/products/${prod.product_id}`} style={{ textDecoration: "none", color: "inherit" }}>
+                            <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "#F9F9F8", position: "relative" }}>
+                              <img
+                                src={prod.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600"}
+                                alt={prod.name}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              />
+                              {hasDiscount && (
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    top: 10,
+                                    right: 10,
+                                    background: "#DC2626",
+                                    color: "#FFFFFF",
+                                    fontSize: 10,
+                                    padding: "2px 7px",
+                                    letterSpacing: "0.06em",
+                                    fontWeight: 700,
+                                    borderRadius: 2,
+                                  }}>
+                                  -{discountPercent}%
+                                </span>
+                              )}
+                            </div>
+
+                            <div style={{ padding: "14px 10px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                              <div>
+                                <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                                  {prod.brand_name || prod.category_name}
+                                </div>
+                                <h4
+                                  style={{
+                                    margin: "4px 0 8px",
+                                    fontSize: 13,
+                                    fontWeight: 500,
+                                    color: "#0D0D0D",
+                                    overflow: "hidden",
+                                    display: "-webkit-box",
+                                    WebkitLineClamp: 2,
+                                    WebkitBoxOrient: "vertical",
+                                    lineHeight: 1.4,
+                                  }}>
+                                  {prod.name}
+                                </h4>
                               </div>
-                              <h4
-                                style={{
-                                  margin: "4px 0 8px",
-                                  fontSize: 13,
-                                  fontWeight: 500,
-                                  color: "#0D0D0D",
-                                  overflow: "hidden",
-                                  display: "-webkit-box",
-                                  WebkitLineClamp: 2,
-                                  WebkitBoxOrient: "vertical",
-                                  lineHeight: 1.4,
-                                }}>
-                                {prod.name}
-                              </h4>
-                            </div>
 
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D" }}>
-                                {formatPrice(prod.base_price)}
-                              </span>
-                              <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                                Mua ngay →
-                              </span>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 8 }}>
+                                <div>
+                                  {hasDiscount ? (
+                                    <div>
+                                      <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                                        <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                                          {formatPrice(minPrice)}
+                                        </span>
+                                        <span style={{ fontSize: 11, fontWeight: 700, color: "#DC2626" }}>
+                                          (-{discountPercent}%)
+                                        </span>
+                                      </div>
+                                      <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through" }}>
+                                        {formatPrice(basePrice)}
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D" }}>
+                                      {formatPrice(basePrice)}
+                                    </span>
+                                  )}
+                                </div>
+                                <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
+                                  Mua ngay →
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                      </div>
-                    </Col>
-                  ))}
+                          </Link>
+                        </div>
+                      </Col>
+                    );
+                  })}
                 </Row>
 
                 {/* Pagination */}

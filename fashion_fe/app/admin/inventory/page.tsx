@@ -266,25 +266,53 @@ export default function AdminInventoryPage() {
                       title: "Mã phiếu",
                       dataIndex: "receipt_code",
                       key: "receipt_code",
+                      width: 140,
                       render: (code) => <b>{code}</b>,
                     },
-                    { title: "Nhà cung cấp", dataIndex: "supplier_name", key: "supplier_name" },
-                    { title: "Người tạo", dataIndex: "creator_name", key: "creator_name" },
+                    {
+                      title: "Nhà cung cấp",
+                      dataIndex: "supplier_name",
+                      key: "supplier_name",
+                      ellipsis: true,
+                      render: (name) => (
+                        <Tooltip title={name}>
+                          <span style={{ display: "inline-block", maxWidth: 180, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {name || "—"}
+                          </span>
+                        </Tooltip>
+                      ),
+                    },
+                    {
+                      title: "Người tạo",
+                      dataIndex: "creator_name",
+                      key: "creator_name",
+                      ellipsis: true,
+                      render: (name) => (
+                        <Tooltip title={name}>
+                          <span style={{ display: "inline-block", maxWidth: 140, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {name || "—"}
+                          </span>
+                        </Tooltip>
+                      ),
+                    },
                     {
                       title: "Tổng chi phí nhập",
                       dataIndex: "total_cost",
                       key: "total_cost",
+                      width: 160,
                       render: (v) => <b style={{ color: "#2563EB" }}>{formatPrice(v)}</b>,
                     },
                     {
                       title: "Ngày nhập",
                       dataIndex: "received_at",
                       key: "received_at",
+                      width: 170,
                       render: (dt) => new Date(dt).toLocaleString("vi-VN"),
                     },
                     {
                       title: "Thao tác",
                       key: "action",
+                      width: 120,
                       render: (_, rec) => (
                         <Button size="small" onClick={() => handleViewReceiptDetail(rec.receipt_id)}>
                           Xem Chi Tiết
@@ -327,15 +355,23 @@ export default function AdminInventoryPage() {
                         title: "Sản phẩm",
                         key: "prod",
                         render: (_, v) => (
-                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
                             {v.thumbnail ? (
-                              <img src={v.thumbnail} alt={v.product_name} style={{ width: 42, height: 52, objectFit: "cover" }} />
+                              <img src={v.thumbnail} alt={v.product_name} style={{ width: 42, height: 52, objectFit: "cover", flexShrink: 0 }} />
                             ) : (
-                              <div style={{ width: 42, height: 52, background: "#F4F4F5" }} />
+                              <div style={{ width: 42, height: 52, background: "#F4F4F5", flexShrink: 0 }} />
                             )}
-                            <div>
-                              <div style={{ fontWeight: 600, color: "#18181B" }}>{v.product_name}</div>
-                              <div style={{ fontSize: 12, color: "#71717A" }}>{v.category_name}</div>
+                            <div style={{ minWidth: 0, overflow: "hidden" }}>
+                              <Tooltip title={v.product_name}>
+                                <div style={{ fontWeight: 600, color: "#18181B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 220 }}>
+                                  {v.product_name}
+                                </div>
+                              </Tooltip>
+                              <Tooltip title={v.category_name}>
+                                <div style={{ fontSize: 12, color: "#71717A", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>
+                                  {v.category_name}
+                                </div>
+                              </Tooltip>
                             </div>
                           </div>
                         ),
@@ -344,29 +380,53 @@ export default function AdminInventoryPage() {
                         title: "Mã SKU",
                         dataIndex: "sku",
                         key: "sku",
-                        render: (sku) => <Tag style={{ borderRadius: 0, fontWeight: 600 }}>{sku}</Tag>,
+                        render: (sku) => (
+                          <Tooltip title={sku}>
+                            <Tag style={{ borderRadius: 0, fontWeight: 600, maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>
+                              {sku}
+                            </Tag>
+                          </Tooltip>
+                        ),
                       },
                       {
                         title: "Màu sắc",
                         dataIndex: "color",
                         key: "color",
+                        ellipsis: true,
+                        render: (c) => (
+                          <Tooltip title={c}>
+                            <span style={{ display: "inline-block", maxWidth: 110, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {c}
+                            </span>
+                          </Tooltip>
+                        ),
                       },
                       {
                         title: "Kích cỡ",
                         dataIndex: "size",
                         key: "size",
-                        render: (s) => <b>{s}</b>,
+                        width: 90,
+                        ellipsis: true,
+                        render: (s) => (
+                          <Tooltip title={s}>
+                            <b style={{ display: "inline-block", maxWidth: 80, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {s}
+                            </b>
+                          </Tooltip>
+                        ),
                       },
                       {
                         title: "Giá bán lẻ",
                         dataIndex: "price",
                         key: "price",
+                        width: 130,
                         render: (p) => formatPrice(p),
                       },
                       {
                         title: "Tồn kho hiện tại",
                         dataIndex: "stock_quantity",
                         key: "stock_quantity",
+                        width: 140,
                         render: (qty) => {
                           if (qty <= 0) return <Tag color="red" style={{ borderRadius: 0 }}>Hết hàng ({qty})</Tag>;
                           if (qty <= 15) return <Tag color="orange" style={{ borderRadius: 0 }}>Sắp hết ({qty})</Tag>;
@@ -376,6 +436,7 @@ export default function AdminInventoryPage() {
                       {
                         title: "Thao tác",
                         key: "act",
+                        width: 120,
                         render: (_, v) => (
                           <Button
                             size="small"
@@ -410,20 +471,76 @@ export default function AdminInventoryPage() {
                     dataSource={suppliers}
                     rowKey="supplier_id"
                     columns={[
-                      { title: "Tên nhà cung cấp", dataIndex: "name", key: "name", render: (n) => <b>{n}</b> },
-                      { title: "Người liên hệ", dataIndex: "contact_name", key: "contact_name" },
-                      { title: "Số điện thoại", dataIndex: "phone", key: "phone" },
-                      { title: "Email", dataIndex: "email", key: "email" },
-                      { title: "Địa chỉ", dataIndex: "address", key: "address" },
+                      {
+                        title: "Tên nhà cung cấp",
+                        dataIndex: "name",
+                        key: "name",
+                        ellipsis: true,
+                        render: (n) => (
+                          <Tooltip title={n}>
+                            <b style={{ display: "inline-block", maxWidth: 180, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {n}
+                            </b>
+                          </Tooltip>
+                        ),
+                      },
+                      {
+                        title: "Người liên hệ",
+                        dataIndex: "contact_name",
+                        key: "contact_name",
+                        ellipsis: true,
+                        render: (cn) => (
+                          <Tooltip title={cn}>
+                            <span style={{ display: "inline-block", maxWidth: 140, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {cn || "—"}
+                            </span>
+                          </Tooltip>
+                        ),
+                      },
+                      {
+                        title: "Số điện thoại",
+                        dataIndex: "phone",
+                        key: "phone",
+                        width: 130,
+                        render: (p) => p || "—",
+                      },
+                      {
+                        title: "Email",
+                        dataIndex: "email",
+                        key: "email",
+                        ellipsis: true,
+                        render: (em) => (
+                          <Tooltip title={em}>
+                            <span style={{ display: "inline-block", maxWidth: 170, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {em || "—"}
+                            </span>
+                          </Tooltip>
+                        ),
+                      },
+                      {
+                        title: "Địa chỉ",
+                        dataIndex: "address",
+                        key: "address",
+                        ellipsis: true,
+                        render: (addr) => (
+                          <Tooltip title={addr}>
+                            <span style={{ display: "inline-block", maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                              {addr || "—"}
+                            </span>
+                          </Tooltip>
+                        ),
+                      },
                       {
                         title: "Trạng thái",
                         dataIndex: "is_active",
                         key: "is_active",
+                        width: 120,
                         render: (act) => <Tag color={act ? "green" : "red"}>{act ? "Đang hợp tác" : "Ngừng"}</Tag>,
                       },
                       {
                         title: "Thao tác",
                         key: "action",
+                        width: 100,
                         render: (_, sup) => (
                           <Space>
                             <Button size="small" icon={<EditOutlined />} onClick={() => handleOpenSupplierModal(sup)} />
@@ -553,11 +670,36 @@ export default function AdminInventoryPage() {
               rowKey="receipt_item_id"
               pagination={false}
               columns={[
-                { title: "Sản phẩm", dataIndex: "product_name", key: "product_name" },
-                { title: "SKU", dataIndex: "sku", key: "sku" },
-                { title: "Màu / Size", key: "var", render: (_: any, r: any) => `${r?.color || ""} / ${r?.size || ""}` },
-                { title: "Giá nhập", dataIndex: "import_price", key: "import_price", render: (v: any) => formatPrice(v) },
-                { title: "Số lượng", dataIndex: "quantity", key: "quantity", render: (q: any) => <b>+{q}</b> },
+                {
+                  title: "Sản phẩm",
+                  dataIndex: "product_name",
+                  key: "product_name",
+                  ellipsis: true,
+                  render: (pn: string) => (
+                    <Tooltip title={pn}>
+                      <span style={{ display: "inline-block", maxWidth: 220, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {pn}
+                      </span>
+                    </Tooltip>
+                  ),
+                },
+                {
+                  title: "SKU",
+                  dataIndex: "sku",
+                  key: "sku",
+                  width: 140,
+                  ellipsis: true,
+                  render: (sku: string) => (
+                    <Tooltip title={sku}>
+                      <span style={{ display: "inline-block", maxWidth: 130, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {sku}
+                      </span>
+                    </Tooltip>
+                  ),
+                },
+                { title: "Màu / Size", key: "var", width: 120, render: (_: any, r: any) => `${r?.color || ""} / ${r?.size || ""}` },
+                { title: "Giá nhập", dataIndex: "import_price", key: "import_price", width: 130, render: (v: any) => formatPrice(v) },
+                { title: "Số lượng", dataIndex: "quantity", key: "quantity", width: 90, render: (q: any) => <b>+{q}</b> },
               ]}
             />
 
