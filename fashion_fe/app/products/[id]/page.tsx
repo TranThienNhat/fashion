@@ -87,27 +87,39 @@ export default function ProductDetailPage({ params }: PageProps) {
           setSelectedVariant(first);
         }
 
-        // Tải danh sách sản phẩm gợi ý "Có thể bạn cũng thích" (cùng danh mục hoặc nổi bật)
+        // Tải danh sách sản phẩm gợi ý cùng danh mục cha (nếu không có thì để trống, không bù sản phẩm ngoài)
         try {
-          const recRes = await catalogAPI.getProducts({
-            category_id: prod.category_id,
-            page: 0,
-            page_size: 10,
-          });
-          const content = recRes.data?.data?.content || recRes.data?.content || [];
-          let filtered = content.filter((p: any) => p.product_id !== prod.product_id);
+          let parentCatId = (prod as any).category_parent_id || prod.category_id;
 
-          if (filtered.length < 5) {
-            const featRes = await catalogAPI.getFeatured(10);
-            const featItems = featRes.data?.data || featRes.data?.items || (Array.isArray(featRes.data) ? featRes.data : []);
-            const more = featItems.filter(
-              (p: any) => p.product_id !== prod.product_id && !filtered.some((f: any) => f.product_id === p.product_id)
-            );
-            filtered = [...filtered, ...more];
+          // Kiểm tra thêm từ danh sách danh mục nếu chưa có category_parent_id
+          if (!(prod as any).category_parent_id && prod.category_id) {
+            try {
+              const catRes = await catalogAPI.getCategories();
+              const catFlat = catRes.data?.flat || catRes.data?.data?.flat || catRes.data?.data || (Array.isArray(catRes.data) ? catRes.data : []);
+              const currentCat = catFlat.find((c: any) => c.category_id === prod.category_id);
+              if (currentCat && currentCat.parent_id) {
+                parentCatId = currentCat.parent_id;
+              }
+            } catch (e) {
+              // fallback to prod.category_id
+            }
           }
-          setRecommendedProducts(filtered.slice(0, 10));
+
+          if (parentCatId) {
+            const recRes = await catalogAPI.getProducts({
+              category_id: parentCatId,
+              page: 0,
+              page_size: 15,
+            });
+            const content = recRes.data?.data?.content || recRes.data?.content || [];
+            const filtered = content.filter((p: any) => p.product_id !== prod.product_id);
+            setRecommendedProducts(filtered.slice(0, 10));
+          } else {
+            setRecommendedProducts([]);
+          }
         } catch (recErr) {
-          console.error("Lỗi tải sản phẩm gợi ý:", recErr);
+          console.error("Lỗi tải sản phẩm gợi ý cùng danh mục cha:", recErr);
+          setRecommendedProducts([]);
         }
       } catch (err) {
         console.error("Lỗi tải chi tiết sản phẩm:", err);
@@ -728,7 +740,9 @@ export default function ProductDetailPage({ params }: PageProps) {
               }}>
               {recommendedProducts.map((p) => {
                 const basePrice = Number(p.base_price) || 0;
-                const minPrice = Number(p.min_price) || 0;
+                const minPrice = p.min_variant_price !== undefined
+                  ? Number(p.min_variant_price)
+                  : (p.min_price !== undefined ? Number(p.min_price) : basePrice);
                 const hasDiscount = minPrice > 0 && basePrice > minPrice;
                 const discountPercent = hasDiscount ? Math.round(((basePrice - minPrice) / basePrice) * 100) : 0;
 

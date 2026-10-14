@@ -539,7 +539,7 @@ def get_product_detail(product_id):
                     .select("p.product_id", "p.category_id", "p.brand_id", "p.name", "p.slug",
                             "p.description", "p.base_price", "p.thumbnail", "p.created_at",
                             "COALESCE(p.has_variants, 1) AS has_variants",
-                            "c.name AS category_name", "c.slug AS category_slug",
+                            "c.name AS category_name", "c.slug AS category_slug", "c.parent_id AS category_parent_id",
                             "b.name AS brand_name", "b.slug AS brand_slug", "b.logo_url AS brand_logo")
                     .from_table("products", "p")
                     .left_join("categories", "c", "p.category_id = c.category_id")
