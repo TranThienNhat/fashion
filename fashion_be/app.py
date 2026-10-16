@@ -13,6 +13,8 @@ from library.warehouse.warehouse_routes import warehouse_bp
 from library.review_blog.review_blog_routes import review_blog_bp
 from library.report.report_routes import report_bp
 from library.upload.upload import upload_bp
+from library.ai_assistant.ai_routes import ai_bp
+
 
 # Import hàm đóng DB
 from library.db_connection import close_db
@@ -69,6 +71,8 @@ app.register_blueprint(warehouse_bp)
 app.register_blueprint(review_blog_bp)
 app.register_blueprint(report_bp)
 app.register_blueprint(upload_bp)
+app.register_blueprint(ai_bp)
+
 
 if __name__ == '__main__':
     # Chạy trên port 5000

@@ -251,6 +251,16 @@ export const uploadAPI = {
   getUploadedImages: () => api.get("/upload/images"),
 };
 
+// ============================================================================
+// 8. AI ASSISTANT APIS
+// ============================================================================
+export const aiAPI = {
+  chat: (data: { message: string; history?: Array<{ role: string; content: string }> }) =>
+    api.post("/api/ai/chat", data),
+  getQuickPrompts: () => api.get("/api/ai/quick-prompts"),
+};
+
+
 // Legacy Compatibility APIs for leftover components
 export const bannerAPI = {
   layTheoViTri: (viTri: number) => api.get(`/api/banner/vitri/${viTri}`).catch(() => ({ data: [] })),
