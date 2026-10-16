@@ -5,7 +5,7 @@ import MainHeader from "@/components/MainHeader";
 import MainFooter from "@/components/MainFooter";
 import CartDrawer from "@/components/CartDrawer";
 import AiChatAssistant from "@/components/AiChatAssistant";
-import { CartProvider } from "@/contexts/CartContext";
+
 
 interface MainLayoutProps {
   children: React.ReactNode;
