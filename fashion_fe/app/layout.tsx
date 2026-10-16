@@ -31,36 +31,40 @@ export default function RootLayout({
             theme={{
               token: {
                 zIndexPopupBase: 9999,
-                colorPrimary: "#0D0D0D",
-                colorLink: "#0D0D0D",
-                colorLinkHover: "#525252",
-                colorBorder: "#EAEAE8",
-                borderRadius: 0,
+                colorPrimary: "#231F1C",
+                colorLink: "#231F1C",
+                colorLinkHover: "#A86E4B",
+                colorBorder: "#E8E2D8",
+                colorBgBase: "#FAF8F5",
+                colorBgContainer: "#FDFBF8",
+                colorText: "#231F1C",
+                colorTextSecondary: "#8C8278",
+                borderRadius: 2,
                 fontFamily:
                   "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               },
               components: {
                 Button: {
-                  borderRadius: 0,
+                  borderRadius: 2,
                   controlHeight: 44,
                   paddingContentHorizontal: 24,
                 },
                 Input: {
-                  borderRadius: 0,
-                  activeBorderColor: "#0D0D0D",
-                  hoverBorderColor: "#737373",
+                  borderRadius: 2,
+                  activeBorderColor: "#231F1C",
+                  hoverBorderColor: "#A86E4B",
                 },
                 Select: {
-                  borderRadius: 0,
+                  borderRadius: 2,
                 },
                 Tag: {
-                  borderRadius: 0,
+                  borderRadius: 2,
                 },
                 Modal: {
-                  borderRadiusLG: 0,
+                  borderRadiusLG: 4,
                 },
                 Card: {
-                  borderRadiusLG: 0,
+                  borderRadiusLG: 4,
                 },
               },
             }}>

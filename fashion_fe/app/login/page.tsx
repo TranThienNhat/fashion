@@ -91,28 +91,29 @@ function LoginForm() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FAF9F6",
+        background: "var(--fashion-canvas)",
         padding: 24,
       }}>
       <div
         style={{
           width: "100%",
           maxWidth: 440,
-          background: "#FFFFFF",
-          border: "1px solid #E4E4E7",
+          background: "var(--fashion-surface-card)",
+          border: "1px solid var(--fashion-border)",
+          borderRadius: "var(--fashion-radius-sm)",
           padding: "44px 38px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.04)",
+          boxShadow: "var(--fashion-shadow-md)",
         }}>
         <div style={{ textAlign: "center", marginBottom: 30 }}>
-          <Link href="/" style={{ textDecoration: "none", color: "#18181B", display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
+          <Link href="/" style={{ textDecoration: "none", color: "var(--fashion-black)", display: "inline-flex", flexDirection: "column", alignItems: "center" }}>
             <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 32, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase" }}>
               VINH STORE
             </span>
-            <span style={{ fontSize: 9, letterSpacing: "0.3em", color: "#8F877F", textTransform: "uppercase", marginTop: 4 }}>
+            <span style={{ fontSize: 9, letterSpacing: "0.3em", color: "var(--fashion-muted)", textTransform: "uppercase", marginTop: 4 }}>
               THỜI TRANG CAO CẤP
             </span>
           </Link>
-          <p style={{ color: "#71717A", fontSize: 13, marginTop: 10 }}>
+          <p style={{ color: "var(--fashion-muted)", fontSize: 13, marginTop: 10 }}>
             Đăng nhập để trải nghiệm không gian thời trang cao cấp
           </p>
         </div>
@@ -125,35 +126,35 @@ function LoginForm() {
             showIcon
             closable
             onClose={() => setErrorMessage(null)}
-            style={{ marginBottom: 20, borderRadius: 0 }}
+            style={{ marginBottom: 20, borderRadius: "var(--fashion-radius-sm)" }}
           />
         )}
 
         <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
           <Form.Item
-            label={<span style={{ fontSize: 13, fontWeight: 500, color: "#3F3F46" }}>Tài khoản hoặc Email</span>}
+            label={<span style={{ fontSize: 13, fontWeight: 500, color: "var(--fashion-black)" }}>Tài khoản hoặc Email</span>}
             name="account"
             rules={[
               { required: true, message: "Vui lòng nhập email hoặc tài khoản đăng nhập" },
               { whitespace: true, message: "Tài khoản không được chứa toàn khoảng trắng" },
             ]}>
             <Input
-              prefix={<UserOutlined style={{ color: "#A1A1AA" }} />}
+              prefix={<UserOutlined style={{ color: "var(--fashion-muted)" }} />}
               placeholder="Nhập email, số điện thoại hoặc username"
               size="large"
-              style={{ borderRadius: 0, height: 44 }}
+              style={{ borderRadius: "var(--fashion-radius-sm)", height: 44 }}
             />
           </Form.Item>
 
           <Form.Item
-            label={<span style={{ fontSize: 13, fontWeight: 500, color: "#3F3F46" }}>Mật khẩu</span>}
+            label={<span style={{ fontSize: 13, fontWeight: 500, color: "var(--fashion-black)" }}>Mật khẩu</span>}
             name="password"
             rules={[{ required: true, message: "Vui lòng nhập mật khẩu" }]}>
             <Input.Password
-              prefix={<LockOutlined style={{ color: "#A1A1AA" }} />}
+              prefix={<LockOutlined style={{ color: "var(--fashion-muted)" }} />}
               placeholder="Nhập mật khẩu của bạn"
               size="large"
-              style={{ borderRadius: 0, height: 44 }}
+              style={{ borderRadius: "var(--fashion-radius-sm)", height: 44 }}
             />
           </Form.Item>
 
@@ -164,9 +165,10 @@ function LoginForm() {
             block
             size="large"
             style={{
-              background: "#18181B",
-              borderColor: "#18181B",
-              borderRadius: 0,
+              background: "var(--fashion-black)",
+              borderColor: "var(--fashion-black)",
+              color: "#FAF8F5",
+              borderRadius: "var(--fashion-radius-sm)",
               height: 48,
               fontWeight: 600,
               letterSpacing: "0.1em",
@@ -176,17 +178,17 @@ function LoginForm() {
           </Button>
         </Form>
 
-        <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "#71717A" }}>
+        <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "var(--fashion-muted)" }}>
           Chưa có tài khoản?{" "}
           <Link
             href={redirectUrl !== "/" ? `/register?redirect=${encodeURIComponent(redirectUrl)}` : "/register"}
-            style={{ color: "#927238", fontWeight: 600, textDecoration: "none" }}>
+            style={{ color: "var(--fashion-accent)", fontWeight: 600, textDecoration: "none" }}>
             Đăng ký ngay
           </Link>
         </div>
 
         <div style={{ textAlign: "center", marginTop: 18 }}>
-          <Link href="/" style={{ fontSize: 12, color: "#A1A1AA", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
+          <Link href="/" style={{ fontSize: 12, color: "var(--fashion-muted)", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}>
             <ArrowLeftOutlined /> Quay lại trang chủ
           </Link>
         </div>

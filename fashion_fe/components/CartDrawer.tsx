@@ -31,17 +31,17 @@ export default function CartDrawer() {
         items.length > 0 ? (
           <div style={{ padding: "12px 0" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-              <span style={{ color: "#71717A" }}>Tạm tính:</span>
-              <span style={{ fontSize: 18, fontWeight: 700, color: "#18181B" }}>
+              <span style={{ color: "var(--fashion-muted)" }}>Tạm tính:</span>
+              <span style={{ fontSize: 18, fontWeight: 700, color: "var(--fashion-black)" }}>
                 {formatPrice(totalAmount)}
               </span>
             </div>
-            <p style={{ fontSize: 12, color: "#A1A1AA", marginBottom: 16 }}>
+            <p style={{ fontSize: 12, color: "var(--fashion-muted)", marginBottom: 16 }}>
               Phí vận chuyển và mã ưu đãi sẽ được áp dụng khi thanh toán.
             </p>
             <div style={{ display: "flex", gap: 12 }}>
               <Link href="/cart" style={{ flex: 1 }} onClick={() => setIsDrawerOpen(false)}>
-                <Button block size="large" style={{ borderRadius: 0 }}>
+                <Button block size="large" style={{ borderRadius: 2, borderColor: "var(--fashion-border)" }}>
                   Xem Giỏ Hàng
                 </Button>
               </Link>
@@ -51,8 +51,8 @@ export default function CartDrawer() {
                   type="primary"
                   size="large"
                   style={{
-                    background: "#18181B",
-                    borderRadius: 0,
+                    background: "var(--fashion-black)",
+                    borderRadius: 2,
                     fontWeight: 600,
                   }}
                   icon={<ArrowRightOutlined />}>
@@ -73,7 +73,7 @@ export default function CartDrawer() {
             <Button
               type="primary"
               size="large"
-              style={{ marginTop: 16, background: "#C5A880", borderColor: "#C5A880", borderRadius: 0 }}
+              style={{ marginTop: 16, background: "var(--fashion-accent)", borderColor: "var(--fashion-accent)", borderRadius: 2 }}
               icon={<ShoppingOutlined />}>
               Khám Phá Bộ Sưu Tập
             </Button>
@@ -88,16 +88,19 @@ export default function CartDrawer() {
                 display: "flex",
                 gap: 14,
                 paddingBottom: 16,
-                borderBottom: "1px solid #F4F4F5",
+                borderBottom: "1px solid var(--fashion-border)",
               }}>
               <div
                 style={{
                   width: 80,
                   height: 100,
                   position: "relative",
-                  background: "#F4F4F5",
+                  background: "var(--fashion-surface)",
+                  borderRadius: 2,
+                  overflow: "hidden",
                   flexShrink: 0,
                 }}>
+
                 <img
                   src={item.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=200"}
                   alt={item.product_name}
@@ -108,7 +111,7 @@ export default function CartDrawer() {
               <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#18181B" }}>
+                    <h4 style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "var(--fashion-black)" }}>
                       {item.product_name}
                     </h4>
                     <button
@@ -117,13 +120,13 @@ export default function CartDrawer() {
                         background: "none",
                         border: "none",
                         cursor: "pointer",
-                        color: "#A1A1AA",
+                        color: "var(--fashion-muted)",
                         padding: 2,
                       }}>
                       <DeleteOutlined />
                     </button>
                   </div>
-                  <div style={{ fontSize: 12, color: "#71717A", marginTop: 4 }}>
+                  <div style={{ fontSize: 12, color: "var(--fashion-muted)", marginTop: 4 }}>
                     Màu: <b>{item.color}</b> | Size: <b>{item.size}</b>
                   </div>
                 </div>
@@ -133,7 +136,8 @@ export default function CartDrawer() {
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      border: "1px solid #E4E4E7",
+                      border: "1px solid var(--fashion-border)",
+                      borderRadius: 2,
                     }}>
                     <button
                       onClick={() => updateQuantity(item.cart_item_id, Math.max(1, item.quantity - 1))}
@@ -143,10 +147,11 @@ export default function CartDrawer() {
                         border: "none",
                         background: "none",
                         cursor: "pointer",
+                        color: "var(--fashion-black)",
                       }}>
                       -
                     </button>
-                    <span style={{ padding: "0 8px", fontSize: 12, fontWeight: 600 }}>{item.quantity}</span>
+                    <span style={{ padding: "0 8px", fontSize: 12, fontWeight: 600, color: "var(--fashion-black)" }}>{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.cart_item_id, item.quantity + 1)}
                       style={{
@@ -155,12 +160,13 @@ export default function CartDrawer() {
                         border: "none",
                         background: "none",
                         cursor: "pointer",
+                        color: "var(--fashion-black)",
                       }}>
                       +
                     </button>
                   </div>
 
-                  <span style={{ fontWeight: 600, color: "#18181B", fontSize: 14 }}>
+                  <span style={{ fontWeight: 600, color: "var(--fashion-accent)", fontSize: 14 }}>
                     {formatPrice(item.subtotal)}
                   </span>
                 </div>

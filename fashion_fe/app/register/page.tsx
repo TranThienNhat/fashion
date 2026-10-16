@@ -103,17 +103,18 @@ function RegisterForm() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#FAF9F6",
+        background: "var(--fashion-canvas)",
         padding: "40px 20px",
       }}>
       <div
         style={{
           width: "100%",
           maxWidth: 480,
-          background: "#FFFFFF",
-          border: "1px solid #E4E4E7",
+          background: "var(--fashion-surface-card)",
+          border: "1px solid var(--fashion-border)",
+          borderRadius: "var(--fashion-radius-sm)",
           padding: "44px 38px",
-          boxShadow: "0 10px 30px rgba(0, 0, 0, 0.04)",
+          boxShadow: "var(--fashion-shadow-md)",
         }}>
         {/* Header / Logo */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
@@ -121,7 +122,7 @@ function RegisterForm() {
             href="/"
             style={{
               textDecoration: "none",
-              color: "#18181B",
+              color: "var(--fashion-black)",
               display: "inline-flex",
               flexDirection: "column",
               alignItems: "center",
@@ -140,7 +141,7 @@ function RegisterForm() {
               style={{
                 fontSize: 9,
                 letterSpacing: "0.3em",
-                color: "#8F877F",
+                color: "var(--fashion-muted)",
                 textTransform: "uppercase",
                 marginTop: 4,
               }}>
@@ -152,7 +153,7 @@ function RegisterForm() {
               fontFamily: "Cormorant Garamond, serif",
               fontSize: 22,
               fontWeight: 600,
-              color: "#18181B",
+              color: "var(--fashion-black)",
               marginTop: 18,
               marginBottom: 6,
             }}>
@@ -305,17 +306,18 @@ function RegisterForm() {
           {/* Quyền lợi thành viên ngắn gọn */}
           <div
             style={{
-              background: "#FAF9F6",
-              border: "1px dashed #E4E4E7",
+              background: "var(--fashion-surface)",
+              border: "1px dashed var(--fashion-border)",
+              borderRadius: "var(--fashion-radius-sm)",
               padding: "12px 14px",
               marginBottom: 20,
               fontSize: 12,
-              color: "#52525B",
+              color: "var(--fashion-body)",
               display: "flex",
               alignItems: "flex-start",
               gap: 8,
             }}>
-            <CheckCircleFilled style={{ color: "#927238", marginTop: 2, fontSize: 14 }} />
+            <CheckCircleFilled style={{ color: "var(--fashion-accent)", marginTop: 2, fontSize: 14 }} />
             <span>
               Đặc quyền hội viên: Tích lũy điểm mua sắm, nhận mã ưu đãi VIP và quyền xem trước các bộ sưu tập giới hạn.
             </span>
@@ -329,9 +331,10 @@ function RegisterForm() {
             block
             size="large"
             style={{
-              background: "#18181B",
-              borderColor: "#18181B",
-              borderRadius: 0,
+              background: "var(--fashion-black)",
+              borderColor: "var(--fashion-black)",
+              color: "#FAF8F5",
+              borderRadius: "var(--fashion-radius-sm)",
               height: 48,
               fontWeight: 600,
               letterSpacing: "0.1em",
@@ -341,11 +344,11 @@ function RegisterForm() {
         </Form>
 
         {/* Chuyển tới Đăng nhập */}
-        <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "#71717A" }}>
+        <div style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "var(--fashion-muted)" }}>
           Đã có tài khoản Vinh Store?{" "}
           <Link
             href={`/login${redirectUrl !== "/" ? `?redirect=${encodeURIComponent(redirectUrl)}` : ""}`}
-            style={{ color: "#927238", fontWeight: 600, textDecoration: "none" }}>
+            style={{ color: "var(--fashion-accent)", fontWeight: 600, textDecoration: "none" }}>
             Đăng nhập ngay
           </Link>
         </div>
@@ -356,7 +359,7 @@ function RegisterForm() {
             href="/"
             style={{
               fontSize: 12,
-              color: "#A1A1AA",
+              color: "var(--fashion-muted)",
               textDecoration: "none",
               display: "inline-flex",
               alignItems: "center",

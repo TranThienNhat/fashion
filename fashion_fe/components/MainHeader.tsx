@@ -125,12 +125,12 @@ export default function MainHeader() {
       ];
 
   return (
-    <header style={{ position: "sticky", top: 0, zIndex: 1000, background: "#FFFFFF", borderBottom: "1px solid #EAEAE8", width: "100%" }}>
+    <header style={{ position: "sticky", top: 0, zIndex: 1000, background: "var(--fashion-canvas)", borderBottom: "1px solid var(--fashion-border)", width: "100%" }}>
       {/* Top Banner Thông Báo */}
       <div
         style={{
-          background: "#0D0D0D",
-          color: "#E5E5E5",
+          background: "var(--fashion-black)",
+          color: "#E8E2D8",
           textAlign: "center",
           fontSize: "11px",
           letterSpacing: "0.15em",
@@ -155,16 +155,17 @@ export default function MainHeader() {
           zIndex: 1001,
         }}>
         {/* Brand Logo */}
-        <Link href="/" style={{ textDecoration: "none", color: "#0D0D0D", display: "flex", alignItems: "center", cursor: "pointer" }}>
+        <Link href="/" style={{ textDecoration: "none", color: "var(--fashion-black)", display: "flex", alignItems: "center", cursor: "pointer" }}>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
             <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 26, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", lineHeight: 1.1 }}>
               VINH STORE
             </span>
-            <span style={{ fontSize: 9, letterSpacing: "0.3em", color: "#8F877F", textTransform: "uppercase" }}>
+            <span style={{ fontSize: 9, letterSpacing: "0.3em", color: "var(--fashion-muted)", textTransform: "uppercase" }}>
               THỜI TRANG CAO CẤP
             </span>
           </div>
         </Link>
+
 
         {/* Center Nav Links */}
         <nav style={{ display: "flex", gap: 32, alignItems: "center", flexWrap: "wrap" }}>
@@ -277,7 +278,7 @@ export default function MainHeader() {
             </Dropdown>
           )}
 
-          <Link href="/news" style={{ textDecoration: "none", color: "#0D0D0D", fontSize: 13, fontWeight: 500, letterSpacing: "0.1em", cursor: "pointer" }}>
+          <Link href="/news" style={{ textDecoration: "none", color: "var(--fashion-black)", fontSize: 13, fontWeight: 500, letterSpacing: "0.1em", cursor: "pointer" }}>
             TẠP CHÍ
           </Link>
         </nav>
@@ -294,14 +295,14 @@ export default function MainHeader() {
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
                   onBlur={() => !searchKeyword && setIsSearchOpen(false)}
-                  style={{ width: 220, borderRadius: 0, borderColor: "#0D0D0D", fontSize: 13 }}
-                  suffix={<SearchOutlined onClick={handleSearch} style={{ cursor: "pointer", color: "#0D0D0D" }} />}
+                  style={{ width: 220, borderRadius: 2, borderColor: "var(--fashion-border)", background: "var(--fashion-surface)", fontSize: 13 }}
+                  suffix={<SearchOutlined onClick={handleSearch} style={{ cursor: "pointer", color: "var(--fashion-black)" }} />}
                 />
               </form>
             ) : (
               <button
                 onClick={() => setIsSearchOpen(true)}
-                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 17, color: "#0D0D0D", padding: 4 }}>
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 17, color: "var(--fashion-black)", padding: 4 }}>
                 <SearchOutlined />
               </button>
             )}
@@ -318,7 +319,7 @@ export default function MainHeader() {
                 alignItems: "center",
                 gap: 8,
                 fontSize: 13,
-                color: "#0D0D0D",
+                color: "var(--fashion-black)",
                 padding: 4,
               }}>
               <UserOutlined style={{ fontSize: 17 }} />
@@ -327,7 +328,7 @@ export default function MainHeader() {
           </Dropdown>
 
           {/* Cart Drawer Trigger */}
-          <Badge count={cartCount} offset={[-2, 2]} color="#0D0D0D">
+          <Badge count={cartCount} offset={[-2, 2]} color="#A86E4B">
             <button
               onClick={() => setIsDrawerOpen(true)}
               style={{
@@ -335,7 +336,7 @@ export default function MainHeader() {
                 border: "none",
                 cursor: "pointer",
                 fontSize: 18,
-                color: "#0D0D0D",
+                color: "var(--fashion-black)",
                 padding: 4,
               }}>
               <ShoppingOutlined />

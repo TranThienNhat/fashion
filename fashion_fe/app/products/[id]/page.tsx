@@ -311,17 +311,17 @@ export default function ProductDetailPage({ params }: PageProps) {
     <MainLayout>
       <div style={{ maxWidth: 1360, margin: "0 auto", padding: "40px 24px" }}>
         {/* Breadcrumb */}
-        <div style={{ fontSize: 13, color: "#71717A", marginBottom: 32 }}>
-          <Link href="/" style={{ color: "#71717A", textDecoration: "none" }}>Trang Chủ</Link> /{" "}
-          <Link href="/products" style={{ color: "#71717A", textDecoration: "none" }}>Bộ Sưu Tập</Link> /{" "}
+        <div style={{ fontSize: 13, color: "var(--fashion-muted)", marginBottom: 32 }}>
+          <Link href="/" style={{ color: "var(--fashion-muted)", textDecoration: "none" }}>Trang Chủ</Link> /{" "}
+          <Link href="/products" style={{ color: "var(--fashion-muted)", textDecoration: "none" }}>Bộ Sưu Tập</Link> /{" "}
           {product.category_name && (
             <>
-              <Link href={`/products?category_id=${product.category_id}`} style={{ color: "#71717A", textDecoration: "none" }}>
+              <Link href={`/products?category_id=${product.category_id}`} style={{ color: "var(--fashion-muted)", textDecoration: "none" }}>
                 {product.category_name}
               </Link> /{" "}
             </>
           )}
-          <span style={{ color: "#18181B", fontWeight: 500 }}>{product.name}</span>
+          <span style={{ color: "var(--fashion-black)", fontWeight: 500 }}>{product.name}</span>
         </div>
 
         <Row gutter={[48, 48]}>
@@ -338,9 +338,11 @@ export default function ProductDetailPage({ params }: PageProps) {
                       style={{
                         width: 80,
                         height: 104,
-                        border: selectedImage === img.image_url ? "2px solid #0D0D0D" : "1px solid #EAEAE8",
+                        border: selectedImage === img.image_url ? "2px solid var(--fashion-black)" : "1px solid var(--fashion-border)",
                         cursor: "pointer",
                         overflow: "hidden",
+                        borderRadius: "var(--fashion-radius-sm)",
+                        background: "var(--fashion-surface)",
                       }}>
                       <img src={img.image_url} alt="thumbnail" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     </div>
@@ -354,9 +356,10 @@ export default function ProductDetailPage({ params }: PageProps) {
                   flex: 1,
                   aspectRatio: "3/4",
                   position: "relative",
-                  background: "#F9F9F8",
+                  background: "var(--fashion-surface)",
                   overflow: "hidden",
-                  border: "1px solid #EAEAE8",
+                  border: "1px solid var(--fashion-border)",
+                  borderRadius: "var(--fashion-radius-sm)",
                 }}>
                 <img
                   src={selectedImage || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800"}
@@ -372,7 +375,7 @@ export default function ProductDetailPage({ params }: PageProps) {
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {/* Brand & Name */}
               <div>
-                <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 500 }}>
+                <span style={{ fontSize: 11, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 500 }}>
                   {product.brand_name || "Vinh Store"}
                 </span>
                 <h1
@@ -381,7 +384,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                     fontFamily: "Cormorant Garamond, serif",
                     fontWeight: 500,
                     margin: "8px 0 12px",
-                    color: "#0D0D0D",
+                    color: "var(--fashion-black)",
                     lineHeight: 1.2,
                     letterSpacing: "0.02em",
                   }}>
@@ -390,32 +393,33 @@ export default function ProductDetailPage({ params }: PageProps) {
 
                 {/* Rating & Review summary */}
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <Rate disabled defaultValue={product.rating || 5} style={{ fontSize: 13, color: "#0D0D0D" }} />
-                  <span style={{ fontSize: 12, color: "#8F877F" }}>
+                  <Rate disabled defaultValue={product.rating || 5} style={{ fontSize: 13, color: "var(--fashion-gold)" }} />
+                  <span style={{ fontSize: 12, color: "var(--fashion-muted)" }}>
                     {product.review_count ? `(${product.review_count} đánh giá)` : "(Chưa có đánh giá)"}
                   </span>
-                  <span style={{ color: "#EAEAE8" }}>|</span>
-                  <span style={{ fontSize: 12, color: "#8F877F" }}>
-                    SKU: <b style={{ color: "#0D0D0D" }}>{selectedVariant?.sku || "N/A"}</b>
+                  <span style={{ color: "var(--fashion-border)" }}>|</span>
+                  <span style={{ fontSize: 12, color: "var(--fashion-muted)" }}>
+                    SKU: <b style={{ color: "var(--fashion-black)" }}>{selectedVariant?.sku || "N/A"}</b>
                   </span>
                 </div>
               </div>
 
               {/* Price */}
-              <div style={{ borderTop: "1px solid #EAEAE8", borderBottom: "1px solid #EAEAE8", padding: "16px 0" }}>
+              <div style={{ borderTop: "1px solid var(--fashion-border)", borderBottom: "1px solid var(--fashion-border)", padding: "16px 0" }}>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-                  <span style={{ fontSize: 26, fontWeight: 600, color: "#0D0D0D", letterSpacing: "0.02em" }}>
+                  <span style={{ fontSize: 26, fontWeight: 600, color: "var(--fashion-black)", letterSpacing: "0.02em" }}>
                     {formatPrice(currentPrice)}
                   </span>
                   <span
                     style={{
-                      background: "#0D0D0D",
-                      color: "#FFFFFF",
+                      background: "var(--fashion-black)",
+                      color: "#FAF8F5",
                       fontSize: 10,
                       padding: "2px 8px",
                       letterSpacing: "0.12em",
                       textTransform: "uppercase",
                       fontWeight: 500,
+                      borderRadius: "var(--fashion-radius-sm)",
                     }}>
                     AUTHENTIC
                   </span>
@@ -426,8 +430,8 @@ export default function ProductDetailPage({ params }: PageProps) {
               {product.available_colors && product.available_colors.length > 0 && !["tiêu chuẩn", "standard", "mặc định"].includes((selectedColor || "").toLowerCase()) && (
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: product.available_colors.length > 1 ? 8 : 0, fontSize: 12 }}>
-                    <span style={{ color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Màu Sắc: <b style={{ color: "#0D0D0D" }}>{selectedColor}</b>
+                    <span style={{ color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      Màu Sắc: <b style={{ color: "var(--fashion-black)" }}>{selectedColor}</b>
                     </span>
                   </div>
                   {product.available_colors.length > 1 && (
@@ -438,13 +442,14 @@ export default function ProductDetailPage({ params }: PageProps) {
                           onClick={() => handleColorChange(c)}
                           style={{
                             padding: "6px 16px",
-                            border: selectedColor === c ? "1px solid #0D0D0D" : "1px solid #EAEAE8",
-                            background: selectedColor === c ? "#0D0D0D" : "#FFFFFF",
-                            color: selectedColor === c ? "#FFFFFF" : "#0D0D0D",
+                            border: selectedColor === c ? "1px solid var(--fashion-black)" : "1px solid var(--fashion-border)",
+                            background: selectedColor === c ? "var(--fashion-black)" : "var(--fashion-surface-card)",
+                            color: selectedColor === c ? "#FAF8F5" : "var(--fashion-black)",
                             fontWeight: selectedColor === c ? 500 : 400,
                             cursor: "pointer",
                             fontSize: 12,
                             letterSpacing: "0.05em",
+                            borderRadius: "var(--fashion-radius-sm)",
                             transition: "all 0.2s ease",
                           }}>
                           {c}
@@ -459,8 +464,8 @@ export default function ProductDetailPage({ params }: PageProps) {
               {!isAccessory && availableSizesForSelectedColor.length > 0 && (
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: availableSizesForSelectedColor.length > 1 ? 8 : 0, fontSize: 12 }}>
-                    <span style={{ color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Kích Thước: <b style={{ color: "#0D0D0D" }}>{selectedSize}</b>
+                    <span style={{ color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      Kích Thước: <b style={{ color: "var(--fashion-black)" }}>{selectedSize}</b>
                     </span>
                     {availableSizesForSelectedColor.length > 1 && (
                       <button
@@ -468,7 +473,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                         style={{
                           background: "none",
                           border: "none",
-                          color: "#0D0D0D",
+                          color: "var(--fashion-accent)",
                           textDecoration: "underline",
                           cursor: "pointer",
                           fontSize: 11,
@@ -497,9 +502,9 @@ export default function ProductDetailPage({ params }: PageProps) {
               {/* TÌNH TRẠNG TỒN KHO THỜI GIAN THỰC */}
               <div style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
                 {isOutOfStock ? (
-                  <span style={{ color: "#DC2626", fontWeight: 500 }}>● Tạm hết hàng biến thể này</span>
+                  <span style={{ color: "var(--fashion-accent)", fontWeight: 500 }}>● Tạm hết hàng biến thể này</span>
                 ) : (
-                  <span style={{ color: "#059669", fontWeight: 400, display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ color: "#2E7D32", fontWeight: 400, display: "flex", alignItems: "center", gap: 6 }}>
                     <CheckCircleOutlined /> Còn hàng (Sẵn sàng giao: <b>{currentStock}</b> sản phẩm)
                   </span>
                 )}
@@ -507,24 +512,24 @@ export default function ProductDetailPage({ params }: PageProps) {
 
               {/* CHỌN SỐ LƯỢNG */}
               <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                <span style={{ fontSize: 12, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.05em" }}>Số lượng:</span>
-                <div style={{ display: "flex", border: "1px solid #EAEAE8", width: 110 }}>
+                <span style={{ fontSize: 12, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Số lượng:</span>
+                <div style={{ display: "flex", border: "1px solid var(--fashion-border)", borderRadius: "var(--fashion-radius-sm)", width: 110, background: "var(--fashion-surface-card)" }}>
                   <button
                     disabled={quantity <= 1 || isOutOfStock}
                     onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    style={{ width: 34, height: 36, border: "none", background: "none", cursor: "pointer", fontSize: 14 }}>
+                    style={{ width: 34, height: 36, border: "none", background: "none", cursor: "pointer", fontSize: 14, color: "var(--fashion-black)" }}>
                     -
                   </button>
                   <input
                     type="text"
                     readOnly
                     value={quantity}
-                    style={{ width: 42, textAlign: "center", border: "none", fontWeight: 500, fontSize: 13 }}
+                    style={{ width: 42, textAlign: "center", border: "none", background: "transparent", fontWeight: 500, fontSize: 13, color: "var(--fashion-black)" }}
                   />
                   <button
                     disabled={quantity >= currentStock || isOutOfStock}
                     onClick={() => setQuantity((q) => Math.min(currentStock, q + 1))}
-                    style={{ width: 34, height: 36, border: "none", background: "none", cursor: "pointer", fontSize: 14 }}>
+                    style={{ width: 34, height: 36, border: "none", background: "none", cursor: "pointer", fontSize: 14, color: "var(--fashion-black)" }}>
                     +
                   </button>
                 </div>
@@ -540,9 +545,10 @@ export default function ProductDetailPage({ params }: PageProps) {
                   style={{
                     flex: 1,
                     height: 48,
-                    borderRadius: 0,
-                    border: "1px solid #0D0D0D",
-                    color: "#0D0D0D",
+                    borderRadius: "var(--fashion-radius-sm)",
+                    border: "1px solid var(--fashion-black)",
+                    color: "var(--fashion-black)",
+                    background: "transparent",
                     fontWeight: 500,
                     fontSize: 12,
                     letterSpacing: "0.14em",
@@ -560,9 +566,10 @@ export default function ProductDetailPage({ params }: PageProps) {
                   style={{
                     flex: 1,
                     height: 48,
-                    borderRadius: 0,
-                    background: "#0D0D0D",
-                    borderColor: "#0D0D0D",
+                    borderRadius: "var(--fashion-radius-sm)",
+                    background: "var(--fashion-black)",
+                    borderColor: "var(--fashion-black)",
+                    color: "#FAF8F5",
                     fontWeight: 500,
                     fontSize: 12,
                     letterSpacing: "0.14em",
@@ -574,7 +581,7 @@ export default function ProductDetailPage({ params }: PageProps) {
               </div>
 
               {/* Lời cam kết bổ sung */}
-              <div style={{ background: "#FAFAF9", border: "1px solid #EAEAE8", padding: "16px", marginTop: 8, fontSize: 12, color: "#6B6B6B", lineHeight: 1.7 }}>
+              <div style={{ background: "var(--fashion-surface)", border: "1px solid var(--fashion-border)", borderRadius: "var(--fashion-radius-sm)", padding: "16px", marginTop: 8, fontSize: 12, color: "var(--fashion-body)", lineHeight: 1.7 }}>
                 ✓ Đóng gói hộp quà cao cấp kèm thiệp cảm ơn Vinh Store<br />
                 ✓ Kiểm tra sản phẩm cẩn trọng trước khi nhận hàng<br />
                 {isAccessory ? (
@@ -588,19 +595,19 @@ export default function ProductDetailPage({ params }: PageProps) {
         </Row>
 
         {/* MÔ TẢ CHI TIẾT & ĐÁNH GIÁ TABS */}
-        <div style={{ marginTop: 64, borderTop: "1px solid #E4E4E7", paddingTop: 32 }}>
+        <div style={{ marginTop: 64, borderTop: "1px solid var(--fashion-border)", paddingTop: 32 }}>
           <Tabs
             defaultActiveKey="desc"
             items={[
               {
                 key: "desc",
-                label: <span style={{ fontSize: 16, fontFamily: "serif", fontWeight: 600 }}>Mô Tả Chi Tiết & Chất Liệu</span>,
+                label: <span style={{ fontSize: 16, fontFamily: "Cormorant Garamond, serif", fontWeight: 600, color: "var(--fashion-black)" }}>Mô Tả Chi Tiết & Chất Liệu</span>,
                 children: (
-                  <div style={{ maxWidth: 840, padding: "16px 0", lineHeight: 1.8, fontSize: 14, color: "#3F3F46" }}>
+                  <div style={{ maxWidth: 840, padding: "16px 0", lineHeight: 1.8, fontSize: 14, color: "var(--fashion-body)" }}>
                     <p>{product.description || "Sản phẩm may đo cao cấp với chất liệu tự nhiên, chuẩn form dáng thanh lịch và hiện đại."}</p>
                     {isAccessory ? (
                       <>
-                        <h4 style={{ margin: "24px 0 12px", color: "#18181B" }}>Hướng Dẫn Bảo Quản & Sử Dụng Phụ Kiện</h4>
+                        <h4 style={{ margin: "24px 0 12px", color: "var(--fashion-black)" }}>Hướng Dẫn Bảo Quản & Sử Dụng Phụ Kiện</h4>
                         <ul style={{ paddingLeft: 20, margin: 0 }}>
                           <li>Lau nhẹ bề mặt bằng khăn cotton mềm khô định kỳ để duy trì độ bóng sáng.</li>
                           <li>Tránh tiếp xúc trực tiếp với nước hoa, cồn, chất tẩy rửa hóa học hoặc môi trường ẩm ướt kéo dài.</li>
@@ -610,7 +617,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                       </>
                     ) : (
                       <>
-                        <h4 style={{ margin: "24px 0 12px", color: "#18181B" }}>Hướng Dẫn Bảo Quản</h4>
+                        <h4 style={{ margin: "24px 0 12px", color: "var(--fashion-black)" }}>Hướng Dẫn Bảo Quản</h4>
                         <ul style={{ paddingLeft: 20, margin: 0 }}>
                           <li>Giặt khô chuyên dụng hoặc giặt tay với nước lạnh và dầu gội nhẹ.</li>
                           <li>Không sử dụng chất tẩy mạnh, không vắt xoắn làm hỏng phom áo.</li>
@@ -624,28 +631,28 @@ export default function ProductDetailPage({ params }: PageProps) {
               {
                 key: "reviews",
                 label: (
-                  <span style={{ fontSize: 16, fontFamily: "serif", fontWeight: 600 }}>
+                  <span style={{ fontSize: 16, fontFamily: "Cormorant Garamond, serif", fontWeight: 600, color: "var(--fashion-black)" }}>
                     Đánh Giá Của Khách Hàng ({reviews.length})
                   </span>
                 ),
                 children: (
                   <div style={{ maxWidth: 840, padding: "16px 0" }}>
                     {reviews.length === 0 ? (
-                      <p style={{ color: "#71717A" }}>
+                      <p style={{ color: "var(--fashion-muted)" }}>
                         Chưa có đánh giá nào cho sản phẩm này. Khách hàng đã mua có thể để lại nhận xét tại trang Lịch Sử Đơn Hàng sau khi nhận hàng.
                       </p>
                     ) : (
                       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
                         {(Array.isArray(reviews) ? reviews : []).map((r) => (
-                          <div key={r.review_id} style={{ borderBottom: "1px solid #F4F4F5", paddingBottom: 16 }}>
+                          <div key={r.review_id} style={{ borderBottom: "1px solid var(--fashion-border)", paddingBottom: 16 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                              <b style={{ fontSize: 14 }}>{r.user_name}</b>
-                              <span style={{ fontSize: 12, color: "#A1A1AA" }}>
+                              <b style={{ fontSize: 14, color: "var(--fashion-black)" }}>{r.user_name}</b>
+                              <span style={{ fontSize: 12, color: "var(--fashion-muted)" }}>
                                 {new Date(r.created_at).toLocaleDateString("vi-VN")}
                               </span>
                             </div>
-                            <Rate disabled defaultValue={r.rating} style={{ fontSize: 12, color: "#C5A880", margin: "4px 0" }} />
-                            <p style={{ margin: "6px 0 0", color: "#3F3F46", fontSize: 13 }}>{r.comment}</p>
+                            <Rate disabled defaultValue={r.rating} style={{ fontSize: 12, color: "var(--fashion-gold)", margin: "4px 0" }} />
+                            <p style={{ margin: "6px 0 0", color: "var(--fashion-body)", fontSize: 13 }}>{r.comment}</p>
                           </div>
                         ))}
                       </div>
@@ -659,13 +666,13 @@ export default function ProductDetailPage({ params }: PageProps) {
 
         {/* KHU VỰC GỢI Ý: CÓ THỂ BẠN CŨNG THÍCH */}
         {recommendedProducts.length > 0 && (
-          <div style={{ marginTop: 64, paddingTop: 40, borderTop: "1px solid #EAEAE8" }}>
+          <div style={{ marginTop: 64, paddingTop: 40, borderTop: "1px solid var(--fashion-border)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}>
               <div>
-                <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600 }}>
+                <span style={{ fontSize: 11, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.18em", fontWeight: 600 }}>
                   GỢI Ý TƯƠNG ĐỒNG
                 </span>
-                <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 28, margin: "4px 0 0", color: "#0D0D0D", letterSpacing: "0.02em" }}>
+                <h3 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 28, margin: "4px 0 0", color: "var(--fashion-black)", letterSpacing: "0.02em" }}>
                   Có Thể Bạn Cũng Thích
                 </h3>
               </div>
@@ -678,23 +685,25 @@ export default function ProductDetailPage({ params }: PageProps) {
                     style={{
                       width: 38,
                       height: 38,
-                      border: "1px solid #EAEAE8",
-                      background: "#FFFFFF",
+                      border: "1px solid var(--fashion-border)",
+                      background: "var(--fashion-surface-card)",
+                      borderRadius: "var(--fashion-radius-sm)",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      color: "var(--fashion-black)",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#0D0D0D";
-                      e.currentTarget.style.background = "#0D0D0D";
-                      e.currentTarget.style.color = "#FFFFFF";
+                      e.currentTarget.style.borderColor = "var(--fashion-black)";
+                      e.currentTarget.style.background = "var(--fashion-black)";
+                      e.currentTarget.style.color = "#FAF8F5";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#EAEAE8";
-                      e.currentTarget.style.background = "#FFFFFF";
-                      e.currentTarget.style.color = "#0D0D0D";
+                      e.currentTarget.style.borderColor = "var(--fashion-border)";
+                      e.currentTarget.style.background = "var(--fashion-surface-card)";
+                      e.currentTarget.style.color = "var(--fashion-black)";
                     }}>
                     <LeftOutlined style={{ fontSize: 13 }} />
                   </button>
@@ -704,23 +713,25 @@ export default function ProductDetailPage({ params }: PageProps) {
                     style={{
                       width: 38,
                       height: 38,
-                      border: "1px solid #EAEAE8",
-                      background: "#FFFFFF",
+                      border: "1px solid var(--fashion-border)",
+                      background: "var(--fashion-surface-card)",
+                      borderRadius: "var(--fashion-radius-sm)",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      color: "var(--fashion-black)",
                       transition: "all 0.2s ease",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#0D0D0D";
-                      e.currentTarget.style.background = "#0D0D0D";
-                      e.currentTarget.style.color = "#FFFFFF";
+                      e.currentTarget.style.borderColor = "var(--fashion-black)";
+                      e.currentTarget.style.background = "var(--fashion-black)";
+                      e.currentTarget.style.color = "#FAF8F5";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#EAEAE8";
-                      e.currentTarget.style.background = "#FFFFFF";
-                      e.currentTarget.style.color = "#0D0D0D";
+                      e.currentTarget.style.borderColor = "var(--fashion-border)";
+                      e.currentTarget.style.background = "var(--fashion-surface-card)";
+                      e.currentTarget.style.color = "var(--fashion-black)";
                     }}>
                     <RightOutlined style={{ fontSize: 13 }} />
                   </button>
@@ -753,23 +764,25 @@ export default function ProductDetailPage({ params }: PageProps) {
                       flex: "0 0 calc(20% - 13px)",
                       minWidth: 210,
                       maxWidth: 240,
-                      background: "#FFFFFF",
-                      border: "1px solid #F0F0EE",
+                      background: "var(--fashion-surface-card)",
+                      border: "1px solid var(--fashion-border)",
+                      borderRadius: "var(--fashion-radius-sm)",
                       display: "flex",
                       flexDirection: "column",
                       transition: "all 0.25s ease",
                       position: "relative",
+                      overflow: "hidden",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#0D0D0D";
-                      e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.06)";
+                      e.currentTarget.style.borderColor = "var(--fashion-black)";
+                      e.currentTarget.style.boxShadow = "var(--fashion-shadow-md)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#F0F0EE";
+                      e.currentTarget.style.borderColor = "var(--fashion-border)";
                       e.currentTarget.style.boxShadow = "none";
                     }}>
                     <Link href={`/products/${p.product_id}`} style={{ textDecoration: "none", color: "inherit", display: "flex", flexDirection: "column", height: "100%" }}>
-                      <div style={{ position: "relative", width: "100%", paddingBottom: "125%", overflow: "hidden", background: "#F4F4F5" }}>
+                      <div style={{ position: "relative", width: "100%", paddingBottom: "125%", overflow: "hidden", background: "var(--fashion-surface)" }}>
                         <img
                           src={p.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=400"}
                           alt={p.name}
@@ -795,13 +808,13 @@ export default function ProductDetailPage({ params }: PageProps) {
                               position: "absolute",
                               top: 8,
                               right: 8,
-                              background: "#DC2626",
+                              background: "var(--fashion-accent)",
                               color: "#FFFFFF",
                               fontSize: 10,
                               padding: "2px 6px",
                               letterSpacing: "0.05em",
                               fontWeight: 700,
-                              borderRadius: 2,
+                              borderRadius: "var(--fashion-radius-sm)",
                             }}>
                             -{discountPercent}%
                           </span>
@@ -810,7 +823,7 @@ export default function ProductDetailPage({ params }: PageProps) {
 
                       <div style={{ padding: "12px", display: "flex", flexDirection: "column", flex: 1, justifyContent: "space-between" }}>
                         <div>
-                          <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 500 }}>
+                          <div style={{ fontSize: 10, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 500 }}>
                             {p.brand_name || p.category_name || "Vinh Store"}
                           </div>
                           <h4
@@ -818,7 +831,7 @@ export default function ProductDetailPage({ params }: PageProps) {
                               margin: "4px 0 8px",
                               fontSize: 13,
                               fontWeight: 500,
-                              color: "#0D0D0D",
+                              color: "var(--fashion-black)",
                               lineHeight: 1.4,
                               overflow: "hidden",
                               display: "-webkit-box",
@@ -833,15 +846,15 @@ export default function ProductDetailPage({ params }: PageProps) {
                         <div>
                           {hasDiscount ? (
                             <div>
-                              <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                              <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fashion-accent)" }}>
                                 {formatPrice(minPrice)}
                               </span>
-                              <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through", marginTop: 2 }}>
+                              <div style={{ fontSize: 11, color: "var(--fashion-muted)", textDecoration: "line-through", marginTop: 2 }}>
                                 {formatPrice(basePrice)}
                               </div>
                             </div>
                           ) : (
-                            <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D" }}>
+                            <span style={{ fontSize: 14, fontWeight: 600, color: "var(--fashion-black)" }}>
                               {formatPrice(basePrice)}
                             </span>
                           )}
@@ -859,7 +872,7 @@ export default function ProductDetailPage({ params }: PageProps) {
       {/* Modal Hướng Dẫn Chọn Size / Quy Cách Phụ Kiện */}
       <Modal
         title={
-          <span style={{ fontFamily: "serif", fontSize: 20 }}>
+          <span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 20, color: "var(--fashion-black)" }}>
             {isAccessory ? "Quy Cách Chế Tác & Bảo Quản Phụ Kiện" : "Bảng Quy Chuẩn Kích Cỡ (Size Guide)"}
           </span>
         }
@@ -869,33 +882,33 @@ export default function ProductDetailPage({ params }: PageProps) {
         footer={null}
         width={isAccessory ? 650 : 600}>
         {isAccessory ? (
-          <div style={{ padding: "12px 0", fontSize: 13, lineHeight: 1.7, color: "#3F3F46" }}>
-            <div style={{ background: "#F4F4F5", padding: "12px 16px", borderRadius: 4, marginBottom: 16 }}>
-              <div style={{ fontWeight: 600, color: "#18181B", marginBottom: 4 }}>Quy Cách Chuẩn Mực Vinh Store:</div>
+          <div style={{ padding: "12px 0", fontSize: 13, lineHeight: 1.7, color: "var(--fashion-body)" }}>
+            <div style={{ background: "var(--fashion-surface)", border: "1px solid var(--fashion-border)", padding: "12px 16px", borderRadius: "var(--fashion-radius-sm)", marginBottom: 16 }}>
+              <div style={{ fontWeight: 600, color: "var(--fashion-black)", marginBottom: 4 }}>Quy Cách Chuẩn Mực Vinh Store:</div>
               <div>• Kích thước: Thiết kế tỷ lệ công thái học hoàn hảo, phù hợp vóc dáng người Á Đông.</div>
               <div>• Chi tiết kim loại: Khóa, móc hoặc dây kéo được mạ điện phân chống oxy hóa và xỉn màu.</div>
               <div>• Đóng gói bàn giao: Hộp carton cứng bọc lót chống sốc + túi vải nhung chống bụi (dustbag).</div>
             </div>
 
-            <div style={{ fontWeight: 600, color: "#18181B", marginBottom: 6 }}>Nguyên Tắc Bảo Dưỡng Độ Bền:</div>
+            <div style={{ fontWeight: 600, color: "var(--fashion-black)", marginBottom: 6 }}>Nguyên Tắc Bảo Dưỡng Độ Bền:</div>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginBottom: 16 }}>
               <tbody>
                 <tr>
-                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px", background: "#FAFAF9", width: 140, fontWeight: 600 }}>Chống ẩm ướt</td>
-                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px" }}>Không mang khi trời mưa lớn; nếu ướt hãy thấm khô tự nhiên bằng khăn mềm, tuyệt đối không dùng máy sấy nhiệt.</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: "8px 12px", background: "var(--fashion-surface)", width: 140, fontWeight: 600, color: "var(--fashion-black)" }}>Chống ẩm ướt</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: "8px 12px" }}>Không mang khi trời mưa lớn; nếu ướt hãy thấm khô tự nhiên bằng khăn mềm, tuyệt đối không dùng máy sấy nhiệt.</td>
                 </tr>
                 <tr>
-                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px", background: "#FAFAF9", fontWeight: 600 }}>Chống biến dạng</td>
-                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px" }}>Đặt giấy độn mềm bên trong túi xách hoặc ví khi cất giữ để giữ nguyên form dáng nguyên bản.</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: "8px 12px", background: "var(--fashion-surface)", fontWeight: 600, color: "var(--fashion-black)" }}>Chống biến dạng</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: "8px 12px" }}>Đặt giấy độn mềm bên trong túi xách hoặc ví khi cất giữ để giữ nguyên form dáng nguyên bản.</td>
                 </tr>
                 <tr>
-                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px", background: "#FAFAF9", fontWeight: 600 }}>Dưỡng chất liệu</td>
-                  <td style={{ border: "1px solid #E4E4E7", padding: "8px 12px" }}>Sử dụng kem sáp dưỡng da chuyên dụng định kỳ mỗi quý một lần để duy trì độ mềm mại sang trọng.</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: "8px 12px", background: "var(--fashion-surface)", fontWeight: 600, color: "var(--fashion-black)" }}>Dưỡng chất liệu</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: "8px 12px" }}>Sử dụng kem sáp dưỡng da chuyên dụng định kỳ mỗi quý một lần để duy trì độ mềm mại sang trọng.</td>
                 </tr>
               </tbody>
             </table>
 
-            <div style={{ fontSize: 12, color: "#71717A", fontStyle: "italic" }}>
+            <div style={{ fontSize: 12, color: "var(--fashion-muted)", fontStyle: "italic" }}>
               * Quý khách được hỗ trợ làm sạch và bảo dưỡng bề mặt da miễn phí trong vòng 12 tháng tại hệ thống cửa hàng Vinh Store.
             </div>
           </div>
@@ -903,36 +916,36 @@ export default function ProductDetailPage({ params }: PageProps) {
           <div style={{ padding: "12px 0" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, textAlign: "center" }}>
               <thead>
-                <tr style={{ background: "#F4F4F5", height: 40 }}>
-                  <th style={{ border: "1px solid #E4E4E7" }}>Size</th>
-                  <th style={{ border: "1px solid #E4E4E7" }}>Chiều cao (cm)</th>
-                  <th style={{ border: "1px solid #E4E4E7" }}>Cân nặng (kg)</th>
+                <tr style={{ background: "var(--fashion-surface)", height: 40, color: "var(--fashion-black)" }}>
+                  <th style={{ border: "1px solid var(--fashion-border)" }}>Size</th>
+                  <th style={{ border: "1px solid var(--fashion-border)" }}>Chiều cao (cm)</th>
+                  <th style={{ border: "1px solid var(--fashion-border)" }}>Cân nặng (kg)</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>S</b></td>
-                  <td style={{ border: "1px solid #E4E4E7" }}>155 - 165</td>
-                  <td style={{ border: "1px solid #E4E4E7" }}>45 - 55</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}><b>S</b></td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}>155 - 165</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}>45 - 55</td>
                 </tr>
                 <tr>
-                  <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>M</b></td>
-                  <td style={{ border: "1px solid #E4E4E7" }}>165 - 172</td>
-                  <td style={{ border: "1px solid #E4E4E7" }}>55 - 65</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}><b>M</b></td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}>165 - 172</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}>55 - 65</td>
                 </tr>
                 <tr>
-                  <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>L</b></td>
-                  <td style={{ border: "1px solid #E4E4E7" }}>170 - 178</td>
-                  <td style={{ border: "1px solid #E4E4E7" }}>65 - 75</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}><b>L</b></td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}>170 - 178</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}>65 - 75</td>
                 </tr>
                 <tr>
-                  <td style={{ border: "1px solid #E4E4E7", padding: 8 }}><b>XL</b></td>
-                  <td style={{ border: "1px solid #E4E4E7" }}>175 - 185</td>
-                  <td style={{ border: "1px solid #E4E4E7" }}>75 - 85</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}><b>XL</b></td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}>175 - 185</td>
+                  <td style={{ border: "1px solid var(--fashion-border)", padding: 8 }}>75 - 85</td>
                 </tr>
               </tbody>
             </table>
-            <p style={{ fontSize: 12, color: "#71717A", marginTop: 16 }}>
+            <p style={{ fontSize: 12, color: "var(--fashion-muted)", marginTop: 16 }}>
               * Nếu số đo của bạn nằm giữa 2 size, chúng tôi khuyên bạn nên chọn size lớn hơn để mặc thoải mái và có độ rủ sang trọng nhất.
             </p>
           </div>

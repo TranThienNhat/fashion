@@ -5,17 +5,27 @@
 }
 
 :root {
-  --fashion-canvas: #FFFFFF;
-  --fashion-surface: #F9F9F8;
-  --fashion-surface-subtle: #F4F4F2;
-  --fashion-black: #0D0D0D;
-  --fashion-charcoal: #262626;
-  --fashion-body: #404040;
-  --fashion-muted: #737373;
-  --fashion-border: #EAEAE8;
-  --fashion-border-dark: #27272A;
-  --fashion-stone: #8F877F;
-  --fashion-stone-light: #C4BEB6;
+  /* Warm Minimalist Palette — Tối giản ấm áp & Tinh tế */
+  --fashion-canvas: #FAF8F5;          /* Nền chính ấm áp: Linen / Warm Ivory */
+  --fashion-surface: #F5F1E9;         /* Bề mặt thứ cấp: Soft Oatmeal / Stone */
+  --fashion-surface-card: #FDFBF8;    /* Bề mặt thẻ: Warm Alabaster Milk White */
+  --fashion-surface-subtle: #EFEAE1;  /* Bề mặt nhẹ: Cashmere sand */
+  --fashion-black: #231F1C;           /* Màu chữ & điểm nhấn chính: Warm Noir / Deep Espresso */
+  --fashion-charcoal: #38322E;        /* Than ấm: Warm Roasted Charcoal */
+  --fashion-body: #524C46;           /* Màu chữ đoạn văn: Warm Dark Taupe */
+  --fashion-muted: #8C8278;          /* Màu chữ phụ: Warm Muted Stone */
+  --fashion-border: #E8E2D8;         /* Viền thanh mảnh: Soft Sand Hairline */
+  --fashion-border-dark: #38322E;    /* Viền đậm ấm */
+  --fashion-border-subtle: #F0EBE2;  /* Viền siêu nhẹ */
+  --fashion-stone: #9E958B;          /* Màu đá tự nhiên */
+  --fashion-stone-light: #D9D2C7;    /* Đá cashmere sáng */
+  --fashion-accent: #A86E4B;         /* Điểm nhấn Terracotta / Warm Cognac */
+  --fashion-accent-hover: #8F5C3B;   /* Terracotta đậm */
+  --fashion-gold: #C5A880;           /* Vàng Champagne Gold cao cấp */
+  --fashion-gold-light: #EFE4D6;     /* Sắc vàng nhẹ */
+  --fashion-radius-sm: 2px;
+  --fashion-radius-md: 4px;
+  --fashion-radius-lg: 8px;
 }
 
 body {
@@ -28,7 +38,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Editorial Minimalist Typography */
+/* Editorial Warm Typography */
 h1, h2, h3, .font-editorial {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-weight: 400;
@@ -48,39 +58,42 @@ h1, h2, h3, .font-editorial {
   font-weight: 600;
 }
 
-/* Minimalist Card Design */
+/* Warm Minimalist Card Design */
 .fashion-card {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  background: #FFFFFF;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--fashion-surface-card);
   border: 1px solid var(--fashion-border);
+  border-radius: var(--fashion-radius-md);
 }
 
 .fashion-card:hover {
   transform: translateY(-4px);
-  border-color: #D4D4D0;
-  box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.05);
+  border-color: #D6CDC0;
+  box-shadow: 0 16px 36px -12px rgba(35, 31, 28, 0.08);
 }
 
 .fashion-image-container {
   overflow: hidden;
   position: relative;
   background-color: var(--fashion-surface);
+  border-top-left-radius: var(--fashion-radius-md);
+  border-top-right-radius: var(--fashion-radius-md);
 }
 
 .fashion-image-container img {
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .fashion-card:hover .fashion-image-container img {
   transform: scale(1.04);
 }
 
-/* Minimalist Button Styles */
+/* Warm Minimalist Button Styles */
 .btn-minimal {
   background: var(--fashion-black);
-  color: #FFFFFF;
+  color: #FAF8F5;
   border: 1px solid var(--fashion-black);
-  border-radius: 0;
+  border-radius: var(--fashion-radius-sm);
   font-weight: 500;
   font-size: 13px;
   letter-spacing: 0.08em;
@@ -95,16 +108,16 @@ h1, h2, h3, .font-editorial {
 }
 
 .btn-minimal:hover {
-  background: #262626 !important;
-  border-color: #262626 !important;
-  color: #FFFFFF !important;
+  background: var(--fashion-charcoal) !important;
+  border-color: var(--fashion-charcoal) !important;
+  color: #FAF8F5 !important;
 }
 
 .btn-minimal-outline {
   background: transparent;
   color: var(--fashion-black);
-  border: 1px solid var(--fashion-black);
-  border-radius: 0;
+  border: 1px solid var(--fashion-border);
+  border-radius: var(--fashion-radius-sm);
   font-weight: 500;
   font-size: 13px;
   letter-spacing: 0.08em;
@@ -120,43 +133,44 @@ h1, h2, h3, .font-editorial {
 
 .btn-minimal-outline:hover {
   background: var(--fashion-black) !important;
-  color: #FFFFFF !important;
+  border-color: var(--fashion-black) !important;
+  color: #FAF8F5 !important;
 }
 
 .btn-gold {
-  background: var(--fashion-black);
+  background: var(--fashion-accent);
   color: #FFFFFF;
-  border: 1px solid var(--fashion-black);
-  border-radius: 0;
+  border: 1px solid var(--fashion-accent);
+  border-radius: var(--fashion-radius-sm);
   font-weight: 500;
   letter-spacing: 0.08em;
   transition: all 0.25s ease;
 }
 
 .btn-gold:hover {
-  background: #262626 !important;
-  border-color: #262626 !important;
+  background: var(--fashion-accent-hover) !important;
+  border-color: var(--fashion-accent-hover) !important;
   color: #FFFFFF !important;
 }
 
 .btn-dark {
   background: var(--fashion-black);
-  color: #FFFFFF;
+  color: #FAF8F5;
   border: 1px solid var(--fashion-black);
-  border-radius: 0;
+  border-radius: var(--fashion-radius-sm);
   transition: all 0.25s ease;
 }
 
 .btn-dark:hover {
-  background: #262626 !important;
-  color: #FFFFFF !important;
+  background: var(--fashion-charcoal) !important;
+  color: #FAF8F5 !important;
 }
 
-/* Minimalist Swatches and Size Chips */
+/* Warm Minimalist Swatches and Size Chips */
 .color-swatch {
   width: 24px;
   height: 24px;
-  border-radius: 0;
+  border-radius: 2px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid var(--fashion-border);
@@ -170,22 +184,22 @@ h1, h2, h3, .font-editorial {
 .size-chip {
   padding: 8px 16px;
   border: 1px solid var(--fashion-border);
-  border-radius: 0;
+  border-radius: 2px;
   font-size: 12px;
   font-weight: 500;
-  background: #FFFFFF;
+  background: var(--fashion-surface-card);
   color: var(--fashion-black);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .size-chip:hover {
-  border-color: var(--fashion-black);
+  border-color: var(--fashion-stone);
 }
 
 .size-chip.active {
   background: var(--fashion-black);
-  color: #FFFFFF;
+  color: #FAF8F5;
   border-color: var(--fashion-black);
 }
 
@@ -196,60 +210,69 @@ h1, h2, h3, .font-editorial {
   width: 100%;
 }
 
-/* Custom Minimalist Scrollbars */
+/* Custom Warm Minimalist Scrollbars */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #F8F8F7;
+  background: var(--fashion-surface);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D4D4D0;
-  border-radius: 0;
+  background: var(--fashion-stone-light);
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #A3A3A0;
+  background: var(--fashion-stone);
 }
 
-/* Ant Design Global Overrides */
+/* Ant Design Warm Global Overrides */
 .ant-btn-primary {
   background-color: var(--fashion-black) !important;
   border-color: var(--fashion-black) !important;
-  border-radius: 0 !important;
+  border-radius: 2px !important;
+  color: #FAF8F5 !important;
   box-shadow: none !important;
 }
 
 .ant-btn-primary:hover {
-  background-color: #262626 !important;
-  border-color: #262626 !important;
+  background-color: var(--fashion-charcoal) !important;
+  border-color: var(--fashion-charcoal) !important;
+  color: #FAF8F5 !important;
 }
 
 .ant-tag {
-  border-radius: 0 !important;
+  border-radius: 2px !important;
+  background: var(--fashion-surface) !important;
+  border-color: var(--fashion-border) !important;
+  color: var(--fashion-body) !important;
 }
 
 .ant-input {
-  border-radius: 0 !important;
+  border-radius: 2px !important;
   border-color: var(--fashion-border) !important;
+  background-color: var(--fashion-surface-card) !important;
+  color: var(--fashion-black) !important;
 }
 
 .ant-input:focus, .ant-input-focused {
   border-color: var(--fashion-black) !important;
-  box-shadow: none !important;
+  box-shadow: 0 0 0 2px rgba(168, 110, 75, 0.15) !important;
 }
 
 .ant-select-selector {
-  border-radius: 0 !important;
+  border-radius: 2px !important;
   border-color: var(--fashion-border) !important;
+  background-color: var(--fashion-surface-card) !important;
 }
 
 .ant-pagination-item {
-  border-radius: 0 !important;
+  border-radius: 2px !important;
   border-color: var(--fashion-border) !important;
+  background: var(--fashion-surface-card) !important;
 }
 
 .ant-pagination-item-active {
@@ -258,12 +281,96 @@ h1, h2, h3, .font-editorial {
 }
 
 .ant-pagination-item-active a {
-  color: #FFFFFF !important;
+  color: #FAF8F5 !important;
 }
+
+/* Warm Minimalist Ant Design Components */
+.ant-drawer-content, .ant-drawer-header {
+  background-color: var(--fashion-canvas) !important;
+  color: var(--fashion-black) !important;
+}
+.ant-drawer-header {
+  border-bottom: 1px solid var(--fashion-border) !important;
+}
+.ant-drawer-title {
+  color: var(--fashion-black) !important;
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+}
+.ant-modal-content {
+  background-color: var(--fashion-surface-card) !important;
+  border: 1px solid var(--fashion-border) !important;
+  border-radius: 4px !important;
+  color: var(--fashion-black) !important;
+}
+.ant-modal-header {
+  background-color: var(--fashion-surface-card) !important;
+  border-bottom: 1px solid var(--fashion-border) !important;
+}
+.ant-modal-title {
+  color: var(--fashion-black) !important;
+}
+.ant-card {
+  background-color: var(--fashion-surface-card) !important;
+  border-color: var(--fashion-border) !important;
+  border-radius: 4px !important;
+}
+.ant-dropdown-menu {
+  background-color: var(--fashion-surface-card) !important;
+  border: 1px solid var(--fashion-border) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 12px 32px rgba(35, 31, 28, 0.1) !important;
+}
+.ant-dropdown-menu-item {
+  color: var(--fashion-black) !important;
+}
+.ant-dropdown-menu-item:hover {
+  background-color: var(--fashion-surface) !important;
+}
+.ant-dropdown-menu-item-divider {
+  background-color: var(--fashion-border) !important;
+}
+.ant-select-dropdown {
+  background-color: var(--fashion-surface-card) !important;
+  border: 1px solid var(--fashion-border) !important;
+  border-radius: 2px !important;
+  box-shadow: 0 10px 28px rgba(35, 31, 28, 0.1) !important;
+}
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background-color: var(--fashion-surface) !important;
+  color: var(--fashion-black) !important;
+  font-weight: 600 !important;
+}
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background-color: var(--fashion-surface-subtle) !important;
+}
+.ant-rate .ant-rate-star-full svg, .ant-rate .ant-rate-star-half svg {
+  fill: var(--fashion-accent) !important;
+}
+.ant-table {
+  background-color: var(--fashion-surface-card) !important;
+  color: var(--fashion-black) !important;
+}
+.ant-table-thead > tr > th {
+  background-color: var(--fashion-surface) !important;
+  color: var(--fashion-black) !important;
+  border-bottom: 1px solid var(--fashion-border) !important;
+  font-weight: 600 !important;
+}
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--fashion-border) !important;
+}
+.ant-table-tbody > tr:hover > td {
+  background-color: var(--fashion-surface) !important;
+}
+.ant-empty-description {
+  color: var(--fashion-muted) !important;
+}
+
 
 /* AI Assistant Chat Styles */
 .ai-markdown-content p {
   margin: 0 0 8px 0;
+  line-height: 1.6;
 }
 .ai-markdown-content p:last-child {
   margin-bottom: 0;
@@ -277,7 +384,7 @@ h1, h2, h3, .font-editorial {
 }
 .ai-markdown-content strong {
   font-weight: 700;
-  color: #0D0D0D;
+  color: var(--fashion-black);
 }
 
 @keyframes fadeInUp {
@@ -290,4 +397,3 @@ h1, h2, h3, .font-editorial {
     transform: translateY(0);
   }
 }
-

@@ -227,14 +227,15 @@ function ProductsContent() {
           <Col xs={24} md={6}>
             <div
               style={{
-                background: "#FFFFFF",
-                border: "1px solid #EAEAE8",
+                background: "var(--fashion-surface-card)",
+                border: "1px solid var(--fashion-border)",
+                borderRadius: "var(--fashion-radius-md)",
                 padding: "24px 20px",
                 position: "sticky",
                 top: 96,
               }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
-                <span style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: "#0D0D0D" }}>
+                <span style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fashion-black)" }}>
                   <FilterOutlined style={{ marginRight: 8 }} /> Bộ Lọc
                 </span>
                 {(selectedCategory || selectedBrand || selectedColor || selectedSize || priceRange[0] > 0 || priceRange[1] < 15000000) && (
@@ -242,7 +243,7 @@ function ProductsContent() {
                     type="link"
                     size="small"
                     onClick={handleResetFilters}
-                    style={{ color: "#0D0D0D", padding: 0, textDecoration: "underline", fontSize: 12 }}>
+                    style={{ color: "var(--fashion-accent)", padding: 0, textDecoration: "underline", fontSize: 12 }}>
                     Xóa tất cả
                   </Button>
                 )}
@@ -250,7 +251,7 @@ function ProductsContent() {
 
               {/* 1. Danh mục */}
               <div style={{ marginBottom: 24 }}>
-                <h4 style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 12px", color: "#0D0D0D", fontWeight: 600 }}>
+                <h4 style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 12px", color: "var(--fashion-black)", fontWeight: 600 }}>
                   Danh Mục
                 </h4>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 360, overflowY: "auto", paddingRight: 4 }}>
@@ -437,9 +438,9 @@ function ProductsContent() {
                 <Spin size="large" />
               </div>
             ) : products.length === 0 ? (
-              <div style={{ textAlign: "center", padding: "80px 0", background: "#FFFFFF", border: "1px solid #EAEAE8" }}>
+              <div style={{ textAlign: "center", padding: "80px 0", background: "var(--fashion-surface-card)", border: "1px solid var(--fashion-border)", borderRadius: "var(--fashion-radius-md)" }}>
                 <Empty description="Không tìm thấy sản phẩm nào phù hợp với bộ lọc" />
-                <Button onClick={handleResetFilters} style={{ marginTop: 16, borderRadius: 0 }}>
+                <Button onClick={handleResetFilters} style={{ marginTop: 16, borderRadius: 2 }}>
                   Xóa bộ lọc
                 </Button>
               </div>
@@ -454,9 +455,9 @@ function ProductsContent() {
 
                     return (
                       <Col xs={12} sm={12} md={8} lg={6} key={prod.product_id}>
-                        <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
+                        <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
                           <Link href={`/products/${prod.product_id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                            <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "#F9F9F8", position: "relative" }}>
+                            <div className="fashion-image-container" style={{ aspectRatio: "3/4", position: "relative" }}>
                               <img
                                 src={prod.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600"}
                                 alt={prod.name}
@@ -468,7 +469,7 @@ function ProductsContent() {
                                     position: "absolute",
                                     top: 10,
                                     right: 10,
-                                    background: "#DC2626",
+                                    background: "var(--fashion-accent)",
                                     color: "#FFFFFF",
                                     fontSize: 10,
                                     padding: "2px 7px",
@@ -483,7 +484,7 @@ function ProductsContent() {
 
                             <div style={{ padding: "14px 10px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                               <div>
-                                <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                                <div style={{ fontSize: 10, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
                                   {prod.brand_name || prod.category_name}
                                 </div>
                                 <h4
@@ -491,7 +492,7 @@ function ProductsContent() {
                                     margin: "4px 0 8px",
                                     fontSize: 13,
                                     fontWeight: 500,
-                                    color: "#0D0D0D",
+                                    color: "var(--fashion-black)",
                                     overflow: "hidden",
                                     display: "-webkit-box",
                                     WebkitLineClamp: 2,
@@ -506,20 +507,20 @@ function ProductsContent() {
                                 <div>
                                   {hasDiscount ? (
                                     <div>
-                                      <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626" }}>
+                                      <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fashion-accent)" }}>
                                         {formatPrice(minPrice)}
                                       </span>
-                                      <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through", marginTop: 2 }}>
+                                      <div style={{ fontSize: 11, color: "var(--fashion-muted)", textDecoration: "line-through", marginTop: 2 }}>
                                         {formatPrice(basePrice)}
                                       </div>
                                     </div>
                                   ) : (
-                                    <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D" }}>
+                                    <span style={{ fontSize: 14, fontWeight: 600, color: "var(--fashion-black)" }}>
                                       {formatPrice(basePrice)}
                                     </span>
                                   )}
                                 </div>
-                                <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
+                                <span style={{ fontSize: 11, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
                                   Mua ngay →
                                 </span>
                               </div>

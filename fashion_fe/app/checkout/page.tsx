@@ -211,31 +211,31 @@ function CheckoutContent() {
     return (
       <MainLayout>
         <div style={{ maxWidth: 680, margin: "64px auto", padding: "0 24px", textAlign: "center" }}>
-          <div style={{ background: "#FFFFFF", border: "1px solid #E4E4E7", padding: "48px 32px" }}>
-            <CheckCircleOutlined style={{ fontSize: 56, color: "#059669", marginBottom: 20 }} />
-            <h1 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 32, margin: "0 0 12px" }}>
+          <div style={{ background: "var(--fashion-surface-card)", border: "1px solid var(--fashion-border)", borderRadius: "var(--fashion-radius-sm)", padding: "48px 32px" }}>
+            <CheckCircleOutlined style={{ fontSize: 56, color: "#2E7D32", marginBottom: 20 }} />
+            <h1 style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 32, margin: "0 0 12px", color: "var(--fashion-black)" }}>
               Cảm Ơn Quý Khách Đã Đặt Hàng!
             </h1>
-            <p style={{ color: "#71717A", fontSize: 14, margin: "0 0 24px" }}>
-              Mã đơn hàng của bạn là: <b>{orderSuccess.order_code}</b>. Đơn hàng đang được bộ phận vận hành chuẩn bị và đóng gói cẩn thận.
+            <p style={{ color: "var(--fashion-muted)", fontSize: 14, margin: "0 0 24px" }}>
+              Mã đơn hàng của bạn là: <b style={{ color: "var(--fashion-black)" }}>{orderSuccess.order_code}</b>. Đơn hàng đang được bộ phận vận hành chuẩn bị và đóng gói cẩn thận.
             </p>
 
-            <div style={{ background: "#FAF9F6", border: "1px dashed #C5A880", padding: "16px 20px", marginBottom: 24, textAlign: "left" }}>
-              <div style={{ fontSize: 13, lineHeight: 1.8, color: "#3F3F46" }}>
+            <div style={{ background: "var(--fashion-surface)", border: "1px dashed var(--fashion-gold)", borderRadius: "var(--fashion-radius-sm)", padding: "16px 20px", marginBottom: 24, textAlign: "left" }}>
+              <div style={{ fontSize: 13, lineHeight: 1.8, color: "var(--fashion-body)" }}>
                 Hình thức thanh toán: <b>Thanh toán khi nhận hàng (COD)</b><br />
-                Số tiền cần thanh toán: <b style={{ color: "#DC2626" }}>{formatPrice(orderSuccess.total_amount)}</b><br />
+                Số tiền cần thanh toán: <b style={{ color: "var(--fashion-accent)" }}>{formatPrice(orderSuccess.total_amount)}</b><br />
                 Quý khách vui lòng kiểm tra hàng trước khi thanh toán cho shipper.
               </div>
             </div>
 
             <div style={{ display: "flex", gap: 16, justifyContent: "center" }}>
               <Link href="/orders">
-                <Button size="large" style={{ borderRadius: 0, padding: "0 24px" }}>
+                <Button size="large" style={{ borderRadius: "var(--fashion-radius-sm)", borderColor: "var(--fashion-border)", color: "var(--fashion-black)", padding: "0 24px" }}>
                   Xem Lịch Sử Đơn Hàng
                 </Button>
               </Link>
               <Link href="/products">
-                <Button type="primary" size="large" style={{ borderRadius: 0, background: "#18181B", padding: "0 24px" }}>
+                <Button type="primary" size="large" style={{ borderRadius: "var(--fashion-radius-sm)", background: "var(--fashion-black)", borderColor: "var(--fashion-black)", color: "#FAF8F5", padding: "0 24px" }}>
                   Tiếp Tục Mua Sắm
                 </Button>
               </Link>
@@ -249,7 +249,7 @@ function CheckoutContent() {
   return (
     <MainLayout>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 24px" }}>
-        <h1 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "0 0 32px", color: "#18181B" }}>
+        <h1 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "0 0 32px", color: "var(--fashion-black)" }}>
           Thông Tin Thanh Toán & Đặt Hàng
         </h1>
 
@@ -258,10 +258,10 @@ function CheckoutContent() {
             {/* CỘT TRÁI: ĐỊA CHỈ & PHƯƠNG THỨC */}
             <Col xs={24} md={14}>
               {/* SỔ ĐỊA CHỈ */}
-              <div style={{ background: "#FFFFFF", border: "1px solid #E4E4E7", padding: "24px", marginBottom: 24 }}>
+              <div style={{ background: "var(--fashion-surface-card)", border: "1px solid var(--fashion-border)", borderRadius: "var(--fashion-radius-sm)", padding: "24px", marginBottom: 24 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                    <EnvironmentOutlined style={{ color: "#C5A880" }} /> Sổ Địa Chỉ Giao Hàng
+                  <h3 style={{ fontSize: 16, fontWeight: 600, margin: 0, display: "flex", alignItems: "center", gap: 8, color: "var(--fashion-black)" }}>
+                    <EnvironmentOutlined style={{ color: "var(--fashion-accent)" }} /> Sổ Địa Chỉ Giao Hàng
                   </h3>
                   <Button
                     type="dashed"
@@ -270,14 +270,14 @@ function CheckoutContent() {
                       setIsAddAddressModalOpen(true);
                     }}
                     icon={<PlusOutlined />}
-                    style={{ fontSize: 12, borderRadius: 0, borderColor: "#18181B", color: "#18181B" }}>
+                    style={{ fontSize: 12, borderRadius: "var(--fashion-radius-sm)", borderColor: "var(--fashion-border)", color: "var(--fashion-black)" }}>
                     + Thêm Địa Chỉ Mới Vào Sổ
                   </Button>
                 </div>
 
                 {addresses.length > 0 ? (
                   <div style={{ marginBottom: 20 }}>
-                    <div style={{ fontSize: 13, color: "#71717A", marginBottom: 10 }}>Chọn địa chỉ nhận hàng từ sổ:</div>
+                    <div style={{ fontSize: 13, color: "var(--fashion-muted)", marginBottom: 10 }}>Chọn địa chỉ nhận hàng từ sổ:</div>
                     <Radio.Group
                       value={selectedAddressId}
                       onChange={(e) => handleAddressSelect(e.target.value)}
@@ -287,16 +287,17 @@ function CheckoutContent() {
                           key={a.address_id}
                           value={a.address_id}
                           style={{
-                            border: selectedAddressId === a.address_id ? "1px solid #18181B" : "1px solid #E4E4E7",
+                            border: selectedAddressId === a.address_id ? "1px solid var(--fashion-black)" : "1px solid var(--fashion-border)",
+                            borderRadius: "var(--fashion-radius-sm)",
                             padding: "12px 16px",
-                            background: selectedAddressId === a.address_id ? "#FAF9F6" : "#FFFFFF",
+                            background: selectedAddressId === a.address_id ? "var(--fashion-surface)" : "var(--fashion-surface-card)",
                             transition: "all 0.2s ease",
                           }}>
                           <div>
-                            <b style={{ color: "#18181B" }}>{a.receiver_name}</b> ({a.receiver_phone})
-                            {a.is_default && <Tag color="gold" style={{ marginLeft: 8, fontSize: 11, borderRadius: 0 }}>Mặc định</Tag>}
+                            <b style={{ color: "var(--fashion-black)" }}>{a.receiver_name}</b> ({a.receiver_phone})
+                            {a.is_default && <Tag color="gold" style={{ marginLeft: 8, fontSize: 11, borderRadius: "var(--fashion-radius-sm)" }}>Mặc định</Tag>}
                           </div>
-                          <div style={{ fontSize: 12.5, color: "#52525B", marginTop: 4 }}>
+                          <div style={{ fontSize: 12.5, color: "var(--fashion-body)", marginTop: 4 }}>
                             {a.street_detail}, {a.ward}, {a.district}, {a.province}
                           </div>
                         </Radio>
@@ -304,8 +305,8 @@ function CheckoutContent() {
                     </Radio.Group>
                   </div>
                 ) : (
-                  <div style={{ background: "#FAF9F6", border: "1px dashed #D4D4D8", padding: "20px", textAlign: "center", marginBottom: 20 }}>
-                    <p style={{ margin: "0 0 12px", color: "#71717A", fontSize: 13 }}>
+                  <div style={{ background: "var(--fashion-surface)", border: "1px dashed var(--fashion-border)", borderRadius: "var(--fashion-radius-sm)", padding: "20px", textAlign: "center", marginBottom: 20 }}>
+                    <p style={{ margin: "0 0 12px", color: "var(--fashion-muted)", fontSize: 13 }}>
                       Bạn chưa có địa chỉ giao hàng nào trong sổ địa chỉ. Hãy thêm địa chỉ để giao hàng nhanh chóng:
                     </p>
                     <Button
@@ -315,14 +316,14 @@ function CheckoutContent() {
                         setIsAddAddressModalOpen(true);
                       }}
                       icon={<PlusOutlined />}
-                      style={{ borderRadius: 0, background: "#18181B", borderColor: "#18181B" }}>
+                      style={{ borderRadius: "var(--fashion-radius-sm)", background: "var(--fashion-black)", borderColor: "var(--fashion-black)", color: "#FAF8F5" }}>
                       Thêm Địa Chỉ Giao Hàng Đầu Tiên
                     </Button>
                   </div>
                 )}
 
-                <div style={{ borderTop: "1px solid #F4F4F5", paddingTop: 16, marginTop: 12 }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: "#18181B", marginBottom: 12 }}>
+                <div style={{ borderTop: "1px solid var(--fashion-border)", paddingTop: 16, marginTop: 12 }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--fashion-black)", marginBottom: 12 }}>
                     Thông tin người nhận đơn hàng:
                   </div>
 
@@ -332,7 +333,7 @@ function CheckoutContent() {
                         label="Họ và tên người nhận"
                         name="receiver_name"
                         rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}>
-                        <Input size="large" style={{ borderRadius: 0 }} />
+                        <Input size="large" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
                       </Form.Item>
                     </Col>
                     <Col span={12}>
@@ -340,7 +341,7 @@ function CheckoutContent() {
                         label="Số điện thoại liên hệ"
                         name="receiver_phone"
                         rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
-                        <Input size="large" style={{ borderRadius: 0 }} />
+                        <Input size="large" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
                       </Form.Item>
                     </Col>
                   </Row>
@@ -349,19 +350,19 @@ function CheckoutContent() {
                     label="Địa chỉ giao hàng đầy đủ"
                     name="shipping_address"
                     rules={[{ required: true, message: "Vui lòng nhập địa chỉ nhận hàng" }]}>
-                    <Input.TextArea rows={2} placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..." style={{ borderRadius: 0 }} />
+                    <Input.TextArea rows={2} placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..." style={{ borderRadius: "var(--fashion-radius-sm)" }} />
                   </Form.Item>
 
                   <Form.Item label="Ghi chú đơn hàng (Tùy chọn)" name="note">
-                    <Input placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..." style={{ borderRadius: 0 }} />
+                    <Input placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi giao..." style={{ borderRadius: "var(--fashion-radius-sm)" }} />
                   </Form.Item>
                 </div>
               </div>
 
               {/* PHƯƠNG THỨC THANH TOÁN */}
-              <div style={{ background: "#FFFFFF", border: "1px solid #E4E4E7", padding: "24px" }}>
-                <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8 }}>
-                  <CreditCardOutlined style={{ color: "#C5A880" }} /> Phương Thức Thanh Toán
+              <div style={{ background: "var(--fashion-surface-card)", border: "1px solid var(--fashion-border)", borderRadius: "var(--fashion-radius-sm)", padding: "24px" }}>
+                <h3 style={{ fontSize: 16, fontWeight: 600, margin: "0 0 16px", display: "flex", alignItems: "center", gap: 8, color: "var(--fashion-black)" }}>
+                  <CreditCardOutlined style={{ color: "var(--fashion-accent)" }} /> Phương Thức Thanh Toán
                 </h3>
 
                 <Radio.Group
@@ -373,12 +374,13 @@ function CheckoutContent() {
                       key={pm.id}
                       value={pm.id}
                       style={{
-                        border: "1px solid #E4E4E7",
+                        border: paymentMethod === pm.id ? "1px solid var(--fashion-black)" : "1px solid var(--fashion-border)",
+                        borderRadius: "var(--fashion-radius-sm)",
                         padding: "12px 16px",
-                        background: paymentMethod === pm.id ? "#FAF9F6" : "#FFFFFF",
+                        background: paymentMethod === pm.id ? "var(--fashion-surface)" : "var(--fashion-surface-card)",
                       }}>
-                      <div style={{ fontWeight: 600, fontSize: 14 }}>{pm.name}</div>
-                      <div style={{ fontSize: 12, color: "#71717A", marginTop: 2 }}>{pm.desc}</div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--fashion-black)" }}>{pm.name}</div>
+                      <div style={{ fontSize: 12, color: "var(--fashion-muted)", marginTop: 2 }}>{pm.desc}</div>
                     </Radio>
                   ))}
                 </Radio.Group>
@@ -387,8 +389,8 @@ function CheckoutContent() {
 
             {/* CỘT PHẢI: TỔNG KẾT ĐƠN HÀNG */}
             <Col xs={24} md={10}>
-              <div style={{ background: "#FFFFFF", border: "1px solid #E4E4E7", padding: "28px", position: "sticky", top: 96 }}>
-                <h3 style={{ fontSize: 18, fontFamily: "serif", fontWeight: 600, margin: "0 0 20px" }}>
+              <div style={{ background: "var(--fashion-surface-card)", border: "1px solid var(--fashion-border)", borderRadius: "var(--fashion-radius-sm)", padding: "28px", position: "sticky", top: 96 }}>
+                <h3 style={{ fontSize: 18, fontFamily: "Cormorant Garamond, serif", fontWeight: 600, margin: "0 0 20px", color: "var(--fashion-black)" }}>
                   Mặt Hàng Thanh Toán
                 </h3>
 
@@ -397,34 +399,34 @@ function CheckoutContent() {
                   {checkoutItems.map((it) => (
                     <div key={it.cart_item_id || it.variant_id} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
                       <div>
-                        <div style={{ fontWeight: 500 }}>{it.product_name}</div>
-                        <div style={{ color: "#71717A", fontSize: 11 }}>
+                        <div style={{ fontWeight: 500, color: "var(--fashion-black)" }}>{it.product_name}</div>
+                        <div style={{ color: "var(--fashion-muted)", fontSize: 11 }}>
                           Màu: {it.color} | Size: {it.size} (x{it.quantity})
                         </div>
                       </div>
-                      <div style={{ fontWeight: 600 }}>{formatPrice(it.subtotal)}</div>
+                      <div style={{ fontWeight: 600, color: "var(--fashion-black)" }}>{formatPrice(it.subtotal)}</div>
                     </div>
                   ))}
                   {checkoutItems.length === 0 && (
-                    <div style={{ color: "#71717A", fontSize: 13, textAlign: "center", padding: "16px 0" }}>
+                    <div style={{ color: "var(--fashion-muted)", fontSize: 13, textAlign: "center", padding: "16px 0" }}>
                       Không có sản phẩm nào để thanh toán
                     </div>
                   )}
                 </div>
 
-                <div style={{ borderTop: "1px solid #F4F4F5", paddingTop: 16 }}>
+                <div style={{ borderTop: "1px solid var(--fashion-border)", paddingTop: 16 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, fontSize: 14 }}>
-                    <span style={{ color: "#71717A" }}>Tạm tính</span>
-                    <span>{formatPrice(totalAmount)}</span>
+                    <span style={{ color: "var(--fashion-muted)" }}>Tạm tính</span>
+                    <span style={{ color: "var(--fashion-black)" }}>{formatPrice(totalAmount)}</span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 14, fontSize: 14 }}>
-                    <span style={{ color: "#71717A" }}>Phí vận chuyển</span>
-                    <span>{isFreeShipping ? <b style={{ color: "#059669" }}>Miễn phí</b> : formatPrice(shippingFee)}</span>
+                    <span style={{ color: "var(--fashion-muted)" }}>Phí vận chuyển</span>
+                    <span>{isFreeShipping ? <b style={{ color: "#2E7D32" }}>Miễn phí</b> : formatPrice(shippingFee)}</span>
                   </div>
 
-                  <div style={{ borderTop: "1px solid #E4E4E7", paddingTop: 16, display: "flex", justifyContent: "space-between", marginBottom: 24 }}>
-                    <span style={{ fontSize: 16, fontWeight: 600 }}>Tổng thanh toán</span>
-                    <span style={{ fontSize: 22, fontWeight: 700, color: "#18181B" }}>
+                  <div style={{ borderTop: "1px solid var(--fashion-border)", paddingTop: 16, display: "flex", justifyContent: "space-between", marginBottom: 24 }}>
+                    <span style={{ fontSize: 16, fontWeight: 600, color: "var(--fashion-black)" }}>Tổng thanh toán</span>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: "var(--fashion-black)" }}>
                       {formatPrice(finalTotal)}
                     </span>
                   </div>
@@ -437,9 +439,10 @@ function CheckoutContent() {
                     size="large"
                     style={{
                       height: 52,
-                      background: "#18181B",
-                      borderColor: "#18181B",
-                      borderRadius: 0,
+                      background: "var(--fashion-black)",
+                      borderColor: "var(--fashion-black)",
+                      color: "#FAF8F5",
+                      borderRadius: "var(--fashion-radius-sm)",
                       fontWeight: 600,
                       fontSize: 14,
                       letterSpacing: "0.05em",
@@ -455,7 +458,7 @@ function CheckoutContent() {
 
       {/* Modal Thêm Địa Chỉ Mới Vào Sổ */}
       <Modal
-        title={<span style={{ fontFamily: "serif", fontSize: 20 }}>Thêm Địa Chỉ Mới Vào Sổ Địa Chỉ</span>}
+        title={<span style={{ fontFamily: "Cormorant Garamond, serif", fontSize: 20, color: "var(--fashion-black)" }}>Thêm Địa Chỉ Mới Vào Sổ Địa Chỉ</span>}
         open={isAddAddressModalOpen}
         onCancel={() => setIsAddAddressModalOpen(false)}
         onOk={handleCreateAddress}
@@ -470,7 +473,7 @@ function CheckoutContent() {
                 label="Họ tên người nhận"
                 name="receiver_name"
                 rules={[{ required: true, message: "Vui lòng nhập tên người nhận" }]}>
-                <Input placeholder="Nguyễn Văn A" style={{ borderRadius: 0 }} />
+                <Input placeholder="Nguyễn Văn A" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -478,7 +481,7 @@ function CheckoutContent() {
                 label="Số điện thoại"
                 name="receiver_phone"
                 rules={[{ required: true, message: "Vui lòng nhập số điện thoại" }]}>
-                <Input placeholder="0901234567" style={{ borderRadius: 0 }} />
+                <Input placeholder="0901234567" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
               </Form.Item>
             </Col>
           </Row>
@@ -489,7 +492,7 @@ function CheckoutContent() {
                 label="Tỉnh / Thành phố"
                 name="province"
                 rules={[{ required: true, message: "Vui lòng nhập Tỉnh/Thành phố" }]}>
-                <Input placeholder="TP. Hồ Chí Minh" style={{ borderRadius: 0 }} />
+                <Input placeholder="TP. Hồ Chí Minh" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
               </Form.Item>
             </Col>
             <Col span={12}>
@@ -497,7 +500,7 @@ function CheckoutContent() {
                 label="Quận / Huyện"
                 name="district"
                 rules={[{ required: true, message: "Vui lòng nhập Quận/Huyện" }]}>
-                <Input placeholder="Quận 1" style={{ borderRadius: 0 }} />
+                <Input placeholder="Quận 1" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
               </Form.Item>
             </Col>
           </Row>
@@ -506,14 +509,14 @@ function CheckoutContent() {
             label="Phường / Xã"
             name="ward"
             rules={[{ required: true, message: "Vui lòng nhập Phường/Xã" }]}>
-            <Input placeholder="Phường Bến Nghé" style={{ borderRadius: 0 }} />
+            <Input placeholder="Phường Bến Nghé" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
           </Form.Item>
 
           <Form.Item
             label="Địa chỉ chi tiết (Số nhà, tên đường, tòa nhà)"
             name="street_detail"
             rules={[{ required: true, message: "Vui lòng nhập số nhà, tên đường" }]}>
-            <Input placeholder="Số 123 Đường Lê Lợi..." style={{ borderRadius: 0 }} />
+            <Input placeholder="Số 123 Đường Lê Lợi..." style={{ borderRadius: "var(--fashion-radius-sm)" }} />
           </Form.Item>
 
           <Form.Item name="is_default" valuePropName="checked">

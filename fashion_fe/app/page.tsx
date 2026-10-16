@@ -156,10 +156,10 @@ export default function Home() {
       {/* 2. CATEGORY HIGHLIGHT GRID */}
       <section style={{ maxWidth: 1360, margin: "72px auto", padding: "0 24px" }}>
         <div style={{ textAlign: "center", marginBottom: 44 }}>
-          <span style={{ color: "#8F877F", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
+          <span style={{ color: "var(--fashion-muted)", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
             DANH MỤC NỔI BẬT
           </span>
-          <h2 style={{ fontSize: 34, fontFamily: "Cormorant Garamond, serif", margin: "10px 0 0", color: "#0D0D0D", letterSpacing: "0.02em" }}>
+          <h2 style={{ fontSize: 34, fontFamily: "Cormorant Garamond, serif", margin: "10px 0 0", color: "var(--fashion-black)", letterSpacing: "0.02em" }}>
             Dành Riêng Cho Phong Cách Của Bạn
           </h2>
         </div>
@@ -176,15 +176,15 @@ export default function Home() {
                   display: "flex",
                   alignItems: "flex-end",
                   padding: 28,
-                  backgroundImage: "linear-gradient(to top, rgba(13,13,13,0.75) 0%, rgba(13,13,13,0) 65%), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&auto=format&fit=crop')",
+                  backgroundImage: "linear-gradient(to top, rgba(35,31,28,0.82) 0%, rgba(35,31,28,0) 65%), url('https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&auto=format&fit=crop')",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}>
                 <div>
-                  <h3 style={{ color: "#FFFFFF", fontSize: 22, margin: 0, fontFamily: "Cormorant Garamond, serif", letterSpacing: "0.04em" }}>
+                  <h3 style={{ color: "#FAF8F5", fontSize: 22, margin: 0, fontFamily: "Cormorant Garamond, serif", letterSpacing: "0.04em" }}>
                     Thời Trang Nam
                   </h3>
-                  <span style={{ color: "#EAEAE8", fontSize: 12, display: "flex", alignItems: "center", gap: 6, marginTop: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <span style={{ color: "#E8E2D8", fontSize: 12, display: "flex", alignItems: "center", gap: 6, marginTop: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     Xem Bộ Sưu Tập <ArrowRightOutlined style={{ fontSize: 10 }} />
                   </span>
                 </div>
@@ -203,15 +203,15 @@ export default function Home() {
                   display: "flex",
                   alignItems: "flex-end",
                   padding: 28,
-                  backgroundImage: "linear-gradient(to top, rgba(13,13,13,0.75) 0%, rgba(13,13,13,0) 65%), url('https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop')",
+                  backgroundImage: "linear-gradient(to top, rgba(35,31,28,0.82) 0%, rgba(35,31,28,0) 65%), url('https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=600&auto=format&fit=crop')",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}>
                 <div>
-                  <h3 style={{ color: "#FFFFFF", fontSize: 22, margin: 0, fontFamily: "Cormorant Garamond, serif", letterSpacing: "0.04em" }}>
+                  <h3 style={{ color: "#FAF8F5", fontSize: 22, margin: 0, fontFamily: "Cormorant Garamond, serif", letterSpacing: "0.04em" }}>
                     Thời Trang Nữ
                   </h3>
-                  <span style={{ color: "#EAEAE8", fontSize: 12, display: "flex", alignItems: "center", gap: 6, marginTop: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <span style={{ color: "#E8E2D8", fontSize: 12, display: "flex", alignItems: "center", gap: 6, marginTop: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     Xem Bộ Sưu Tập <ArrowRightOutlined style={{ fontSize: 10 }} />
                   </span>
                 </div>
@@ -230,15 +230,15 @@ export default function Home() {
                   display: "flex",
                   alignItems: "flex-end",
                   padding: 28,
-                  backgroundImage: "linear-gradient(to top, rgba(13,13,13,0.75) 0%, rgba(13,13,13,0) 65%), url('https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop')",
+                  backgroundImage: "linear-gradient(to top, rgba(35,31,28,0.82) 0%, rgba(35,31,28,0) 65%), url('https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=600&auto=format&fit=crop')",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}>
                 <div>
-                  <h3 style={{ color: "#FFFFFF", fontSize: 22, margin: 0, fontFamily: "Cormorant Garamond, serif", letterSpacing: "0.04em" }}>
+                  <h3 style={{ color: "#FAF8F5", fontSize: 22, margin: 0, fontFamily: "Cormorant Garamond, serif", letterSpacing: "0.04em" }}>
                     Phụ Kiện & Túi Xách Da
                   </h3>
-                  <span style={{ color: "#EAEAE8", fontSize: 12, display: "flex", alignItems: "center", gap: 6, marginTop: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <span style={{ color: "#E8E2D8", fontSize: 12, display: "flex", alignItems: "center", gap: 6, marginTop: 8, letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     Xem Bộ Sưu Tập <ArrowRightOutlined style={{ fontSize: 10 }} />
                   </span>
                 </div>
@@ -252,14 +252,14 @@ export default function Home() {
       <section style={{ maxWidth: 1360, margin: "72px auto", padding: "0 24px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36 }}>
           <div>
-            <span style={{ color: "#8F877F", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
+            <span style={{ color: "var(--fashion-muted)", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
               MỚI CẬP NHẬT
             </span>
-            <h2 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "8px 0 0", color: "#0D0D0D", letterSpacing: "0.02em" }}>
+            <h2 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "8px 0 0", color: "var(--fashion-black)", letterSpacing: "0.02em" }}>
               Sản Phẩm Mới Về
             </h2>
           </div>
-          <Link href="/products?sort=newest" style={{ color: "#0D0D0D", fontWeight: 500, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+          <Link href="/products?sort=newest" style={{ color: "var(--fashion-black)", fontWeight: 500, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
             XEM TẤT CẢ <ArrowRightOutlined style={{ fontSize: 10 }} />
           </Link>
         </div>
@@ -276,9 +276,9 @@ export default function Home() {
 
               return (
                 <Col xs={12} sm={8} md={6} key={prod.product_id}>
-                  <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
+                  <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "var(--fashion-surface-card)" }}>
                     <Link href={`/products/${prod.product_id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                      <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "#F9F9F8", position: "relative" }}>
+                      <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "var(--fashion-surface)", position: "relative" }}>
                         <img
                           src={prod.thumbnail || "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600"}
                           alt={prod.name}
@@ -289,13 +289,14 @@ export default function Home() {
                             position: "absolute",
                             top: 10,
                             left: 10,
-                            background: "#0D0D0D",
-                            color: "#F9F9F8",
+                            background: "var(--fashion-black)",
+                            color: "#FAF8F5",
                             fontSize: 9,
                             padding: "3px 7px",
                             letterSpacing: "0.15em",
                             fontWeight: 500,
                             textTransform: "uppercase",
+                            borderRadius: "var(--fashion-radius-sm)",
                           }}>
                           MỚI
                         </span>
@@ -305,13 +306,13 @@ export default function Home() {
                               position: "absolute",
                               top: 10,
                               right: 10,
-                              background: "#DC2626",
+                              background: "var(--fashion-accent)",
                               color: "#FFFFFF",
                               fontSize: 10,
                               padding: "3px 8px",
                               letterSpacing: "0.08em",
                               fontWeight: 700,
-                              borderRadius: 2,
+                              borderRadius: "var(--fashion-radius-sm)",
                             }}>
                             -{discountPercent}%
                           </span>
@@ -320,7 +321,7 @@ export default function Home() {
 
                       <div style={{ padding: "16px 12px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                         <div>
-                          <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
+                          <div style={{ fontSize: 10, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
                             {prod.brand_name || prod.category_name}
                           </div>
                           <h4
@@ -328,7 +329,7 @@ export default function Home() {
                               margin: "6px 0",
                               fontSize: 13,
                               fontWeight: 500,
-                              color: "#0D0D0D",
+                              color: "var(--fashion-black)",
                               overflow: "hidden",
                               display: "-webkit-box",
                               WebkitLineClamp: 2,
@@ -343,20 +344,20 @@ export default function Home() {
                           <div>
                             {hasDiscount ? (
                               <div>
-                                <span style={{ fontSize: 14, fontWeight: 700, color: "#DC2626", letterSpacing: "0.02em" }}>
+                                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--fashion-accent)", letterSpacing: "0.02em" }}>
                                   {formatPrice(minPrice)}
                                 </span>
-                                <div style={{ fontSize: 11, color: "#A1A1AA", textDecoration: "line-through", marginTop: 2 }}>
+                                <div style={{ fontSize: 11, color: "var(--fashion-muted)", textDecoration: "line-through", marginTop: 2 }}>
                                   {formatPrice(basePrice)}
                                 </div>
                               </div>
                             ) : (
-                              <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D", letterSpacing: "0.02em" }}>
+                              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--fashion-black)", letterSpacing: "0.02em" }}>
                                 {formatPrice(basePrice)}
                               </span>
                             )}
                           </div>
-                          <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
+                          <span style={{ fontSize: 11, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>
                             Chi tiết →
                           </span>
                         </div>
@@ -373,15 +374,15 @@ export default function Home() {
       {/* 4. EDITORIAL EDIT / PROMO SECTION */}
       <section
         style={{
-          background: "#0D0D0D",
-          color: "#F9F9F8",
+          background: "var(--fashion-black)",
+          color: "#FAF8F5",
           padding: "96px 24px",
           margin: "72px 0",
         }}>
         <div style={{ maxWidth: 1360, margin: "0 auto" }}>
           <Row gutter={[48, 48]} align="middle">
             <Col xs={24} md={12}>
-              <div style={{ aspectRatio: "4/3", position: "relative", overflow: "hidden", border: "1px solid #1F1F1F" }}>
+              <div style={{ aspectRatio: "4/3", position: "relative", overflow: "hidden", border: "1px solid #38322E", borderRadius: "var(--fashion-radius-sm)" }}>
                 <img
                   src="https://images.unsplash.com/photo-1487222477894-8943e31ef7b2?w=800&auto=format&fit=crop"
                   alt="Editorial Lookbook"
@@ -390,12 +391,12 @@ export default function Home() {
               </div>
             </Col>
             <Col xs={24} md={12}>
-              <span style={{ color: "#8F877F", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
+              <span style={{ color: "var(--fashion-gold)", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
                 TRIẾT LÝ THIẾT KẾ
               </span>
               <h2
                 style={{
-                  color: "#FFFFFF",
+                  color: "#FAF8F5",
                   fontSize: "clamp(26px, 3.8vw, 40px)",
                   fontFamily: "Cormorant Garamond, serif",
                   margin: "14px 0 22px",
@@ -404,7 +405,7 @@ export default function Home() {
                 }}>
                 "Thời trang không chỉ là trang phục, mà là tuyên ngôn của phong thái và sự tĩnh lặng."
               </h2>
-              <p style={{ color: "#A0A0A0", fontSize: 14, lineHeight: 1.8, maxWidth: 540 }}>
+              <p style={{ color: "#C5BCB3", fontSize: 14, lineHeight: 1.8, maxWidth: 540 }}>
                 Mỗi thiết kế tại Vinh Store đều được chắt lọc từ những xưởng may đo lành nghề, tôn trọng vẻ đẹp nguyên bản và hướng tới thời trang bền vững vĩnh cửu.
               </p>
               <div style={{ marginTop: 36 }}>
@@ -413,9 +414,9 @@ export default function Home() {
                     size="large"
                     style={{
                       background: "transparent",
-                      borderColor: "rgba(255, 255, 255, 0.4)",
-                      color: "#FFFFFF",
-                      borderRadius: 0,
+                      borderColor: "rgba(232, 226, 216, 0.45)",
+                      color: "#FAF8F5",
+                      borderRadius: "var(--fashion-radius-sm)",
                       fontWeight: 500,
                       padding: "0 32px",
                       letterSpacing: "0.14em",
@@ -435,10 +436,10 @@ export default function Home() {
       {/* 5. BEST SELLERS / FEATURED PRODUCTS */}
       <section style={{ maxWidth: 1360, margin: "72px auto", padding: "0 24px" }}>
         <div style={{ textAlign: "center", marginBottom: 44 }}>
-          <span style={{ color: "#8F877F", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
+          <span style={{ color: "var(--fashion-muted)", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
             ĐƯỢC YÊU THÍCH NHẤT
           </span>
-          <h2 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "8px 0 0", color: "#0D0D0D", letterSpacing: "0.02em" }}>
+          <h2 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "8px 0 0", color: "var(--fashion-black)", letterSpacing: "0.02em" }}>
             Sản Phẩm Bán Chạy & Nổi Bật
           </h2>
         </div>
@@ -446,9 +447,9 @@ export default function Home() {
         <Row gutter={[24, 32]}>
           {(Array.isArray(featuredProducts) ? featuredProducts : []).filter(Boolean).slice(0, 8).map((prod) => (
             <Col xs={12} sm={8} md={6} key={prod.product_id}>
-              <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "#FFFFFF" }}>
+              <div className="fashion-card" style={{ height: "100%", display: "flex", flexDirection: "column", background: "var(--fashion-surface-card)" }}>
                 <Link href={`/products/${prod.product_id}`} style={{ textDecoration: "none", color: "inherit" }}>
-                  <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "#F9F9F8" }}>
+                  <div className="fashion-image-container" style={{ aspectRatio: "3/4", background: "var(--fashion-surface)" }}>
                     <img
                       src={prod.thumbnail || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600"}
                       alt={prod.name}
@@ -459,11 +460,11 @@ export default function Home() {
                   <div style={{ padding: "16px 12px", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                     <div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
+                        <span style={{ fontSize: 10, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
                           {prod.brand_name || prod.category_name}
                         </span>
                         {prod.rating && (
-                          <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "#0D0D0D" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 11, color: "var(--fashion-gold)" }}>
                             ★ {prod.rating}
                           </div>
                         )}
@@ -473,7 +474,7 @@ export default function Home() {
                           margin: "6px 0",
                           fontSize: 13,
                           fontWeight: 500,
-                          color: "#0D0D0D",
+                          color: "var(--fashion-black)",
                           overflow: "hidden",
                           display: "-webkit-box",
                           WebkitLineClamp: 2,
@@ -485,10 +486,10 @@ export default function Home() {
                     </div>
 
                     <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: "#0D0D0D", letterSpacing: "0.02em" }}>
+                      <span style={{ fontSize: 14, fontWeight: 600, color: "var(--fashion-black)", letterSpacing: "0.02em" }}>
                         {formatPrice(prod.base_price)}
                       </span>
-                      <span style={{ fontSize: 11, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      <span style={{ fontSize: 11, color: "var(--fashion-accent)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                         Xem ngay →
                       </span>
                     </div>
@@ -505,14 +506,14 @@ export default function Home() {
         <section style={{ maxWidth: 1360, margin: "72px auto", padding: "0 24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 36 }}>
             <div>
-              <span style={{ color: "#8F877F", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
+              <span style={{ color: "var(--fashion-muted)", fontSize: 11, letterSpacing: "0.22em", textTransform: "uppercase", fontWeight: 500 }}>
                 XU HƯỚNG & PHONG CÁCH
               </span>
-              <h2 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "8px 0 0", color: "#0D0D0D", letterSpacing: "0.02em" }}>
+              <h2 style={{ fontSize: 32, fontFamily: "Cormorant Garamond, serif", margin: "8px 0 0", color: "var(--fashion-black)", letterSpacing: "0.02em" }}>
                 Tạp Chí Thời Trang
               </h2>
             </div>
-            <Link href="/news" style={{ color: "#0D0D0D", fontWeight: 500, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
+            <Link href="/news" style={{ color: "var(--fashion-black)", fontWeight: 500, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase" }}>
               TẤT CẢ BÀI VIẾT <ArrowRightOutlined style={{ fontSize: 10 }} />
             </Link>
           </div>
@@ -521,7 +522,7 @@ export default function Home() {
             {(Array.isArray(recentBlogs) ? recentBlogs : []).filter(Boolean).map((b) => (
               <Col xs={24} md={8} key={b.post_id}>
                 <Link href={`/news/${b.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
-                  <div className="fashion-card" style={{ height: "100%", overflow: "hidden", background: "#FFFFFF" }}>
+                  <div className="fashion-card" style={{ height: "100%", overflow: "hidden", background: "var(--fashion-surface-card)" }}>
                     <div style={{ aspectRatio: "16/10", overflow: "hidden" }}>
                       <img
                         src={b.thumbnail || "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600"}
@@ -530,7 +531,7 @@ export default function Home() {
                       />
                     </div>
                     <div style={{ padding: 22 }}>
-                      <div style={{ fontSize: 10, color: "#8F877F", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
+                      <div style={{ fontSize: 10, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.12em", fontWeight: 500 }}>
                         BỞI {b.author_name || "VINH STORE"}
                       </div>
                       <h3
@@ -538,14 +539,14 @@ export default function Home() {
                           fontSize: 18,
                           fontFamily: "Cormorant Garamond, serif",
                           margin: "8px 0",
-                          color: "#0D0D0D",
+                          color: "var(--fashion-black)",
                           letterSpacing: "0.02em",
                         }}>
                         {b.title}
                       </h3>
                       <p
                         style={{
-                          color: "#6B6B6B",
+                          color: "var(--fashion-body)",
                           fontSize: 13,
                           lineHeight: 1.6,
                           overflow: "hidden",
@@ -565,43 +566,43 @@ export default function Home() {
       )}
 
       {/* 7. TRUST & COMMITMENT BADGES */}
-      <section style={{ borderTop: "1px solid #EAEAE8", background: "#FAFAF9", padding: "56px 24px" }}>
+      <section style={{ borderTop: "1px solid var(--fashion-border)", background: "var(--fashion-surface)", padding: "56px 24px" }}>
         <div style={{ maxWidth: 1360, margin: "0 auto" }}>
           <Row gutter={[32, 32]}>
             <Col xs={12} md={6}>
               <div style={{ textAlign: "center" }}>
-                <ThunderboltOutlined style={{ fontSize: 24, color: "#0D0D0D", marginBottom: 14 }} />
-                <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#0D0D0D" }}>
+                <ThunderboltOutlined style={{ fontSize: 24, color: "var(--fashion-accent)", marginBottom: 14 }} />
+                <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--fashion-black)" }}>
                   Giao Hàng Hỏa Tốc
                 </h4>
-                <p style={{ margin: 0, fontSize: 12, color: "#8F877F" }}>Đóng gói sang trọng, nhận hàng trong 24h</p>
+                <p style={{ margin: 0, fontSize: 12, color: "var(--fashion-muted)" }}>Đóng gói sang trọng, nhận hàng trong 24h</p>
               </div>
             </Col>
             <Col xs={12} md={6}>
               <div style={{ textAlign: "center" }}>
-                <SyncOutlined style={{ fontSize: 24, color: "#0D0D0D", marginBottom: 14 }} />
-                <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#0D0D0D" }}>
+                <SyncOutlined style={{ fontSize: 24, color: "var(--fashion-accent)", marginBottom: 14 }} />
+                <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--fashion-black)" }}>
                   Đổi Trả Trong 30 Ngày
                 </h4>
-                <p style={{ margin: 0, fontSize: 12, color: "#8F877F" }}>Đổi size hoặc mẫu mới hoàn toàn miễn phí</p>
+                <p style={{ margin: 0, fontSize: 12, color: "var(--fashion-muted)" }}>Đổi size hoặc mẫu mới hoàn toàn miễn phí</p>
               </div>
             </Col>
             <Col xs={12} md={6}>
               <div style={{ textAlign: "center" }}>
-                <SafetyCertificateOutlined style={{ fontSize: 24, color: "#0D0D0D", marginBottom: 14 }} />
-                <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#0D0D0D" }}>
+                <SafetyCertificateOutlined style={{ fontSize: 24, color: "var(--fashion-accent)", marginBottom: 14 }} />
+                <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--fashion-black)" }}>
                   Chất Liệu Thượng Hạng
                 </h4>
-                <p style={{ margin: 0, fontSize: 12, color: "#8F877F" }}>100% Cashmere, Lụa Ý & Da bê tự nhiên</p>
+                <p style={{ margin: 0, fontSize: 12, color: "var(--fashion-muted)" }}>100% Cashmere, Lụa Ý & Da bê tự nhiên</p>
               </div>
             </Col>
             <Col xs={12} md={6}>
               <div style={{ textAlign: "center" }}>
-                <CustomerServiceOutlined style={{ fontSize: 24, color: "#0D0D0D", marginBottom: 14 }} />
-                <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "#0D0D0D" }}>
+                <CustomerServiceOutlined style={{ fontSize: 24, color: "var(--fashion-accent)", marginBottom: 14 }} />
+                <h4 style={{ margin: "0 0 6px", fontSize: 13, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--fashion-black)" }}>
                   Stylist Tư Vấn Riêng
                 </h4>
-                <p style={{ margin: 0, fontSize: 12, color: "#8F877F" }}>Hỗ trợ phối đồ và may đo theo số đo</p>
+                <p style={{ margin: 0, fontSize: 12, color: "var(--fashion-muted)" }}>Hỗ trợ phối đồ và may đo theo số đo</p>
               </div>
             </Col>
           </Row>
