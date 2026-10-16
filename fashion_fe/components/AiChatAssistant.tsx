@@ -8,10 +8,10 @@ import {
   CloseOutlined,
   SendOutlined,
   DeleteOutlined,
-  SparklesOutlined,
   ArrowRightOutlined,
   ShopOutlined,
 } from "@ant-design/icons";
+
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { aiAPI } from "@/lib/api";
@@ -45,7 +45,20 @@ const DEFAULT_QUICK_CHIPS = [
   "Các sản phẩm dưới 3 triệu",
 ];
 
+const SparkleIcon = ({ style }: { style?: React.CSSProperties }) => (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    style={{ display: "inline-block", ...style }}>
+    <path d="M12 2L14.4 7.6L20 10L14.4 12.4L12 18L9.6 12.4L4 10L9.6 7.6L12 2Z" />
+    <path d="M19 15L20.2 17.8L23 19L20.2 20.2L19 23L17.8 20.2L15 19L17.8 17.8L19 15Z" opacity="0.85" />
+  </svg>
+);
+
 export default function AiChatAssistant() {
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [inputMessage, setInputMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -53,6 +66,11 @@ export default function AiChatAssistant() {
   const [showNotificationBadge, setShowNotificationBadge] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
 
   // Khởi tạo tin nhắn chào mừng ban đầu
   useEffect(() => {
@@ -156,6 +174,10 @@ export default function AiChatAssistant() {
     const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
     return `${baseUrl}${url.startsWith("/") ? "" : "/"}${url}`;
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <>
@@ -300,7 +322,7 @@ export default function AiChatAssistant() {
                   justifyContent: "center",
                   position: "relative",
                 }}>
-                <SparklesOutlined style={{ color: "#FDE047", fontSize: 18 }} />
+                <SparkleIcon style={{ color: "#FDE047", fontSize: 18 }} />
                 <span
                   style={{
                     position: "absolute",
