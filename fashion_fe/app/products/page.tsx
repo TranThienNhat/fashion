@@ -21,7 +21,7 @@ import {
 } from "@ant-design/icons";
 import MainLayout from "@/components/MainLayout";
 import { catalogAPI } from "@/lib/api";
-import { formatPrice, POPULAR_COLORS, POPULAR_SIZES } from "@/lib/constants";
+import { formatPrice } from "@/lib/constants";
 import type { Product, Category, Brand } from "@/lib/types";
 
 function ProductsContent() {
@@ -41,8 +41,6 @@ function ProductsContent() {
     Number(searchParams.get("min_price")) || 0,
     Number(searchParams.get("max_price")) || 15000000,
   ]);
-  const [selectedColor, setSelectedColor] = useState<string>(searchParams.get("color") || "");
-  const [selectedSize, setSelectedSize] = useState<string>(searchParams.get("size") || "");
   const [sortOption, setSortOption] = useState<string>(searchParams.get("sort") || "newest");
   const [currentPage, setCurrentPage] = useState<number>(Number(searchParams.get("page")) || 1);
   const searchKeyword = searchParams.get("search") || "";
@@ -53,16 +51,12 @@ function ProductsContent() {
     const brand = searchParams.get("brand_id") || "";
     const minP = Number(searchParams.get("min_price")) || 0;
     const maxP = Number(searchParams.get("max_price")) || 15000000;
-    const col = searchParams.get("color") || "";
-    const sz = searchParams.get("size") || "";
     const srt = searchParams.get("sort") || "newest";
     const pg = Number(searchParams.get("page")) || 1;
 
     setSelectedCategory(cat);
     setSelectedBrand(brand);
     setPriceRange((prev) => (prev[0] === minP && prev[1] === maxP ? prev : [minP, maxP]));
-    setSelectedColor(col);
-    setSelectedSize(sz);
     setSortOption(srt);
     setCurrentPage(pg);
   }, [searchParams]);
@@ -129,8 +123,6 @@ function ProductsContent() {
         brand_id: selectedBrand || undefined,
         min_price: priceRange[0] > 0 ? priceRange[0] : undefined,
         max_price: priceRange[1] < 15000000 ? priceRange[1] : undefined,
-        color: selectedColor || undefined,
-        size: selectedSize || undefined,
         search: searchKeyword || undefined,
         sort: sortOption,
         page: currentPage - 1,
@@ -146,7 +138,7 @@ function ProductsContent() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, selectedBrand, priceRange, selectedColor, selectedSize, sortOption, currentPage, searchKeyword]);
+  }, [selectedCategory, selectedBrand, priceRange, sortOption, currentPage, searchKeyword]);
 
   useEffect(() => {
     fetchProducts();
@@ -191,22 +183,22 @@ function ProductsContent() {
       <div style={{ maxWidth: 1360, margin: "0 auto", padding: "40px 24px" }}>
         {/* Breadcrumb / Title Bar */}
         <div style={{ marginBottom: 32 }}>
-          <div style={{ fontSize: 12, color: "#71717A", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-            <Link href="/" style={{ color: "#71717A", textDecoration: "none" }}>Trang Chủ</Link> / {getBreadcrumb()}
+          <div style={{ fontSize: 12, color: "var(--fashion-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <Link href="/" style={{ color: "var(--fashion-muted)", textDecoration: "none" }}>Trang Chủ</Link> / {getBreadcrumb()}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginTop: 8, flexWrap: "wrap", gap: 16 }}>
             <div>
-              <h1 style={{ fontSize: 36, fontFamily: "Cormorant Garamond, serif", margin: 0, color: "#18181B" }}>
+              <h1 style={{ fontSize: 36, fontFamily: "Cormorant Garamond, serif", margin: 0, color: "var(--fashion-black)" }}>
                 {getPageTitle()}
               </h1>
-              <span style={{ fontSize: 13, color: "#71717A" }}>
+              <span style={{ fontSize: 13, color: "var(--fashion-muted)" }}>
                 Hiển thị {products.length} trên tổng số {total} sản phẩm
               </span>
             </div>
 
             {/* Sắp xếp */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: 13, color: "#71717A" }}>Sắp xếp theo:</span>
+              <span style={{ fontSize: 13, color: "var(--fashion-muted)" }}>Sắp xếp theo:</span>
               <Select
                 value={sortOption}
                 onChange={(val) => updateUrlFilter({ sort: val, page: 1 })}
@@ -238,7 +230,7 @@ function ProductsContent() {
                 <span style={{ fontWeight: 600, fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--fashion-black)" }}>
                   <FilterOutlined style={{ marginRight: 8 }} /> Bộ Lọc
                 </span>
-                {(selectedCategory || selectedBrand || selectedColor || selectedSize || priceRange[0] > 0 || priceRange[1] < 15000000) && (
+                {(selectedCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 15000000) && (
                   <Button
                     type="link"
                     size="small"
@@ -261,8 +253,8 @@ function ProductsContent() {
                       cursor: "pointer",
                       fontSize: 13,
                       fontWeight: selectedCategory === "" ? 600 : 400,
-                      color: selectedCategory === "" ? "#0D0D0D" : "#71717A",
-                      borderLeft: selectedCategory === "" ? "2px solid #0D0D0D" : "2px solid transparent",
+                      color: selectedCategory === "" ? "var(--fashion-black)" : "var(--fashion-muted)",
+                      borderLeft: selectedCategory === "" ? "2px solid var(--fashion-black)" : "2px solid transparent",
                       paddingLeft: 8,
                       paddingTop: 3,
                       paddingBottom: 3,
@@ -284,8 +276,8 @@ function ProductsContent() {
                             cursor: "pointer",
                             fontSize: 13,
                             fontWeight: isParentSelected ? 600 : 500,
-                            color: isParentSelected ? "#0D0D0D" : "#18181B",
-                            borderLeft: isParentSelected ? "2px solid #0D0D0D" : "2px solid transparent",
+                            color: isParentSelected ? "var(--fashion-black)" : "var(--fashion-charcoal)",
+                            borderLeft: isParentSelected ? "2px solid var(--fashion-black)" : "2px solid transparent",
                             paddingLeft: 8,
                             paddingTop: 3,
                             paddingBottom: 3,
@@ -307,8 +299,8 @@ function ProductsContent() {
                                     cursor: "pointer",
                                     fontSize: 12.5,
                                     fontWeight: isChildSelected ? 600 : 400,
-                                    color: isChildSelected ? "#0D0D0D" : "#71717A",
-                                    borderLeft: isChildSelected ? "2px solid #0D0D0D" : "2px solid transparent",
+                                    color: isChildSelected ? "var(--fashion-black)" : "var(--fashion-muted)",
+                                    borderLeft: isChildSelected ? "2px solid var(--fashion-black)" : "2px solid transparent",
                                     paddingLeft: 8,
                                     paddingTop: 2,
                                     paddingBottom: 2,
@@ -327,8 +319,8 @@ function ProductsContent() {
               </div>
 
               {/* 2. Thương hiệu */}
-              <div style={{ marginBottom: 24, borderTop: "1px solid #F4F4F5", paddingTop: 16 }}>
-                <h4 style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 12px", color: "#18181B" }}>
+              <div style={{ marginBottom: 24, borderTop: "1px solid var(--fashion-border)", paddingTop: 16 }}>
+                <h4 style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 12px", color: "var(--fashion-black)" }}>
                   Thương Hiệu
                 </h4>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
@@ -337,7 +329,7 @@ function ProductsContent() {
                       key={b.brand_id}
                       checked={selectedBrand === String(b.brand_id)}
                       onChange={(checked) => updateUrlFilter({ brand_id: checked ? String(b.brand_id) : undefined, page: 1 })}
-                      style={{ borderRadius: 0, padding: "4px 10px" }}>
+                      style={{ borderRadius: "var(--fashion-radius-sm)", padding: "4px 10px" }}>
                       {b.name}
                     </Tag.CheckableTag>
                   ))}
@@ -345,8 +337,8 @@ function ProductsContent() {
               </div>
 
               {/* 3. Khoảng giá */}
-              <div style={{ marginBottom: 24, borderTop: "1px solid #F4F4F5", paddingTop: 16 }}>
-                <h4 style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 12px", color: "#18181B" }}>
+              <div style={{ borderTop: "1px solid var(--fashion-border)", paddingTop: 16 }}>
+                <h4 style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 12px", color: "var(--fashion-black)" }}>
                   Khoảng Giá
                 </h4>
                 <Slider
@@ -365,67 +357,9 @@ function ProductsContent() {
                     });
                   }}
                 />
-                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#71717A" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--fashion-muted)" }}>
                   <span>{formatPrice(priceRange[0])}</span>
                   <span>{formatPrice(priceRange[1])}</span>
-                </div>
-              </div>
-
-              {/* 4. Màu sắc */}
-              <div style={{ marginBottom: 24, borderTop: "1px solid #F4F4F5", paddingTop: 16 }}>
-                <h4 style={{ fontSize: 13, textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 12px", color: "#18181B" }}>
-                  Màu Sắc
-                </h4>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {POPULAR_COLORS.map((col) => (
-                    <div
-                      key={col.name}
-                      onClick={() =>
-                        updateUrlFilter({
-                          color: selectedColor === col.name ? undefined : col.name,
-                          page: 1,
-                        })
-                      }
-                      title={col.name}
-                      style={{
-                        width: 22,
-                        height: 22,
-                        borderRadius: "50%",
-                        background: col.hex,
-                        border: col.hex === "#FFFFFF" ? "1px solid #D4D4D8" : "none",
-                        cursor: "pointer",
-                        outline: selectedColor === col.name ? "2px solid #0D0D0D" : "none",
-                        outlineOffset: 2,
-                      }}
-                    />
-                  ))}
-                </div>
-                {selectedColor && (
-                  <div style={{ fontSize: 12, color: "#0D0D0D", marginTop: 8 }}>
-                    Đã chọn: <b>{selectedColor}</b>
-                  </div>
-                )}
-              </div>
-
-              {/* 5. Kích thước (Size) */}
-              <div style={{ borderTop: "1px solid #F4F4F5", paddingTop: 16 }}>
-                <h4 style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.1em", margin: "0 0 12px", color: "#0D0D0D", fontWeight: 600 }}>
-                  Kích Thước (Size)
-                </h4>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  {POPULAR_SIZES.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() =>
-                        updateUrlFilter({
-                          size: selectedSize === s ? undefined : s,
-                          page: 1,
-                        })
-                      }
-                      className={`size-chip ${selectedSize === s ? "active" : ""}`}>
-                      {s}
-                    </button>
-                  ))}
                 </div>
               </div>
             </div>
