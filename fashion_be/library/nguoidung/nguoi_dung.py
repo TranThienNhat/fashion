@@ -174,7 +174,7 @@ def get_addresses():
     cursor = get_cursor()
     builder = (NativeSqlBuilder.create()
                .select("address_id", "user_id", "receiver_name", "receiver_phone",
-                       "province", "district", "ward", "street_detail", "is_default")
+                       "province", "ward", "street_detail", "is_default")
                .from_table("user_addresses", "ua")
                .where("user_id", user_id, "=", "ua")
                .order_by_col("is_default", "DESC", "ua")
@@ -191,7 +191,6 @@ def add_address():
     receiver_name = data.get('receiver_name', '').strip()
     receiver_phone = data.get('receiver_phone', '').strip()
     province = data.get('province', '').strip()
-    district = data.get('district', '').strip()
     ward = data.get('ward', '').strip()
     street_detail = data.get('street_detail', '').strip()
     is_default = bool(data.get('is_default', False))
@@ -218,7 +217,6 @@ def add_address():
                     "receiver_name": receiver_name,
                     "receiver_phone": receiver_phone,
                     "province": province,
-                    "district": district,
                     "ward": ward,
                     "street_detail": street_detail,
                     "is_default": is_default
@@ -250,7 +248,7 @@ def update_address(address_id):
          .execute_update(cursor))
 
     set_dict = {}
-    for col in ["receiver_name", "receiver_phone", "province", "district", "ward", "street_detail"]:
+    for col in ["receiver_name", "receiver_phone", "province", "ward", "street_detail"]:
         if col in data and data[col] is not None:
             set_dict[col] = data[col]
     if is_default is not None:

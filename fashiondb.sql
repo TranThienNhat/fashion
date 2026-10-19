@@ -21,7 +21,6 @@ CREATE TABLE `user_addresses` (
     `receiver_name` VARCHAR(100) NOT NULL,
     `receiver_phone` VARCHAR(20) NOT NULL,
     `province` VARCHAR(100) NOT NULL,
-    `district` VARCHAR(100) NOT NULL,
     `ward` VARCHAR(100) NOT NULL,
     `street_detail` VARCHAR(255) NOT NULL,
     `is_default` BOOLEAN NOT NULL DEFAULT FALSE,
@@ -207,6 +206,7 @@ CREATE TABLE `product_reviews` (
     `order_id` BIGINT DEFAULT NULL,
     `rating` TINYINT NOT NULL CHECK (`rating` BETWEEN 1 AND 5),
     `comment` TEXT DEFAULT NULL,
+    `edit_count` INT NOT NULL DEFAULT 0,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT `fk_review_product` FOREIGN KEY (`product_id`) 
         REFERENCES `products`(`product_id`) ON DELETE CASCADE,

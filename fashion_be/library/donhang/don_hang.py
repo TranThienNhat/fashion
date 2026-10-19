@@ -201,19 +201,25 @@ def get_my_orders():
     orders = builder.fetch(cursor)
     for ord_obj in orders:
         oid = ord_obj["order_id"]
-        cursor.execute("""
-            SELECT review_id, rating, comment, COALESCE(edit_count, 0) AS edit_count
-            FROM product_reviews
-            WHERE order_id = %s AND user_id = %s
-            ORDER BY review_id DESC LIMIT 1
-        """, (oid, user_id))
-        rv = cursor.fetchone()
-        if rv:
-            ord_obj["has_review"] = True
-            ord_obj["review_edit_count"] = rv["edit_count"]
-            ord_obj["review_rating"] = rv["rating"]
-            ord_obj["review_comment"] = rv["comment"]
-        else:
+        try:
+            cursor.execute("""
+                SELECT review_id, rating, comment, edit_count
+                FROM product_reviews
+                WHERE order_id = %s AND user_id = %s
+                ORDER BY review_id DESC LIMIT 1
+            """, (oid, user_id))
+            rv = cursor.fetchone()
+            if rv:
+                ord_obj["has_review"] = True
+                ord_obj["review_edit_count"] = rv.get("edit_count", 0)
+                ord_obj["review_rating"] = rv.get("rating")
+                ord_obj["review_comment"] = rv.get("comment", "")
+            else:
+                ord_obj["has_review"] = False
+                ord_obj["review_edit_count"] = 0
+                ord_obj["review_rating"] = None
+                ord_obj["review_comment"] = ""
+        except Exception:
             ord_obj["has_review"] = False
             ord_obj["review_edit_count"] = 0
             ord_obj["review_rating"] = None
@@ -230,8 +236,9 @@ def get_order_detail(order_id):
     cursor = get_cursor()
 
     order_builder = (NativeSqlBuilder.create()
-                     .select("o.*")
+                     .select("o.*", "u.email AS user_email", "u.full_name AS customer_name")
                      .from_table("orders", "o")
+                     .left_join("users", "u", "o.user_id = u.user_id")
                      .where("order_id", order_id, "=", "o"))
     if role not in ["ADMIN", "STAFF"]:
         order_builder.where("user_id", user_id, "=", "o")
@@ -249,19 +256,26 @@ def get_order_detail(order_id):
                     .where("order_id", order_id, "=", "oi"))
     order["items"] = item_builder.fetch(cursor)
 
-    cursor.execute("""
-        SELECT review_id, rating, comment, COALESCE(edit_count, 0) AS edit_count
-        FROM product_reviews
-        WHERE order_id = %s AND user_id = %s
-        ORDER BY review_id DESC LIMIT 1
-    """, (order_id, user_id))
-    rv = cursor.fetchone()
-    if rv:
-        order["has_review"] = True
-        order["review_edit_count"] = rv["edit_count"]
-        order["review_rating"] = rv["rating"]
-        order["review_comment"] = rv["comment"]
-    else:
+    target_user_id = order.get("user_id") if role in ["ADMIN", "STAFF"] else user_id
+    try:
+        cursor.execute("""
+            SELECT review_id, rating, comment, edit_count
+            FROM product_reviews
+            WHERE order_id = %s AND user_id = %s
+            ORDER BY review_id DESC LIMIT 1
+        """, (order_id, target_user_id))
+        rv = cursor.fetchone()
+        if rv:
+            order["has_review"] = True
+            order["review_edit_count"] = rv.get("edit_count", 0)
+            order["review_rating"] = rv.get("rating")
+            order["review_comment"] = rv.get("comment", "")
+        else:
+            order["has_review"] = False
+            order["review_edit_count"] = 0
+            order["review_rating"] = None
+            order["review_comment"] = ""
+    except Exception:
         order["has_review"] = False
         order["review_edit_count"] = 0
         order["review_rating"] = None

@@ -93,7 +93,8 @@ export default function OrdersPage() {
   const handleOpenDetail = async (orderId: number) => {
     try {
       const res = await orderAPI.getOrderDetail(orderId);
-      setSelectedDetailOrder(res.data);
+      const data = res.data?.data || res.data;
+      setSelectedDetailOrder(data);
       setIsDetailOpen(true);
     } catch (err: any) {
       message.error(getApiError(err, "Không thể tải thông tin chi tiết đơn hàng."));
@@ -153,7 +154,8 @@ export default function OrdersPage() {
       // Nếu đang mở chi tiết của chính đơn đó, cập nhật lại dữ liệu chi tiết
       if (selectedDetailOrder && selectedDetailOrder.order_id === addressEditOrder.order_id) {
         const detailRes = await orderAPI.getOrderDetail(addressEditOrder.order_id);
-        setSelectedDetailOrder(detailRes.data);
+        const data = detailRes.data?.data || detailRes.data;
+        setSelectedDetailOrder(data);
       }
     } catch (err: any) {
       if (err?.errorFields) return;
@@ -166,7 +168,7 @@ export default function OrdersPage() {
   const handleOpenReview = async (order: Order) => {
     try {
       const res = await orderAPI.getOrderDetail(order.order_id);
-      const fullOrder = res.data;
+      const fullOrder = res.data?.data || res.data;
       setReviewOrder(fullOrder);
       if (fullOrder.items && fullOrder.items.length > 0) {
         setSelectedProductId(fullOrder.items[0].product_id || fullOrder.items[0].variant_id);
@@ -575,7 +577,7 @@ export default function OrdersPage() {
                 rules={[{ required: true, message: "Vui lòng nhập địa chỉ nhận hàng" }]}>
                 <Input.TextArea
                   rows={3}
-                  placeholder="Số 123 Đường Lê Lợi, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh"
+                  placeholder="Số 123 Đường Lê Lợi, Phường Bến Nghé, TP. Hồ Chí Minh"
                   style={{ borderRadius: 0 }}
                 />
               </Form.Item>

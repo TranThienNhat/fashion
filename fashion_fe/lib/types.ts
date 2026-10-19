@@ -16,7 +16,6 @@ export interface UserAddress {
   receiver_name: string;
   receiver_phone: string;
   province: string;
-  district: string;
   ward: string;
   street_detail: string;
   is_default: boolean;

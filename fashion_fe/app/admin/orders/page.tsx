@@ -83,7 +83,8 @@ export default function AdminOrdersPage() {
   const handleOpenDetail = async (orderId: number) => {
     try {
       const res = await orderAPI.getOrderDetail(orderId);
-      setSelectedOrder(res.data);
+      const data = res.data?.data || res.data;
+      setSelectedOrder(data);
       setIsDetailOpen(true);
     } catch (err: any) {
       message.error(getApiError(err, "Không thể tải thông tin chi tiết đơn hàng."));
@@ -238,7 +239,10 @@ export default function AdminOrdersPage() {
               <div>
                 <div><b>Người nhận:</b> {selectedOrder.receiver_name}</div>
                 <div><b>Số điện thoại:</b> {selectedOrder.receiver_phone}</div>
-                <div><b>Địa chỉ:</b> {selectedOrder.shipping_address}</div>
+                <div><b>Địa chỉ giao hàng:</b> {selectedOrder.shipping_address}</div>
+                {selectedOrder.customer_name && (
+                  <div><b>Tài khoản đặt:</b> {selectedOrder.customer_name} ({selectedOrder.user_email || "N/A"})</div>
+                )}
                 <div><b>Ghi chú:</b> {selectedOrder.note || "Không có"}</div>
               </div>
               <div>
@@ -274,7 +278,7 @@ export default function AdminOrdersPage() {
 
             <h4 style={{ margin: "0 0 12px" }}>Danh Sách Sản Phẩm Đặt Mua:</h4>
             <Table
-              dataSource={selectedOrder.items}
+              dataSource={Array.isArray(selectedOrder.items) ? selectedOrder.items : []}
               rowKey="order_item_id"
               pagination={false}
               columns={[

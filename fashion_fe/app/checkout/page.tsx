@@ -71,7 +71,7 @@ function CheckoutContent() {
           form.setFieldsValue({
             receiver_name: defaultAddr.receiver_name,
             receiver_phone: defaultAddr.receiver_phone,
-            shipping_address: `${defaultAddr.street_detail}, ${defaultAddr.ward}, ${defaultAddr.district}, ${defaultAddr.province}`,
+            shipping_address: [defaultAddr.street_detail, defaultAddr.ward, defaultAddr.province].filter(Boolean).join(", "),
           });
         } else {
           const user = authUtils.getUser();
@@ -122,7 +122,7 @@ function CheckoutContent() {
         form.setFieldsValue({
           receiver_name: addr.receiver_name,
           receiver_phone: addr.receiver_phone,
-          shipping_address: `${addr.street_detail}, ${addr.ward}, ${addr.district}, ${addr.province}`,
+          shipping_address: [addr.street_detail, addr.ward, addr.province].filter(Boolean).join(", "),
         });
       }
     }
@@ -136,7 +136,6 @@ function CheckoutContent() {
         receiver_name: values.receiver_name.trim(),
         receiver_phone: values.receiver_phone.trim(),
         province: values.province.trim(),
-        district: values.district.trim(),
         ward: values.ward.trim(),
         street_detail: values.street_detail.trim(),
         is_default: Boolean(values.is_default),
@@ -159,7 +158,7 @@ function CheckoutContent() {
         form.setFieldsValue({
           receiver_name: createdAddr.receiver_name,
           receiver_phone: createdAddr.receiver_phone,
-          shipping_address: `${createdAddr.street_detail}, ${createdAddr.ward}, ${createdAddr.district}, ${createdAddr.province}`,
+          shipping_address: [createdAddr.street_detail, createdAddr.ward, createdAddr.province].filter(Boolean).join(", "),
         });
       }
     } catch (err: any) {
@@ -298,7 +297,7 @@ function CheckoutContent() {
                             {a.is_default && <Tag color="gold" style={{ marginLeft: 8, fontSize: 11, borderRadius: "var(--fashion-radius-sm)" }}>Mặc định</Tag>}
                           </div>
                           <div style={{ fontSize: 12.5, color: "var(--fashion-body)", marginTop: 4 }}>
-                            {a.street_detail}, {a.ward}, {a.district}, {a.province}
+                            {[a.street_detail, a.ward, a.province].filter(Boolean).join(", ")}
                           </div>
                         </Radio>
                       ))}
@@ -350,7 +349,7 @@ function CheckoutContent() {
                     label="Địa chỉ giao hàng đầy đủ"
                     name="shipping_address"
                     rules={[{ required: true, message: "Vui lòng nhập địa chỉ nhận hàng" }]}>
-                    <Input.TextArea rows={2} placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành phố..." style={{ borderRadius: "var(--fashion-radius-sm)" }} />
+                    <Input.TextArea rows={2} placeholder="Số nhà, tên đường, phường/xã, tỉnh/thành phố..." style={{ borderRadius: "var(--fashion-radius-sm)" }} />
                   </Form.Item>
 
                   <Form.Item label="Ghi chú đơn hàng (Tùy chọn)" name="note">
@@ -497,20 +496,13 @@ function CheckoutContent() {
             </Col>
             <Col span={12}>
               <Form.Item
-                label="Quận / Huyện"
-                name="district"
-                rules={[{ required: true, message: "Vui lòng nhập Quận/Huyện" }]}>
-                <Input placeholder="Quận 1" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
+                label="Phường / Xã"
+                name="ward"
+                rules={[{ required: true, message: "Vui lòng nhập Phường/Xã" }]}>
+                <Input placeholder="Phường Bến Nghé" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
               </Form.Item>
             </Col>
           </Row>
-
-          <Form.Item
-            label="Phường / Xã"
-            name="ward"
-            rules={[{ required: true, message: "Vui lòng nhập Phường/Xã" }]}>
-            <Input placeholder="Phường Bến Nghé" style={{ borderRadius: "var(--fashion-radius-sm)" }} />
-          </Form.Item>
 
           <Form.Item
             label="Địa chỉ chi tiết (Số nhà, tên đường, tòa nhà)"
