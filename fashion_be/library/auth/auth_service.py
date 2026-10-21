@@ -50,6 +50,27 @@ def token_required(f):
         try:
             token = auth_header.split(" ")[1] if " " in auth_header else auth_header
             payload = decode_token(token)
+            user_id = payload.get("user_id")
+            if not user_id:
+                return api_error("Token không chứa thông tin người dùng hợp lệ", code="AUTH_TOKEN_INVALID", status=401)
+
+            from library.db_connection import get_cursor
+            from library.native_sql_builder import NativeSqlBuilder
+
+            cursor = get_cursor()
+            builder = (NativeSqlBuilder.create()
+                       .select("u.user_id", "u.email", "u.role", "u.is_active", "u.full_name")
+                       .from_table("users", "u")
+                       .where("user_id", user_id, "=", "u"))
+            user = builder.fetch_one(cursor)
+            if not user:
+                return api_error("Phiên đăng nhập không còn hiệu lực. Vui lòng đăng nhập lại.", code="AUTH_TOKEN_EXPIRED", status=401)
+            if not user.get("is_active", 1):
+                return api_error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.", code="AUTH_ACCOUNT_LOCKED", status=403)
+
+            payload["role"] = user["role"]
+            payload["full_name"] = user.get("full_name", "")
+            payload["email"] = user.get("email", "")
             g.current_user = payload
         except jwt.ExpiredSignatureError:
             return api_error("Token đã hết hạn", code="AUTH_TOKEN_EXPIRED", status=401)
@@ -68,10 +89,34 @@ def admin_required(f):
         try:
             token = auth_header.split(" ")[1] if " " in auth_header else auth_header
             payload = decode_token(token)
-            if payload.get("role") not in ["ADMIN", "STAFF"]:
+            user_id = payload.get("user_id")
+            if not user_id:
+                return api_error("Token không chứa thông tin người dùng hợp lệ", code="AUTH_TOKEN_INVALID", status=401)
+
+            from library.db_connection import get_cursor
+            from library.native_sql_builder import NativeSqlBuilder
+
+            cursor = get_cursor()
+            builder = (NativeSqlBuilder.create()
+                       .select("u.user_id", "u.email", "u.role", "u.is_active", "u.full_name")
+                       .from_table("users", "u")
+                       .where("user_id", user_id, "=", "u"))
+            user = builder.fetch_one(cursor)
+            if not user:
+                return api_error("Phiên đăng nhập không còn hiệu lực. Vui lòng đăng nhập lại.", code="AUTH_TOKEN_EXPIRED", status=401)
+            if not user.get("is_active", 1):
+                return api_error("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.", code="AUTH_ACCOUNT_LOCKED", status=403)
+            if user.get("role") not in ["ADMIN", "STAFF"]:
                 return api_error("Bạn không có quyền quản trị", code="AUTH_FORBIDDEN", status=403)
+
+            payload["role"] = user["role"]
+            payload["full_name"] = user.get("full_name", "")
+            payload["email"] = user.get("email", "")
             g.current_user = payload
+        except jwt.ExpiredSignatureError:
+            return api_error("Token đã hết hạn", code="AUTH_TOKEN_EXPIRED", status=401)
         except Exception as e:
             return api_error(f"Lỗi xác thực: {str(e)}", code="AUTH_UNAUTHORIZED", status=401)
         return f(*args, **kwargs)
     return decorated
+

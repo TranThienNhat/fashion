@@ -124,56 +124,59 @@ def checkout():
     total_amount = sum(it["total_price"] for it in checkout_items)
     order_code = generate_order_code()
 
-    # 1. Tạo đơn hàng trong bảng orders
-    ins_order = (NativeSqlBuilder.insert("orders")
-                 .values({
-                     "order_code": order_code,
-                     "user_id": user_id,
-                     "receiver_name": receiver_name,
-                     "receiver_phone": receiver_phone,
-                     "shipping_address": shipping_address,
-                     "total_amount": total_amount,
-                     "order_status": "PENDING",
-                     "payment_method": payment_method,
-                     "payment_status": "UNPAID",
-                     "note": note
-                 }))
-    order_id = ins_order.execute_insert(cursor)
+    try:
+        # 1. Tạo đơn hàng trong bảng orders
+        ins_order = (NativeSqlBuilder.insert("orders")
+                     .values({
+                         "order_code": order_code,
+                         "user_id": user_id,
+                         "receiver_name": receiver_name,
+                         "receiver_phone": receiver_phone,
+                         "shipping_address": shipping_address,
+                         "total_amount": total_amount,
+                         "order_status": "PENDING",
+                         "payment_method": payment_method,
+                         "payment_status": "UNPAID",
+                         "note": note
+                     }))
+        order_id = ins_order.execute_insert(cursor)
 
-    # 2. Tạo chi tiết đơn hàng order_items và trừ số lượng tồn kho product_variants
-    for it in checkout_items:
-        (NativeSqlBuilder.insert("order_items")
-         .values({
-             "order_id": order_id,
-             "variant_id": it["variant_id"],
-             "product_name": it["product_name"],
-             "variant_sku": it["sku"],
-             "color": it["color"],
-             "size": it["size"],
-             "price": it["price"],
-             "quantity": it["quantity"],
-             "total_price": it["total_price"]
-         })
-         .execute_insert(cursor))
+        # 2. Tạo chi tiết đơn hàng order_items và trừ số lượng tồn kho product_variants
+        for it in checkout_items:
+            (NativeSqlBuilder.insert("order_items")
+             .values({
+                 "order_id": order_id,
+                 "variant_id": it["variant_id"],
+                 "product_name": it["product_name"],
+                 "variant_sku": it["sku"],
+                 "color": it["color"],
+                 "size": it["size"],
+                 "price": it["price"],
+                 "quantity": it["quantity"],
+                 "total_price": it["total_price"]
+             })
+             .execute_insert(cursor))
 
-        # Trừ tồn kho
-        (NativeSqlBuilder.update_table("product_variants")
-         .set_expr("stock_quantity", "stock_quantity - %s", it["quantity"])
-         .where("variant_id", it["variant_id"])
-         .execute_update(cursor))
+            # Trừ tồn kho
+            (NativeSqlBuilder.update_table("product_variants")
+             .set_expr("stock_quantity", "stock_quantity - %s", it["quantity"])
+             .where("variant_id", it["variant_id"])
+             .execute_update(cursor))
 
-    # 3. Làm trống giỏ hàng nếu đặt từ giỏ hàng
-    if not items_to_buy and cart_id:
-        (NativeSqlBuilder.delete("cart_items")
-         .where("cart_id", cart_id)
-         .execute_delete(cursor))
+        # 3. Làm trống giỏ hàng nếu đặt từ giỏ hàng
+        if not items_to_buy and cart_id:
+            (NativeSqlBuilder.delete("cart_items")
+             .where("cart_id", cart_id)
+             .execute_delete(cursor))
 
-    return api_success({
-        "order_id": order_id,
-        "order_code": order_code,
-        "total_amount": total_amount,
-        "payment_method": payment_method
-    }, message="Đặt hàng thành công", code="ORDER_CREATED", status=201)
+        return api_success({
+            "order_id": order_id,
+            "order_code": order_code,
+            "total_amount": total_amount,
+            "payment_method": payment_method
+        }, message="Đặt hàng thành công", code="ORDER_CREATED", status=201)
+    except Exception as e:
+        return api_error(f"Không thể hoàn tất đơn hàng: {str(e)}", code="CHECKOUT_FAILED", status=400)
 
 
 # =============================================================================

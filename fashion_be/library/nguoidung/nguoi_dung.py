@@ -188,41 +188,44 @@ def get_addresses():
 def add_address():
     user_id = g.current_user["user_id"]
     data = request.get_json() or {}
-    receiver_name = data.get('receiver_name', '').strip()
-    receiver_phone = data.get('receiver_phone', '').strip()
-    province = data.get('province', '').strip()
-    ward = data.get('ward', '').strip()
-    street_detail = data.get('street_detail', '').strip()
+    receiver_name = (data.get('receiver_name') or data.get('full_name') or data.get('name') or '').strip()
+    receiver_phone = (data.get('receiver_phone') or data.get('phone_number') or data.get('phone') or '').strip()
+    province = (data.get('province') or data.get('city') or '').strip()
+    ward = (data.get('ward') or data.get('district') or '').strip()
+    street_detail = (data.get('street_detail') or data.get('address') or data.get('shipping_address') or '').strip()
     is_default = bool(data.get('is_default', False))
 
     if not receiver_name or not receiver_phone or not street_detail:
-        return api_error("Vui lòng điền đầy đủ tên người nhận, số điện thoại và địa chỉ chi tiết", code="ADDRESS_MISSING_REQUIRED_FIELDS", status=400)
+        return api_error("Vui lòng điền đầy đủ họ tên người nhận, số điện thoại và địa chỉ chi tiết", code="ADDRESS_MISSING_REQUIRED_FIELDS", status=400)
 
-    cursor = get_cursor()
+    try:
+        cursor = get_cursor()
 
-    count_existing = (NativeSqlBuilder.create()
-                      .from_table("user_addresses", "ua")
-                      .where("user_id", user_id, "=", "ua")
-                      .fetch_count(cursor))
+        count_existing = (NativeSqlBuilder.create()
+                          .from_table("user_addresses", "ua")
+                          .where("user_id", user_id, "=", "ua")
+                          .fetch_count(cursor))
 
-    if is_default or count_existing == 0:
-        (NativeSqlBuilder.update_table("user_addresses", {"is_default": False})
-         .where("user_id", user_id)
-         .execute_update(cursor))
-        is_default = True
+        if is_default or count_existing == 0:
+            (NativeSqlBuilder.update_table("user_addresses", {"is_default": False})
+             .where("user_id", user_id)
+             .execute_update(cursor))
+            is_default = True
 
-    ins_addr = (NativeSqlBuilder.insert("user_addresses")
-                .values({
-                    "user_id": user_id,
-                    "receiver_name": receiver_name,
-                    "receiver_phone": receiver_phone,
-                    "province": province,
-                    "ward": ward,
-                    "street_detail": street_detail,
-                    "is_default": is_default
-                }))
-    addr_id = ins_addr.execute_insert(cursor)
-    return api_success({"address_id": addr_id}, message="Thêm địa chỉ giao hàng thành công", code="USER_ADDRESS_CREATED", status=201)
+        ins_addr = (NativeSqlBuilder.insert("user_addresses")
+                    .values({
+                        "user_id": user_id,
+                        "receiver_name": receiver_name,
+                        "receiver_phone": receiver_phone,
+                        "province": province,
+                        "ward": ward,
+                        "street_detail": street_detail,
+                        "is_default": is_default
+                    }))
+        addr_id = ins_addr.execute_insert(cursor)
+        return api_success({"address_id": addr_id}, message="Thêm địa chỉ giao hàng thành công", code="USER_ADDRESS_CREATED", status=201)
+    except Exception as e:
+        return api_error(f"Không thể lưu địa chỉ: {str(e)}", code="ADDRESS_SAVE_FAILED", status=400)
 
 
 @nguoi_dung.route('/api/users/addresses/<int:address_id>', methods=['PUT'])

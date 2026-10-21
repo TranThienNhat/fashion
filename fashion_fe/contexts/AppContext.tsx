@@ -8,6 +8,7 @@ import React, {
   ReactNode,
 } from "react";
 import { authUtils } from "@/lib/auth";
+import { authAPI } from "@/lib/api";
 import type { User } from "@/lib/types";
 
 interface AppContextType {
@@ -39,6 +40,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
           setUser(currentUser);
           setIsAuthenticated(true);
         }
+        // Xác thực lại với máy chủ backend để bảo đảm tài khoản còn tồn tại trong DB
+        authAPI
+          .getMe()
+          .then((res) => {
+            const freshUser = res.data?.data?.user || res.data?.user || res.data?.data;
+            if (freshUser) {
+              setUser(freshUser);
+              setIsAuthenticated(true);
+            }
+          })
+          .catch(() => {
+            // Lỗi 401 sẽ được axios interceptor tự động xử lý đăng xuất sạch sẽ
+          });
       } else {
         setUser(null);
         setIsAuthenticated(false);

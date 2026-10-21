@@ -8,18 +8,28 @@ gio_hang = Blueprint("gio_hang", __name__)
 
 
 def _get_or_create_cart_id(cursor, user_id: int) -> int:
+    if not user_id:
+        return 0
     builder = (NativeSqlBuilder.create()
                .select("cart_id")
                .from_table("carts", "c")
                .where("user_id", user_id, "=", "c"))
     row = builder.fetch_one(cursor)
-    if row:
-        return row["cart_id"]
+    if row and row.get("cart_id"):
+        return int(row["cart_id"])
 
     ins = (NativeSqlBuilder.insert("carts")
            .ignore()
            .values({"user_id": user_id}))
-    return ins.execute_insert(cursor)
+    new_id = ins.execute_insert(cursor)
+    if new_id and int(new_id) > 0:
+        return int(new_id)
+
+    # Re-fetch nếu INSERT IGNORE bỏ qua do bản ghi đã tồn tại
+    row = builder.fetch_one(cursor)
+    if row and row.get("cart_id"):
+        return int(row["cart_id"])
+    return 0
 
 
 @gio_hang.route('/api/cart', methods=['GET'])
@@ -28,6 +38,14 @@ def get_cart():
     user_id = g.current_user["user_id"]
     cursor = get_cursor()
     cart_id = _get_or_create_cart_id(cursor, user_id)
+
+    if not cart_id or cart_id <= 0:
+        return api_success({
+            "cart_id": 0,
+            "items": [],
+            "total_quantity": 0,
+            "total_amount": 0
+        }, code="CART_FETCHED", message="Lấy thông tin giỏ hàng thành công")
 
     builder = (NativeSqlBuilder.create()
                .select("ci.cart_item_id", "ci.cart_id", "ci.variant_id", "ci.quantity",
@@ -84,6 +102,8 @@ def add_to_cart():
         )
 
     cart_id = _get_or_create_cart_id(cursor, user_id)
+    if not cart_id or cart_id <= 0:
+        return api_error("Không thể khởi tạo giỏ hàng cho tài khoản của bạn", code="CART_CREATION_FAILED", status=400)
 
     # Kiểm tra xem item đã có trong giỏ chưa
     existing_item = (NativeSqlBuilder.create()
@@ -129,6 +149,8 @@ def update_cart_item(cart_item_id):
 
     cursor = get_cursor()
     cart_id = _get_or_create_cart_id(cursor, user_id)
+    if not cart_id or cart_id <= 0:
+        return api_error("Không tìm thấy giỏ hàng", code="CART_NOT_FOUND", status=404)
 
     # Kiểm tra tồn kho
     item = (NativeSqlBuilder.create()

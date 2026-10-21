@@ -691,23 +691,24 @@ def admin_create_product():
                  .execute_insert(cursor))
 
     # Thêm biến thể
+    created_variant_id = None
     if not has_variants:
         # Sản phẩm đơn lẻ (phụ kiện hoặc không biến thể): Tạo đúng 1 biến thể mặc định
         default_sku = sku_input or f"{slug[:15].upper()}-STD"
-        (NativeSqlBuilder.insert("product_variants")
+        created_variant_id = (NativeSqlBuilder.insert("product_variants")
          .values({
              "product_id": product_id,
              "sku": default_sku,
-             "color": "Tiêu chuẩn",
-             "size": "Tiêu chuẩn",
+             "color": data.get("color") or "Tiêu chuẩn",
+             "size": data.get("size") or "Tiêu chuẩn",
              "price": base_price,
              "stock_quantity": stock_quantity
          })
          .execute_insert(cursor))
     elif variants:
-        for v in variants:
+        for idx, v in enumerate(variants):
             sku = v.get("sku") or f"{slug[:10]}-{v.get('color', '')[:3]}-{v.get('size', '')}".upper()
-            (NativeSqlBuilder.insert("product_variants")
+            vid = (NativeSqlBuilder.insert("product_variants")
              .values({
                  "product_id": product_id,
                  "sku": sku,
@@ -717,21 +718,26 @@ def admin_create_product():
                  "stock_quantity": v.get("stock_quantity", 0)
              })
              .execute_insert(cursor))
+            if idx == 0:
+                created_variant_id = vid
     else:
         # Tạo biến thể mặc định nếu không khai báo
         default_sku = sku_input or f"{slug[:15].upper()}-STD"
-        (NativeSqlBuilder.insert("product_variants")
+        created_variant_id = (NativeSqlBuilder.insert("product_variants")
          .values({
              "product_id": product_id,
              "sku": default_sku,
-             "color": "Tiêu chuẩn",
-             "size": "Freesize",
+             "color": data.get("color") or "Tiêu chuẩn",
+             "size": data.get("size") or "Freesize",
              "price": base_price,
-             "stock_quantity": stock_quantity or 100
+             "stock_quantity": stock_quantity or 0
          })
          .execute_insert(cursor))
 
-    return api_success({"product_id": product_id}, message="Thêm sản phẩm thành công", code="PRODUCT_CREATED", status=201)
+    return api_success({
+        "product_id": product_id,
+        "variant_id": created_variant_id
+    }, message="Thêm sản phẩm thành công", code="PRODUCT_CREATED", status=201)
 
 
 @catalog_bp.route('/api/admin/products/<int:product_id>', methods=['PUT'])

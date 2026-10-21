@@ -95,3 +95,6 @@ desktop.ini
 .agents/
 powershell.cmd
 powershell.exe
+chrome/
+.cache/
+

@@ -18,6 +18,7 @@ import {
   Col,
   Empty,
   Tooltip,
+  Divider,
 } from "antd";
 import {
   PlusOutlined,
@@ -28,15 +29,20 @@ import {
   AppstoreOutlined,
   SearchOutlined,
   ArrowUpOutlined,
+  PlusCircleOutlined,
+  AppstoreAddOutlined,
 } from "@ant-design/icons";
-import { warehouseAPI, getApiMessage, getApiError } from "@/lib/api";
+import { warehouseAPI, catalogAPI, getApiMessage, getApiError } from "@/lib/api";
 import { formatPrice } from "@/lib/constants";
-import type { Supplier, PurchaseReceipt, WarehouseVariant } from "@/lib/types";
+import type { Supplier, PurchaseReceipt, WarehouseVariant, Category, Brand } from "@/lib/types";
+import ImageUploader from "@/components/ImageUploader";
 
 export default function AdminInventoryPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [receipts, setReceipts] = useState<PurchaseReceipt[]>([]);
   const [variants, setVariants] = useState<WarehouseVariant[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(false);
   const [variantSearch, setVariantSearch] = useState("");
 
@@ -52,6 +58,13 @@ export default function AdminInventoryPage() {
     { variant_id: undefined, import_price: undefined, quantity: 20 },
   ]);
 
+  // Quick Product modal from Receipt
+  const [isQuickProductModalOpen, setIsQuickProductModalOpen] = useState(false);
+  const [quickProductLoading, setQuickProductLoading] = useState(false);
+  const [quickProductForm] = Form.useForm();
+  const [quickThumbnail, setQuickThumbnail] = useState<string>("");
+  const [targetItemIndex, setTargetItemIndex] = useState<number | null>(null);
+
   // Detail modal
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -59,10 +72,12 @@ export default function AdminInventoryPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [supRes, recRes, varRes] = await Promise.all([
+      const [supRes, recRes, varRes, catRes, brdRes] = await Promise.all([
         warehouseAPI.adminGetSuppliers(),
         warehouseAPI.adminGetReceipts({ page: 0, size: 50 }),
         warehouseAPI.adminGetWarehouseVariants(),
+        catalogAPI.getCategories(),
+        catalogAPI.getBrands(),
       ]);
 
       const supList = supRes.data?.data || supRes.data?.items || (Array.isArray(supRes.data) ? supRes.data : []);
@@ -73,6 +88,12 @@ export default function AdminInventoryPage() {
 
       const varList = varRes.data?.data || varRes.data?.items || (Array.isArray(varRes.data) ? varRes.data : []);
       setVariants(Array.isArray(varList) ? varList : []);
+
+      const catList = catRes.data?.data || (Array.isArray(catRes.data) ? catRes.data : []);
+      setCategories(Array.isArray(catList) ? catList : []);
+
+      const brdList = brdRes.data?.data || (Array.isArray(brdRes.data) ? brdRes.data : []);
+      setBrands(Array.isArray(brdList) ? brdList : []);
     } catch (err: any) {
       message.error(getApiError(err, "Không thể tải dữ liệu kho hàng. Vui lòng thử lại sau."));
     } finally {
@@ -120,6 +141,86 @@ export default function AdminInventoryPage() {
       loadData();
     } catch (err: any) {
       message.error(getApiError(err, "Không thể thao tác với đối tác cung ứng. Vui lòng thử lại."));
+    }
+  };
+
+  // QUICK PRODUCT ACTIONS (TẠO SẢN PHẨM MỚI KÈM BIẾN THỂ MẶC ĐỊNH NGAY TRÊN PHIẾU NHẬP)
+  const handleOpenQuickProductModal = (rowIdx?: number) => {
+    setTargetItemIndex(rowIdx !== undefined ? rowIdx : null);
+    quickProductForm.resetFields();
+    setQuickThumbnail("");
+    quickProductForm.setFieldsValue({
+      color: "Tiêu chuẩn",
+      size: "Freesize",
+    });
+    setIsQuickProductModalOpen(true);
+  };
+
+  const handleCreateQuickProduct = async () => {
+    try {
+      setQuickProductLoading(true);
+      const values = await quickProductForm.validateFields();
+      const payload = {
+        name: values.name.trim(),
+        category_id: values.category_id,
+        brand_id: values.brand_id || null,
+        base_price: values.base_price,
+        description: values.description || "",
+        thumbnail: quickThumbnail || "",
+        color: values.color?.trim() || "Tiêu chuẩn",
+        size: values.size?.trim() || "Freesize",
+        sku: values.sku?.trim() || "",
+        has_variants: true,
+        stock_quantity: 0,
+        variants: [
+          {
+            sku: values.sku?.trim() || "",
+            color: values.color?.trim() || "Tiêu chuẩn",
+            size: values.size?.trim() || "Freesize",
+            price: values.base_price,
+            stock_quantity: 0,
+          },
+        ],
+      };
+
+      const res = await catalogAPI.adminCreateProduct(payload);
+      const createdVariantId = res.data?.data?.variant_id || res.data?.variant_id;
+
+      // Cập nhật lại danh sách biến thể trong kho
+      const varRes = await warehouseAPI.adminGetWarehouseVariants();
+      const varList = varRes.data?.data || varRes.data?.items || (Array.isArray(varRes.data) ? varRes.data : []);
+      setVariants(Array.isArray(varList) ? varList : []);
+
+      // Tự động gán biến thể mới vào dòng phiếu nhập
+      if (createdVariantId) {
+        if (targetItemIndex !== null && receiptItems[targetItemIndex]) {
+          const updated = [...receiptItems];
+          updated[targetItemIndex] = {
+            ...updated[targetItemIndex],
+            variant_id: createdVariantId,
+          };
+          setReceiptItems(updated);
+        } else {
+          const lastIdx = receiptItems.length - 1;
+          if (lastIdx >= 0 && !receiptItems[lastIdx].variant_id) {
+            const updated = [...receiptItems];
+            updated[lastIdx].variant_id = createdVariantId;
+            setReceiptItems(updated);
+          } else {
+            setReceiptItems([
+              ...receiptItems,
+              { variant_id: createdVariantId, import_price: undefined, quantity: 20 },
+            ]);
+          }
+        }
+      }
+
+      message.success("Đã thêm sản phẩm mới và gán vào phiếu nhập kho thành công!");
+      setIsQuickProductModalOpen(false);
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tạo sản phẩm mới. Vui lòng kiểm tra lại thông tin."));
+    } finally {
+      setQuickProductLoading(false);
     }
   };
 
@@ -597,15 +698,35 @@ export default function AdminInventoryPage() {
           </Row>
 
           <div style={{ borderTop: "1px solid #E4E4E7", paddingTop: 16, marginTop: 8 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
               <b>Danh Sách Mặt Hàng / Biến Thể Nhập Kho ({receiptItems.length}):</b>
-              <Button size="small" onClick={handleAddReceiptItemRow} icon={<PlusOutlined />}>
-                Thêm Dòng
-              </Button>
+              <Space>
+                <Button
+                  type="dashed"
+                  size="small"
+                  icon={<PlusCircleOutlined />}
+                  onClick={() => handleOpenQuickProductModal()}
+                  style={{ borderRadius: 0, borderColor: "#0D0D0D", color: "#0D0D0D", fontWeight: 500 }}>
+                  + Thêm Sản Phẩm Mới (Chưa Có Trong Kho)
+                </Button>
+                <Button size="small" onClick={handleAddReceiptItemRow} icon={<PlusOutlined />} style={{ borderRadius: 0 }}>
+                  Thêm Dòng
+                </Button>
+              </Space>
             </div>
 
             {variants.length === 0 ? (
-              <Empty description="Chưa có dữ liệu biến thể sản phẩm trong kho" />
+              <div style={{ padding: "24px 16px", textAlign: "center", background: "#FAFAF9", border: "1px dashed #D4D4D8" }}>
+                <Empty description="Chưa có dữ liệu biến thể sản phẩm nào trong kho">
+                  <Button
+                    type="primary"
+                    icon={<PlusCircleOutlined />}
+                    onClick={() => handleOpenQuickProductModal()}
+                    style={{ borderRadius: 0, background: "#0D0D0D" }}>
+                    Thêm Sản Phẩm Đầu Tiên Để Nhập Kho
+                  </Button>
+                </Empty>
+              </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {(Array.isArray(receiptItems) ? receiptItems : []).map((it, idx) => (
@@ -618,7 +739,7 @@ export default function AdminInventoryPage() {
                       background: "#FAFAF9",
                       border: "1px solid #EAEAE8",
                       padding: "8px 12px",
-                      borderRadius: 4,
+                      borderRadius: 0,
                     }}>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <Select
@@ -628,10 +749,26 @@ export default function AdminInventoryPage() {
                           return opt ? opt.searchText.includes(input.toLowerCase()) : false;
                         }}
                         placeholder="Tìm kiếm và chọn biến thể sản phẩm..."
-                        style={{ width: "100%" }}
+                        style={{ width: "100%", borderRadius: 0 }}
                         value={it.variant_id}
                         onChange={(val) => handleReceiptItemChange(idx, "variant_id", val)}
                         options={variantOptions}
+                        dropdownRender={(menu) => (
+                          <>
+                            {menu}
+                            <Divider style={{ margin: "4px 0" }} />
+                            <div style={{ padding: "6px 12px" }}>
+                              <Button
+                                type="link"
+                                size="small"
+                                icon={<AppstoreAddOutlined />}
+                                onClick={() => handleOpenQuickProductModal(idx)}
+                                style={{ padding: 0, color: "#0D0D0D", fontWeight: 600 }}>
+                                + Thêm sản phẩm chưa có trong danh mục
+                              </Button>
+                            </div>
+                          </>
+                        )}
                       />
                     </div>
 
@@ -643,7 +780,7 @@ export default function AdminInventoryPage() {
                         onChange={(val) => handleReceiptItemChange(idx, "import_price", val)}
                         formatter={(value) => (value !== undefined && value !== null && value !== "" ? `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "")}
                         parser={(value) => (value ? Number(value.replace(/\$\s?|(,*)/g, "")) : (undefined as any))}
-                        style={{ width: 140, flexShrink: 0 }}
+                        style={{ width: 140, flexShrink: 0, borderRadius: 0 }}
                       />
                     </Tooltip>
 
@@ -653,7 +790,7 @@ export default function AdminInventoryPage() {
                         min={1}
                         value={it.quantity}
                         onChange={(val) => handleReceiptItemChange(idx, "quantity", val)}
-                        style={{ width: 95, flexShrink: 0 }}
+                        style={{ width: 95, flexShrink: 0, borderRadius: 0 }}
                       />
                     </Tooltip>
 
@@ -663,7 +800,7 @@ export default function AdminInventoryPage() {
                         size="small"
                         icon={<DeleteOutlined />}
                         onClick={() => handleRemoveReceiptItemRow(idx)}
-                        style={{ flexShrink: 0 }}
+                        style={{ flexShrink: 0, borderRadius: 0 }}
                       />
                     </Tooltip>
                   </div>
@@ -671,6 +808,144 @@ export default function AdminInventoryPage() {
               </div>
             )}
           </div>
+        </Form>
+      </Modal>
+
+      {/* Modal Thêm Nhanh Sản Phẩm Mới & Biến Thể Mặc Định Trực Tiếp Từ Phiếu Nhập */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <AppstoreAddOutlined style={{ fontSize: 20, color: "#0D0D0D" }} />
+            <span style={{ fontFamily: "serif", fontSize: 20, fontWeight: 600 }}>
+              Thêm Nhanh Sản Phẩm Mới & Biến Thể Mặc Định
+            </span>
+          </div>
+        }
+        open={isQuickProductModalOpen}
+        onCancel={() => setIsQuickProductModalOpen(false)}
+        onOk={handleCreateQuickProduct}
+        okText="Tạo Sản Phẩm & Gán Vào Phiếu"
+        cancelText="Hủy Bỏ"
+        width={720}
+        confirmLoading={quickProductLoading}
+        style={{ top: 30 }}
+        styles={{
+          mask: { backdropFilter: "blur(4px)" },
+        }}>
+        <div style={{ marginBottom: 12, fontSize: 13, color: "#666" }}>
+          Sản phẩm và biến thể mặc định sẽ được tạo mới và tự động chọn vào phiếu nhập kho hiện tại để bạn nhập giá vốn và số lượng ngay lập tức.
+        </div>
+        <Form form={quickProductForm} layout="vertical">
+          <Form.Item
+            label="Tên sản phẩm"
+            name="name"
+            rules={[{ required: true, message: "Vui lòng nhập tên sản phẩm mới" }]}>
+            <Input placeholder="VD: Áo Sơ Mi Lụa Cổ Trụ ÉLÉGANCE..." style={{ borderRadius: 0 }} />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Danh mục sản phẩm"
+                name="category_id"
+                rules={[{ required: true, message: "Vui lòng chọn danh mục" }]}>
+                <Select
+                  placeholder="Chọn danh mục"
+                  style={{ borderRadius: 0 }}
+                  options={categories.map((c) => ({ value: c.category_id, label: c.name }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Thương hiệu" name="brand_id">
+                <Select
+                  placeholder="Chọn thương hiệu (nếu có)"
+                  allowClear
+                  style={{ borderRadius: 0 }}
+                  options={brands.map((b) => ({ value: b.brand_id, label: b.name }))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Giá bán niêm yết (VNĐ)"
+                name="base_price"
+                rules={[{ required: true, message: "Vui lòng nhập giá bán niêm yết" }]}>
+                <InputNumber
+                  min={0}
+                  placeholder="VD: 1,850,000"
+                  style={{ width: "100%", borderRadius: 0 }}
+                  formatter={(val) => (val ? `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "")}
+                  parser={(val) => (val ? Number(val.replace(/\$\s?|(,*)/g, "")) : (undefined as any))}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Mã SKU (tự sinh nếu để trống)" name="sku">
+                <Input placeholder="VD: ASM-LUA-BLK-STD" style={{ borderRadius: 0 }} />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Divider orientation="left" style={{ margin: "12px 0 16px 0", fontSize: 13, fontWeight: 600 }}>
+            Biến Thể Mặc Định Ban Đầu
+          </Divider>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Màu sắc biến thể"
+                name="color"
+                rules={[{ required: true, message: "Vui lòng nhập màu sắc" }]}>
+                <Input placeholder="VD: Đen Tuyền, Trắng Ngọc Trai, Tiêu chuẩn..." style={{ borderRadius: 0 }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                label="Kích cỡ (Size)"
+                name="size"
+                rules={[{ required: true, message: "Vui lòng chọn kích cỡ" }]}>
+                <Select
+                  placeholder="Chọn size"
+                  style={{ borderRadius: 0 }}
+                  options={[
+                    { value: "Freesize", label: "Freesize (Một cỡ chung)" },
+                    { value: "S", label: "Size S (Nhỏ)" },
+                    { value: "M", label: "Size M (Vừa)" },
+                    { value: "L", label: "Size L (Lớn)" },
+                    { value: "XL", label: "Size XL (Rất lớn)" },
+                    { value: "XXL", label: "Size XXL" },
+                    { value: "Tiêu chuẩn", label: "Tiêu chuẩn (Phụ kiện/Khác)" },
+                  ]}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Ảnh sản phẩm">
+                <ImageUploader
+                  value={quickThumbnail}
+                  onChange={setQuickThumbnail}
+                  aspectRatio="3/4"
+                  placeholderText="Tải lên ảnh mẫu sản phẩm (3:4)"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Mô tả sản phẩm" name="description">
+                <Input.TextArea
+                  rows={5}
+                  placeholder="Mô tả chất liệu, thiết kế, điểm nổi bật..."
+                  style={{ borderRadius: 0 }}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
         </Form>
       </Modal>
 

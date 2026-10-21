@@ -133,11 +133,11 @@ function CheckoutContent() {
       const values = await addressForm.validateFields();
       setSavingAddress(true);
       const res = await authAPI.addAddress({
-        receiver_name: values.receiver_name.trim(),
-        receiver_phone: values.receiver_phone.trim(),
-        province: values.province.trim(),
-        ward: values.ward.trim(),
-        street_detail: values.street_detail.trim(),
+        receiver_name: (values.receiver_name || "").trim(),
+        receiver_phone: (values.receiver_phone || "").trim(),
+        province: (values.province || "").trim(),
+        ward: (values.ward || "").trim(),
+        street_detail: (values.street_detail || "").trim(),
         is_default: Boolean(values.is_default),
       });
 
