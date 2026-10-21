@@ -641,6 +641,26 @@ def admin_get_products():
     return api_success(result, code="ADMIN_PRODUCTS_FETCHED")
 
 
+def _make_unique_sku(cursor, base_sku: str) -> str:
+    """Tạo mã SKU duy nhất trong hệ thống, loại bỏ ký tự đặc biệt và tránh trùng lặp."""
+    cleaned = re.sub(r'[^A-Za-z0-9-]', '', base_sku).upper().strip('-')
+    if not cleaned:
+        cleaned = "SKU"
+    candidate = cleaned[:55]
+
+    existing = (NativeSqlBuilder.create()
+                .select("variant_id")
+                .from_table("product_variants")
+                .where("sku", candidate)
+                .fetch_one(cursor))
+    if not existing:
+        return candidate
+
+    import uuid
+    suffix = uuid.uuid4().hex[:6].upper()
+    return f"{candidate[:48]}-{suffix}"
+
+
 @catalog_bp.route('/api/admin/products', methods=['POST'])
 @admin_required
 def admin_create_product():
@@ -663,81 +683,102 @@ def admin_create_product():
 
     cursor = get_cursor()
 
-    # Tạo sản phẩm cha bằng NativeSqlBuilder
-    ins_prod = (NativeSqlBuilder.insert("products")
-                .values({
-                    "category_id": category_id,
-                    "brand_id": brand_id if brand_id else None,
-                    "name": name,
-                    "slug": slug,
-                    "description": description,
-                    "base_price": base_price,
-                    "thumbnail": thumbnail,
-                    "has_variants": has_variants,
-                    "is_active": True
-                }))
-    product_id = ins_prod.execute_insert(cursor)
+    try:
+        if sku_input:
+            exists = (NativeSqlBuilder.create()
+                      .select("variant_id")
+                      .from_table("product_variants")
+                      .where("sku", sku_input)
+                      .fetch_one(cursor))
+            if exists:
+                return api_error(f"Mã SKU '{sku_input}' đã tồn tại trong hệ thống. Vui lòng chọn mã SKU khác.", code="SKU_ALREADY_EXISTS", status=400)
 
-    # Thêm ảnh phụ
-    if images:
-        for idx, img_url in enumerate(images):
-            if img_url:
-                (NativeSqlBuilder.insert("product_images")
-                 .values({
-                     "product_id": product_id,
-                     "image_url": img_url,
-                     "sort_order": idx
-                 })
-                 .execute_insert(cursor))
+        # Tạo sản phẩm cha bằng NativeSqlBuilder
+        ins_prod = (NativeSqlBuilder.insert("products")
+                    .values({
+                        "category_id": category_id,
+                        "brand_id": brand_id if brand_id else None,
+                        "name": name,
+                        "slug": slug,
+                        "description": description,
+                        "base_price": base_price,
+                        "thumbnail": thumbnail,
+                        "has_variants": has_variants,
+                        "is_active": True
+                    }))
+        product_id = ins_prod.execute_insert(cursor)
 
-    # Thêm biến thể
-    created_variant_id = None
-    if not has_variants:
-        # Sản phẩm đơn lẻ (phụ kiện hoặc không biến thể): Tạo đúng 1 biến thể mặc định
-        default_sku = sku_input or f"{slug[:15].upper()}-STD"
-        created_variant_id = (NativeSqlBuilder.insert("product_variants")
-         .values({
-             "product_id": product_id,
-             "sku": default_sku,
-             "color": data.get("color") or "Tiêu chuẩn",
-             "size": data.get("size") or "Tiêu chuẩn",
-             "price": base_price,
-             "stock_quantity": stock_quantity
-         })
-         .execute_insert(cursor))
-    elif variants:
-        for idx, v in enumerate(variants):
-            sku = v.get("sku") or f"{slug[:10]}-{v.get('color', '')[:3]}-{v.get('size', '')}".upper()
-            vid = (NativeSqlBuilder.insert("product_variants")
+        # Thêm ảnh phụ
+        if images:
+            for idx, img_url in enumerate(images):
+                if img_url:
+                    (NativeSqlBuilder.insert("product_images")
+                     .values({
+                         "product_id": product_id,
+                         "image_url": img_url,
+                         "sort_order": idx
+                     })
+                     .execute_insert(cursor))
+
+        # Thêm biến thể
+        created_variant_id = None
+        clean_slug = re.sub(r'[^A-Za-z0-9-]', '', slug).upper()[:15] or "PROD"
+        if not has_variants:
+            # Sản phẩm đơn lẻ: Tạo 1 biến thể mặc định
+            default_sku = _make_unique_sku(cursor, sku_input or f"{clean_slug}-STD")
+            created_variant_id = (NativeSqlBuilder.insert("product_variants")
              .values({
                  "product_id": product_id,
-                 "sku": sku,
-                 "color": v.get("color") or "Tiêu chuẩn",
-                 "size": v.get("size") if v.get("size") is not None else "",
-                 "price": v.get("price", base_price),
-                 "stock_quantity": v.get("stock_quantity", 0)
+                 "sku": default_sku,
+                 "color": data.get("color") or "Tiêu chuẩn",
+                 "size": data.get("size") or "Tiêu chuẩn",
+                 "price": base_price,
+                 "stock_quantity": stock_quantity
              })
              .execute_insert(cursor))
-            if idx == 0:
-                created_variant_id = vid
-    else:
-        # Tạo biến thể mặc định nếu không khai báo
-        default_sku = sku_input or f"{slug[:15].upper()}-STD"
-        created_variant_id = (NativeSqlBuilder.insert("product_variants")
-         .values({
-             "product_id": product_id,
-             "sku": default_sku,
-             "color": data.get("color") or "Tiêu chuẩn",
-             "size": data.get("size") or "Freesize",
-             "price": base_price,
-             "stock_quantity": stock_quantity or 0
-         })
-         .execute_insert(cursor))
+        elif variants:
+            for idx, v in enumerate(variants):
+                custom_sku = v.get("sku")
+                if custom_sku:
+                    final_sku = _make_unique_sku(cursor, custom_sku)
+                else:
+                    col_part = re.sub(r'[^A-Za-z0-9]', '', v.get('color', '')).upper()[:3] or "STD"
+                    siz_part = re.sub(r'[^A-Za-z0-9]', '', str(v.get('size', ''))).upper()[:4] or "FREE"
+                    base_sku = f"{clean_slug[:10]}-{col_part}-{siz_part}"
+                    final_sku = _make_unique_sku(cursor, base_sku)
 
-    return api_success({
-        "product_id": product_id,
-        "variant_id": created_variant_id
-    }, message="Thêm sản phẩm thành công", code="PRODUCT_CREATED", status=201)
+                vid = (NativeSqlBuilder.insert("product_variants")
+                 .values({
+                     "product_id": product_id,
+                     "sku": final_sku,
+                     "color": v.get("color") or "Tiêu chuẩn",
+                     "size": v.get("size") if v.get("size") is not None else "",
+                     "price": v.get("price", base_price),
+                     "stock_quantity": v.get("stock_quantity", 0)
+                 })
+                 .execute_insert(cursor))
+                if idx == 0:
+                    created_variant_id = vid
+        else:
+            default_sku = _make_unique_sku(cursor, sku_input or f"{clean_slug}-STD")
+            created_variant_id = (NativeSqlBuilder.insert("product_variants")
+             .values({
+                 "product_id": product_id,
+                 "sku": default_sku,
+                 "color": data.get("color") or "Tiêu chuẩn",
+                 "size": data.get("size") or "Freesize",
+                 "price": base_price,
+                 "stock_quantity": stock_quantity or 0
+             })
+             .execute_insert(cursor))
+
+        return api_success({
+            "product_id": product_id,
+            "variant_id": created_variant_id
+        }, message="Thêm sản phẩm thành công", code="PRODUCT_CREATED", status=201)
+    except Exception as e:
+        print(f"[Create Product Error]: {e}")
+        return api_error(f"Không thể tạo sản phẩm: {str(e)}", code="PRODUCT_CREATE_FAILED", status=400)
 
 
 @catalog_bp.route('/api/admin/products/<int:product_id>', methods=['PUT'])

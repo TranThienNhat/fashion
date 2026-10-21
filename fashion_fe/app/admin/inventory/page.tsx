@@ -65,9 +65,43 @@ export default function AdminInventoryPage() {
   const [quickThumbnail, setQuickThumbnail] = useState<string>("");
   const [targetItemIndex, setTargetItemIndex] = useState<number | null>(null);
 
+  // Quick Category modal
+  const [isQuickCategoryModalOpen, setIsQuickCategoryModalOpen] = useState(false);
+  const [quickCategoryLoading, setQuickCategoryLoading] = useState(false);
+  const [quickCategoryForm] = Form.useForm();
+
+  // Quick Brand modal
+  const [isQuickBrandModalOpen, setIsQuickBrandModalOpen] = useState(false);
+  const [quickBrandLoading, setQuickBrandLoading] = useState(false);
+  const [quickBrandForm] = Form.useForm();
+
   // Detail modal
   const [selectedReceipt, setSelectedReceipt] = useState<any>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const reloadCategories = async () => {
+    try {
+      const catRes = await catalogAPI.getCategories();
+      const catList = catRes.data?.flat || catRes.data?.data?.flat || catRes.data?.data || (Array.isArray(catRes.data) ? catRes.data : []);
+      setCategories(Array.isArray(catList) ? catList : []);
+      return Array.isArray(catList) ? catList : [];
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
+
+  const reloadBrands = async () => {
+    try {
+      const brdRes = await catalogAPI.getBrands();
+      const brdList = brdRes.data?.data || brdRes.data?.items || (Array.isArray(brdRes.data) ? brdRes.data : []);
+      setBrands(Array.isArray(brdList) ? brdList : []);
+      return Array.isArray(brdList) ? brdList : [];
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -89,10 +123,10 @@ export default function AdminInventoryPage() {
       const varList = varRes.data?.data || varRes.data?.items || (Array.isArray(varRes.data) ? varRes.data : []);
       setVariants(Array.isArray(varList) ? varList : []);
 
-      const catList = catRes.data?.data || (Array.isArray(catRes.data) ? catRes.data : []);
+      const catList = catRes.data?.flat || catRes.data?.data?.flat || catRes.data?.data || (Array.isArray(catRes.data) ? catRes.data : []);
       setCategories(Array.isArray(catList) ? catList : []);
 
-      const brdList = brdRes.data?.data || (Array.isArray(brdRes.data) ? brdRes.data : []);
+      const brdList = brdRes.data?.data || brdRes.data?.items || (Array.isArray(brdRes.data) ? brdRes.data : []);
       setBrands(Array.isArray(brdList) ? brdList : []);
     } catch (err: any) {
       message.error(getApiError(err, "Không thể tải dữ liệu kho hàng. Vui lòng thử lại sau."));
@@ -144,6 +178,63 @@ export default function AdminInventoryPage() {
     }
   };
 
+  // QUICK CATEGORY ACTIONS
+  const handleOpenQuickCategoryModal = () => {
+    quickCategoryForm.resetFields();
+    setIsQuickCategoryModalOpen(true);
+  };
+
+  const handleCreateQuickCategory = async () => {
+    try {
+      setQuickCategoryLoading(true);
+      const values = await quickCategoryForm.validateFields();
+      const res = await catalogAPI.adminCreateCategory({
+        name: values.name.trim(),
+        parent_id: values.parent_id || null,
+        is_active: true,
+      });
+      const newCatId = res.data?.data?.category_id || res.data?.category_id;
+      message.success("Đã thêm danh mục mới thành công!");
+      await reloadCategories();
+      if (newCatId) {
+        quickProductForm.setFieldValue("category_id", newCatId);
+      }
+      setIsQuickCategoryModalOpen(false);
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tạo danh mục mới. Vui lòng kiểm tra lại."));
+    } finally {
+      setQuickCategoryLoading(false);
+    }
+  };
+
+  // QUICK BRAND ACTIONS
+  const handleOpenQuickBrandModal = () => {
+    quickBrandForm.resetFields();
+    setIsQuickBrandModalOpen(true);
+  };
+
+  const handleCreateQuickBrand = async () => {
+    try {
+      setQuickBrandLoading(true);
+      const values = await quickBrandForm.validateFields();
+      const res = await catalogAPI.adminCreateBrand({
+        name: values.name.trim(),
+        logo_url: values.logo_url?.trim() || "",
+      });
+      const newBrdId = res.data?.data?.brand_id || res.data?.brand_id;
+      message.success("Đã thêm thương hiệu mới thành công!");
+      await reloadBrands();
+      if (newBrdId) {
+        quickProductForm.setFieldValue("brand_id", newBrdId);
+      }
+      setIsQuickBrandModalOpen(false);
+    } catch (err: any) {
+      message.error(getApiError(err, "Không thể tạo thương hiệu mới. Vui lòng kiểm tra lại."));
+    } finally {
+      setQuickBrandLoading(false);
+    }
+  };
+
   // QUICK PRODUCT ACTIONS (TẠO SẢN PHẨM MỚI KÈM BIẾN THỂ MẶC ĐỊNH NGAY TRÊN PHIẾU NHẬP)
   const handleOpenQuickProductModal = (rowIdx?: number) => {
     setTargetItemIndex(rowIdx !== undefined ? rowIdx : null);
@@ -152,7 +243,11 @@ export default function AdminInventoryPage() {
     quickProductForm.setFieldsValue({
       color: "Tiêu chuẩn",
       size: "Freesize",
+      quantity: 20,
     });
+    // Làm mới danh mục và thương hiệu để luôn có dữ liệu mới nhất
+    reloadCategories();
+    reloadBrands();
     setIsQuickProductModalOpen(true);
   };
 
@@ -191,6 +286,10 @@ export default function AdminInventoryPage() {
       const varList = varRes.data?.data || varRes.data?.items || (Array.isArray(varRes.data) ? varRes.data : []);
       setVariants(Array.isArray(varList) ? varList : []);
 
+      // Đơn giá nhập và số lượng đưa thẳng vào phiếu nhập
+      const chosenImportPrice = values.import_price !== undefined && values.import_price !== null ? values.import_price : values.base_price;
+      const chosenQuantity = values.quantity || 20;
+
       // Tự động gán biến thể mới vào dòng phiếu nhập
       if (createdVariantId) {
         if (targetItemIndex !== null && receiptItems[targetItemIndex]) {
@@ -198,18 +297,25 @@ export default function AdminInventoryPage() {
           updated[targetItemIndex] = {
             ...updated[targetItemIndex],
             variant_id: createdVariantId,
+            import_price: chosenImportPrice,
+            quantity: chosenQuantity,
           };
           setReceiptItems(updated);
         } else {
           const lastIdx = receiptItems.length - 1;
           if (lastIdx >= 0 && !receiptItems[lastIdx].variant_id) {
             const updated = [...receiptItems];
-            updated[lastIdx].variant_id = createdVariantId;
+            updated[lastIdx] = {
+              ...updated[lastIdx],
+              variant_id: createdVariantId,
+              import_price: chosenImportPrice,
+              quantity: chosenQuantity,
+            };
             setReceiptItems(updated);
           } else {
             setReceiptItems([
               ...receiptItems,
-              { variant_id: createdVariantId, import_price: undefined, quantity: 20 },
+              { variant_id: createdVariantId, import_price: chosenImportPrice, quantity: chosenQuantity },
             ]);
           }
         }
@@ -826,14 +932,14 @@ export default function AdminInventoryPage() {
         onOk={handleCreateQuickProduct}
         okText="Tạo Sản Phẩm & Gán Vào Phiếu"
         cancelText="Hủy Bỏ"
-        width={720}
+        width={760}
         confirmLoading={quickProductLoading}
-        style={{ top: 30 }}
+        style={{ top: 24 }}
         styles={{
           mask: { backdropFilter: "blur(4px)" },
         }}>
-        <div style={{ marginBottom: 12, fontSize: 13, color: "#666" }}>
-          Sản phẩm và biến thể mặc định sẽ được tạo mới và tự động chọn vào phiếu nhập kho hiện tại để bạn nhập giá vốn và số lượng ngay lập tức.
+        <div style={{ marginBottom: 14, fontSize: 13, color: "#666", background: "#F9F9F8", padding: "10px 14px", border: "1px solid #EAEAE8" }}>
+          💡 Sản phẩm và biến thể mặc định sẽ được tạo mới và tự động điền đơn giá vốn & số lượng vào phiếu nhập kho hiện tại.
         </div>
         <Form form={quickProductForm} layout="vertical">
           <Form.Item
@@ -846,23 +952,98 @@ export default function AdminInventoryPage() {
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item
-                label="Danh mục sản phẩm"
+                label={
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                    <span>Danh mục sản phẩm <span style={{ color: "#ff4d4f" }}>*</span></span>
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<PlusOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenQuickCategoryModal();
+                      }}
+                      style={{ padding: 0, height: "auto", fontSize: 12, color: "#0D0D0D", fontWeight: 600 }}>
+                      + Thêm danh mục
+                    </Button>
+                  </div>
+                }
                 name="category_id"
                 rules={[{ required: true, message: "Vui lòng chọn danh mục" }]}>
                 <Select
-                  placeholder="Chọn danh mục"
+                  showSearch
+                  placeholder="Chọn danh mục sản phẩm"
+                  filterOption={(input, option) =>
+                    ((option?.label as string) || "").toLowerCase().includes(input.toLowerCase())
+                  }
                   style={{ borderRadius: 0 }}
-                  options={categories.map((c) => ({ value: c.category_id, label: c.name }))}
+                  options={categories.map((c) => ({
+                    value: c.category_id,
+                    label: c.parent_name ? `${c.parent_name} → ${c.name}` : (c.parent_id ? `↳ ${c.name}` : c.name),
+                  }))}
+                  dropdownRender={(menu) => (
+                    <>
+                      {menu}
+                      <Divider style={{ margin: "4px 0" }} />
+                      <div style={{ padding: "6px 12px" }}>
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<PlusOutlined />}
+                          onClick={handleOpenQuickCategoryModal}
+                          style={{ padding: 0, color: "#0D0D0D", fontWeight: 600 }}>
+                          + Tạo danh mục mới chưa có trong danh sách
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Thương hiệu" name="brand_id">
+              <Form.Item
+                label={
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                    <span>Thương hiệu</span>
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<PlusOutlined />}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenQuickBrandModal();
+                      }}
+                      style={{ padding: 0, height: "auto", fontSize: 12, color: "#0D0D0D", fontWeight: 600 }}>
+                      + Thêm thương hiệu
+                    </Button>
+                  </div>
+                }
+                name="brand_id">
                 <Select
+                  showSearch
                   placeholder="Chọn thương hiệu (nếu có)"
                   allowClear
+                  filterOption={(input, option) =>
+                    ((option?.label as string) || "").toLowerCase().includes(input.toLowerCase())
+                  }
                   style={{ borderRadius: 0 }}
                   options={brands.map((b) => ({ value: b.brand_id, label: b.name }))}
+                  dropdownRender={(menu) => (
+                    <>
+                      {menu}
+                      <Divider style={{ margin: "4px 0" }} />
+                      <div style={{ padding: "6px 12px" }}>
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<PlusOutlined />}
+                          onClick={handleOpenQuickBrandModal}
+                          style={{ padding: 0, color: "#0D0D0D", fontWeight: 600 }}>
+                          + Tạo thương hiệu mới chưa có trong danh sách
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 />
               </Form.Item>
             </Col>
@@ -880,12 +1061,43 @@ export default function AdminInventoryPage() {
                   style={{ width: "100%", borderRadius: 0 }}
                   formatter={(val) => (val ? `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "")}
                   parser={(val) => (val ? Number(val.replace(/\$\s?|(,*)/g, "")) : (undefined as any))}
+                  onChange={(val) => {
+                    if (val && !quickProductForm.getFieldValue("import_price")) {
+                      quickProductForm.setFieldValue("import_price", Math.round(Number(val) * 0.7));
+                    }
+                  }}
                 />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item label="Mã SKU (tự sinh nếu để trống)" name="sku">
-                <Input placeholder="VD: ASM-LUA-BLK-STD" style={{ borderRadius: 0 }} />
+              <Form.Item
+                label="Đơn giá nhập vốn đợt này (VNĐ)"
+                name="import_price"
+                tooltip="Giá vốn mua từ NCC để tính thành tiền trên phiếu nhập kho"
+                rules={[{ required: true, message: "Vui lòng nhập giá vốn nhập kho" }]}>
+                <InputNumber
+                  min={0}
+                  placeholder="VD: 1,200,000"
+                  style={{ width: "100%", borderRadius: 0 }}
+                  formatter={(val) => (val ? `${val}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "")}
+                  parser={(val) => (val ? Number(val.replace(/\$\s?|(,*)/g, "")) : (undefined as any))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                label="Số lượng nhập kho ban đầu"
+                name="quantity"
+                rules={[{ required: true, message: "Vui lòng nhập số lượng nhập" }]}>
+                <InputNumber min={1} placeholder="VD: 20" style={{ width: "100%", borderRadius: 0 }} />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Mã SKU (tự sinh duy nhất nếu để trống)" name="sku">
+                <Input placeholder="VD: ASM-LUA-BLK-STD (hoặc để trống)" style={{ borderRadius: 0 }} />
               </Form.Item>
             </Col>
           </Row>
@@ -946,6 +1158,77 @@ export default function AdminInventoryPage() {
               </Form.Item>
             </Col>
           </Row>
+        </Form>
+      </Modal>
+
+      {/* Modal Thêm Nhanh Danh Mục Sản Phẩm */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <AppstoreAddOutlined style={{ fontSize: 18, color: "#0D0D0D" }} />
+            <span style={{ fontFamily: "serif", fontSize: 18, fontWeight: 600 }}>
+              Thêm Nhanh Danh Mục Sản Phẩm
+            </span>
+          </div>
+        }
+        open={isQuickCategoryModalOpen}
+        onCancel={() => setIsQuickCategoryModalOpen(false)}
+        onOk={handleCreateQuickCategory}
+        okText="Lưu & Chọn Danh Mục Này"
+        cancelText="Hủy"
+        confirmLoading={quickCategoryLoading}
+        width={480}
+        styles={{ mask: { backdropFilter: "blur(4px)" } }}>
+        <Form form={quickCategoryForm} layout="vertical" style={{ marginTop: 12 }}>
+          <Form.Item
+            label="Tên danh mục"
+            name="name"
+            rules={[{ required: true, message: "Vui lòng nhập tên danh mục" }]}>
+            <Input placeholder="VD: Áo Blazer Nam, Chân Váy Midi..." style={{ borderRadius: 0 }} />
+          </Form.Item>
+
+          <Form.Item label="Danh mục cha (nếu là nhóm con)" name="parent_id">
+            <Select
+              allowClear
+              placeholder="-- Là danh mục gốc (không có cha) --"
+              style={{ borderRadius: 0 }}
+              options={categories
+                .filter((c) => !c.parent_id)
+                .map((c) => ({ value: c.category_id, label: c.name }))}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal Thêm Nhanh Thương Hiệu */}
+      <Modal
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <ShopOutlined style={{ fontSize: 18, color: "#0D0D0D" }} />
+            <span style={{ fontFamily: "serif", fontSize: 18, fontWeight: 600 }}>
+              Thêm Nhanh Thương Hiệu Mới
+            </span>
+          </div>
+        }
+        open={isQuickBrandModalOpen}
+        onCancel={() => setIsQuickBrandModalOpen(false)}
+        onOk={handleCreateQuickBrand}
+        okText="Lưu & Chọn Thương Hiệu Này"
+        cancelText="Hủy"
+        confirmLoading={quickBrandLoading}
+        width={480}
+        styles={{ mask: { backdropFilter: "blur(4px)" } }}>
+        <Form form={quickBrandForm} layout="vertical" style={{ marginTop: 12 }}>
+          <Form.Item
+            label="Tên thương hiệu"
+            name="name"
+            rules={[{ required: true, message: "Vui lòng nhập tên thương hiệu" }]}>
+            <Input placeholder="VD: Saint Laurent, Gucci, Chanel..." style={{ borderRadius: 0 }} />
+          </Form.Item>
+
+          <Form.Item label="Đường dẫn Logo (tùy chọn)" name="logo_url">
+            <Input placeholder="VD: https://... hoặc để trống" style={{ borderRadius: 0 }} />
+          </Form.Item>
         </Form>
       </Modal>
 
